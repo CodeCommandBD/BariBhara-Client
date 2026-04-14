@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
+import ErrorPage from './pages/ErrorPage.tsx';
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "/",
