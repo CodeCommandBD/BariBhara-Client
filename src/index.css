@@ -67,3 +67,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .bg-glass {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
