@@ -36,7 +36,7 @@ const Login = () => {
         </div>
 
         {/* Right Side: Login Form */}
-        <div className="w-full lg:w-1/2 bg-surface-container-low flex items-center justify-center p-8 overflow-y-auto">
+        <div className="w-full lg:w-1/2 bg-surface-container-high flex items-center justify-center p-8 overflow-y-auto">
           <div className="w-full max-w-md space-y-10">
             <div className="space-y-3">
               <h2 className="font-headline text-4xl font-bold text-on-surface">লগইন করুন</h2>
@@ -79,7 +79,7 @@ const Login = () => {
                 <label htmlFor="remember" className="text-sm text-on-surface-variant select-none cursor-pointer">আমাকে মনে রাখুন</label>
               </div>
 
-              <button className="w-full py-5 bg-gradient-to-r from-primary to-secondary text-[#F8FAFC] rounded-xl font-bold text-lg shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+              <button className="w-full py-5 btn-brand rounded-xl font-bold text-lg">
                 লগইন করুন
               </button>
             </form>

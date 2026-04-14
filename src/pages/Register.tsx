@@ -37,7 +37,7 @@ const Register = () => {
         </div>
 
         {/* Right Side: Registration Form */}
-        <div className="w-full lg:w-1/2 bg-surface-container-low flex items-center justify-center p-8 overflow-y-auto">
+        <div className="w-full lg:w-1/2 bg-surface-container-high flex items-center justify-center p-8 overflow-y-auto">
           <div className="w-full max-w-md space-y-10">
             <div className="space-y-3">
               <h2 className="font-headline text-4xl font-bold text-on-surface">অ্যাকাউন্ট তৈরি করুন</h2>
@@ -119,7 +119,7 @@ const Register = () => {
                 </div>
               </div>
 
-              <button className="w-full py-5 bg-gradient-to-r from-primary to-secondary text-[#F8FAFC] rounded-xl font-bold text-lg shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+              <button className="w-full py-5 btn-brand rounded-xl font-bold text-lg">
                 অ্যাকাউন্ট তৈরি করুন
               </button>
             </form>
