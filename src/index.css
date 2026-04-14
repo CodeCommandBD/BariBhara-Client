@@ -68,11 +68,15 @@
   }
 }
 
-@layer utilities {
-  .bg-glass {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
+@layer components {
+    .bg-glass {
+        @apply bg-white/20 backdrop-blur-xl border border-white/30 shadow-2xl;
+    }
+
+    /* Brand Gradient for all primary buttons */
+    .btn-brand {
+        @apply bg-gradient-to-r from-primary to-secondary text-[#F8FAFC] shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 active:scale-[0.98];
+    }
 }
 
 .material-symbols-outlined {
