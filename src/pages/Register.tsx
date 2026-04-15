@@ -4,9 +4,10 @@ import {useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {registerSchema, type RegisterFormData} from "@/schemas/authSchema"
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const  {registerUser, isLoading, error} = useAuth()
   const {register, handleSubmit, formState: {errors}} = useForm<RegisterFormData>({
@@ -21,7 +22,11 @@ const Register = () => {
   })
 
   const onSubmit = (data: any) =>{
-    registerUser(data)
+    registerUser(data,{
+      onSuccess: () => {
+        navigate("/login")
+      }
+    })
   }
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
