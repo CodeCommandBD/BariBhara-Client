@@ -1,6 +1,28 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "@/Hook/useAuth";
+import {useForm} from "react-hook-form"
+import {zodResolver} from "@hookform/resolvers/zod"
+import {registerSchema, type RegisterFormData} from "@/schemas/authSchema"
+import { useState } from "react";
 
 const Register = () => {
+
+  const [showPassword, setShowPassword] = useState(false)
+  const  {registerUser, isLoading, error} = useAuth()
+  const {register, handleSubmit, formState: {errors}} = useForm<RegisterFormData>({
+    defaultValues:{
+      role: "tenant",
+      fullName:"",
+      email: "",
+      phone: "",
+      password: ""
+    },
+    resolver: zodResolver(registerSchema)
+  })
+
+  const onSubmit = (data: any) =>{
+    registerUser(data)
+  }
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
       <main className="flex-grow flex h-screen overflow-hidden">
@@ -44,11 +66,19 @@ const Register = () => {
               <p className="text-on-surface-variant font-medium">Bari Bhara এ নতুন? শুরু করতে নিচের তথ্যগুলো পূরণ করুন।</p>
             </div>
             
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* error message */}
+              {error && (
+                <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
+                  {error.message}
+                </div>
+              )}
               {/* User Role Switcher - Premium Black & White Gradient Style */}
               <div className="p-1.5 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex border border-gray-300/50 shadow-inner overflow-hidden">
                 <label className="flex-1 cursor-pointer">
-                  <input defaultChecked className="sr-only peer" name="role" type="radio" value="tenant" />
+                  <input 
+                  {...register("role")}
+                  defaultChecked className="sr-only peer" name="role" type="radio" value="tenant" />
                   <div className="py-3.5 text-center rounded-xl font-bold transition-all duration-300 
                     peer-checked:bg-gradient-to-r peer-checked:from-gray-900 peer-checked:to-gray-800 
                     peer-checked:text-white peer-checked:shadow-xl 
@@ -57,7 +87,9 @@ const Register = () => {
                   </div>
                 </label>
                 <label className="flex-1 cursor-pointer">
-                  <input className="sr-only peer" name="role" type="radio" value="landlord" />
+                  <input 
+                  {...register("role")}
+                  className="sr-only peer" name="role" type="radio" value="landlord" />
                   <div className="py-3.5 text-center rounded-xl font-bold transition-all duration-300 
                     peer-checked:bg-gradient-to-r peer-checked:from-gray-900 peer-checked:to-gray-800 
                     peer-checked:text-white peer-checked:shadow-xl 
@@ -72,11 +104,13 @@ const Register = () => {
                   <label className="block text-sm font-semibold text-on-surface-variant mb-2 ml-1 italic">আপনার নাম</label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">person</span>
-                    <input 
+                    <input
+                        {...register("fullName")}
                         className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/50 shadow-sm" 
                         placeholder="পুরো নাম লিখুন" 
                         type="text" 
                     />
+                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName.message as string}</p>}
                   </div>
                 </div>
 
@@ -85,22 +119,26 @@ const Register = () => {
                     <label className="block text-sm font-semibold text-on-surface-variant mb-2 ml-1 italic">ইমেইল</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">mail</span>
-                      <input 
+                      <input
+                        {...register("email")}
                         className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/50 font-body shadow-sm" 
                         placeholder="example@mail.com" 
                         type="email" 
                       />
+                      {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message as string}</p>}
                     </div>
                   </div>
                   <div className="group">
                     <label className="block text-sm font-semibold text-on-surface-variant mb-2 ml-1 italic">ফোন নম্বর</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">phone_iphone</span>
-                      <input 
+                      <input
+                        {...register("phone")}
                         className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/50 font-body shadow-sm" 
                         placeholder="01XXX-XXXXXX" 
                         type="tel" 
                       />
+                      {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message as string}</p>}
                     </div>
                   </div>
                 </div>
@@ -109,18 +147,24 @@ const Register = () => {
                   <label className="block text-sm font-semibold text-on-surface-variant mb-2 ml-1 italic">পাসওয়ার্ড</label>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">lock</span>
-                    <input 
+                    <input
+                        {...register("password")}
                         className="w-full pl-12 pr-12 py-4 bg-white rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/50 font-body shadow-sm" 
                         placeholder="••••••••" 
-                        type="password" 
+                        type={ showPassword ? 'text' : 'password'} 
                     />
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer">visibility</span>
+                    {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message as string}</p>}
+                    <span
+                     onClick={()=>setShowPassword(!showPassword)} 
+                    className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer">{showPassword ? "visibility":"visibility_off"}</span>
                   </div>
                 </div>
               </div>
 
-              <button className="w-full py-5 btn-brand rounded-xl font-bold text-lg">
-                অ্যাকাউন্ট তৈরি করুন
+              <button 
+              disabled={isLoading}
+              className="w-full py-5 btn-brand rounded-xl font-bold text-lg">
+               {isLoading ? "রেজিস্ট্রেশন হচ্ছে..." : "অ্যাকাউন্ট তৈরি করুন"}
               </button>
             </form>
 
