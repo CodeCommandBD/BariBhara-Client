@@ -22,10 +22,26 @@ export const useAuth = () => {
     },
   });
 
+  const logingMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await axios.post('http://localhost:4000/api/auth/login', data)
+      return response.data
+    },
+    onSuccess(data){
+      setAuth(data.user, data.token)
+      toast.success("Login successfully!")
+    },
+    onError(error: any){
+      const message = error.response?.data?.message || "Login failed!"
+      toast.error(message)
+    }
+  })
+
   return {
     registerUser: registerMutation.mutate,
-    isLoading: registerMutation.isPending,
-    error: registerMutation.error,
-    isSuccess: registerMutation.isSuccess
+    loginUser: logingMutation.mutate,
+    isLoading: registerMutation.isPending || logingMutation.isPending,
+    error: registerMutation.error || logingMutation.error,
+    isSuccess: registerMutation.isSuccess || logingMutation.isSuccess
   };
-};
+};
