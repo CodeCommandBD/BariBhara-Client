@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/Hook/useAuth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormData } from "@/schemas/authSchema";
 
 const Login = () => {
-  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const { loginUser, isLoading, error } = useAuth();
     const {register, handleSubmit, formState: {errors}} = useForm<LoginFormData>({
@@ -19,11 +18,7 @@ const Login = () => {
     })
   
     const onSubmit = (data: LoginFormData) =>{
-      loginUser(data, {
-        onSuccess: () => {
-          navigate("/")
-        }
-      })
+      loginUser(data)
     }
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
