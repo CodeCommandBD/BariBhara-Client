@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
+import { toast } from 'sonner';
 import { useAuthStore } from '../store/useAuthStore'; // Fixed path from @/ to relative
 
 export const useAuth = () => {
@@ -13,9 +14,11 @@ export const useAuth = () => {
     onSuccess: (data) => {
       // Save both user and token to global state
       setAuth(data.user, data.token);
+      toast.success("Account created successfully!");
     },
-    onError: (error) => {
-      console.error("Registration Error:", error);
+    onError: (error: any) => {
+      const message = error.response?.data?.message || "Registration failed!";
+      toast.error(message);
     },
   });
 
