@@ -22,7 +22,7 @@ export const useAuth = () => {
     },
   });
 
-  const logingMutation = useMutation({
+  const loginMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await axios.post('http://localhost:4000/api/auth/login', data)
       return response.data
@@ -39,9 +39,9 @@ export const useAuth = () => {
 
   return {
     registerUser: registerMutation.mutate,
-    loginUser: logingMutation.mutate,
-    isLoading: registerMutation.isPending || logingMutation.isPending,
-    error: registerMutation.error || logingMutation.error,
-    isSuccess: registerMutation.isSuccess || logingMutation.isSuccess
+    loginUser: loginMutation.mutate,
+    isLoading: registerMutation.isPending || loginMutation.isPending,
+    error: registerMutation.error || loginMutation.error,
+    isSuccess: registerMutation.isSuccess || loginMutation.isSuccess
   };
 };
