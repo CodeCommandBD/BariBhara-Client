@@ -19,7 +19,7 @@ export const useAuth = () => {
       // Save both user and token to global state
       setAuth(data.user, data.token);
       toast.success("Account created successfully!");
-      navigate("/login")
+      navigate("/dashboard") // Directly to dashboard for premium experience
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || "Registration failed!";
