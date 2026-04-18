@@ -69,16 +69,37 @@
 }
 
 @layer components {
-    .bg-glass {
-        @apply bg-white/20 backdrop-blur-xl border border-white/30 shadow-2xl;
-    }
+  .bg-glass {
+    @apply bg-white/20 backdrop-blur-xl border border-white/30 shadow-2xl;
+  }
 
-    /* Brand Gradient for all primary buttons */
-    .btn-brand {
-        @apply bg-gradient-to-r from-primary to-secondary text-[#F8FAFC] shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 active:scale-[0.98];
-    }
+  /* Brand Gradient for all primary buttons */
+  .btn-brand {
+    @apply bg-gradient-to-r from-primary to-secondary text-[#F8FAFC] shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 active:scale-[0.98];
+  }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .tonal-layering {
+    background-color: #eef1f3;
+  }
 }
 
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f5f7f9;
+}
+h1, h2, h3, .brand-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
