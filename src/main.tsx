@@ -15,10 +15,13 @@ import ErrorPage from "./pages/ErrorPage.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import PublicRoute from "./components/PublicRoute.tsx";
+import MainLayout from "./components/layout/MainLayout.tsx";
+
 
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
+  // ১. পাবলিক রাউট (হোমপেজ, লগইন, রেজিস্ট্রেশন - এখানে সাইডবার থাকবে না)
   {
     path: "/",
     element: <App />,
@@ -32,29 +35,38 @@ const router = createBrowserRouter([
   },
   {
     path: "/register",
-    element: (
-      <PublicRoute>
-        <Register />
-      </PublicRoute>
-    ),
+    element: <PublicRoute><Register /></PublicRoute>,
   },
   {
     path: "/login",
-    element: (
-      <PublicRoute>
-        <Login />
-      </PublicRoute>
-    ),
+    element: <PublicRoute><Login /></PublicRoute>,
   },
+
+  // ২. প্রোটেক্টেড রাউট (ড্যাশবোর্ড এবং অন্যান্য - এখানে সাইডবার + টপবার থাকবে)
   {
-    path: "/dashboard",
+    path: "/",
     element: (
       <ProtectedRoute>
-        <Dashboard />
+        <MainLayout />
       </ProtectedRoute>
     ),
+    children: [
+      {
+        path: "dashboard", // এটি হবে /dashboard
+        element: <Dashboard />,
+      },
+      {
+        path: "properties", // এটি হবে /properties
+        element: <div>প্রপার্টি পেজ (শীঘ্রই আসছে)</div>,
+      },
+      {
+        path: "tenants", // এটি হবে /tenants
+        element: <div>ভাড়াটিয়া পেজ (শীঘ্রই আসছে)</div>,
+      },
+    ],
   },
 ]);
+ 
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
