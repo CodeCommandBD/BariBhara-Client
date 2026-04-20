@@ -10,12 +10,12 @@ const MainLayout = () => {
       <Sidebar />
 
       {/* ডান পাশের মূল অংশ */}
-      <div className="ml-72 flex flex-col min-h-screen">
+      <div className="lg:ml-72 flex flex-col min-h-screen transition-all duration-300">
         {/* উপরের টপবার */}
         <Topbar />
 
         {/* মেইন কন্টেন্ট এরিয়া */}
-        <main className="flex-1 pt-24 px-10 pb-12">
+        <main className="flex-1 lg:pt-24 pt-20 lg:px-10 px-4 pb-32 lg:pb-12">
           {/* এখানে আমাদের ড্যাশবোর্ড বা অন্যান্য পেজ দেখাবে */}
           <Outlet />
         </main>
