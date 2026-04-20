@@ -1,3 +1,4 @@
+import { useUIStore } from "@/store/useUIStore";
 import {
   LayoutDashboard,
   Building2,
@@ -10,7 +11,8 @@ import {
   LogOut,
 } from "lucide-react";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
   { icon: LayoutDashboard, label: "ড্যাশবোর্ড", path: "/dashboard" },
@@ -23,6 +25,15 @@ const navItems = [
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { openAddPropertyModal } = useUIStore(); 
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+  
   return (
     <aside className="h-screen w-72 fixed left-0 top-0 border-r border-white/20 bg-white/70 backdrop-blur-xl shadow-[40px_0_60px_-15px_rgba(0,0,0,0.05)] z-50 flex flex-col p-6 justify-between">
       <div className="space-y-8">
@@ -56,7 +67,9 @@ const Sidebar = () => {
         </nav>
 
         <div className="pt-4 px-2">
-          <button className="w-full bg-surface-container-low text-primary font-bold py-4 rounded-xl hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group">
+          <button 
+          onClick={openAddPropertyModal}
+          className="w-full bg-surface-container-low text-primary font-bold py-4 rounded-xl hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group">
             <PlusCircle
               size={20}
               className="group-hover:scale-110 transition-transform"
@@ -76,7 +89,10 @@ const Sidebar = () => {
             </span>
           </Link>
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-error hover:bg-error/5 transition-all">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-error hover:bg-error/5 transition-all"
+          >
             <LogOut size={20} />
             <span className="font-headline font-medium text-sm tracking-tight">
               লগআউট

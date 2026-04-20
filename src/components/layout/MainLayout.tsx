@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom"; // এটি মাঝখানের পেজগুলোকে দেখাবে
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import AddPropertyModal from "../modals/AddPropertyModal";
 
 const MainLayout = () => {
   return (
@@ -19,6 +20,7 @@ const MainLayout = () => {
           <Outlet />
         </main>
       </div>
+      <AddPropertyModal />
     </div>
   );
 };
