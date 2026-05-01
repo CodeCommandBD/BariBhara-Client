@@ -1,0 +1,126 @@
+import { useTenant } from "@/Hook/useTenant";
+import { Building2, MapPin, Phone, User, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const Tenants = () => {
+  const { tenants, isTenantsLoading } = useTenant();
+
+  if (isTenantsLoading) {
+    return (
+      <div className="p-10 flex items-center justify-center gap-3">
+        <div className="w-6 h-6 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <span className="font-bold text-slate-500">লোড হচ্ছে...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 p-6">
+      {/* হেডার */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <Users className="text-primary" size={26} /> ভাড়াটিয়া তালিকা
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            আপনার সকল সক্রিয় ভাড়াটিয়াদের কেন্দ্রীয় তালিকা
+          </p>
+        </div>
+        <div className="px-5 py-2.5 bg-primary/10 text-primary rounded-2xl font-black text-sm">
+          মোট: {tenants.length} জন
+        </div>
+      </div>
+
+      {/* খালি স্টেট */}
+      {tenants.length === 0 && (
+        <div className="text-center py-24 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <Users className="text-slate-300" size={36} />
+          </div>
+          <p className="text-slate-500 font-bold text-lg">কোনো ভাড়াটিয়া নেই</p>
+          <p className="text-slate-400 text-sm mt-1">
+            প্রপার্টির কোনো ইউনিটে ভাড়াটিয়া যোগ করুন
+          </p>
+          <Link
+            to="/properties"
+            className="inline-block mt-5 px-6 py-2.5 bg-primary text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20"
+          >
+            প্রপার্টি দেখুন
+          </Link>
+        </div>
+      )}
+
+      {/* ভাড়াটিয়া কার্ড গ্রিড */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {tenants.map((tenant: any) => (
+          <div
+            key={tenant._id}
+            className="bg-white rounded-[28px] border border-slate-100 shadow-sm hover:shadow-xl transition-all overflow-hidden group"
+          >
+            {/* কার্ড হেডার — প্রপার্টি তথ্য */}
+            <div className="bg-gradient-to-r from-primary/10 to-violet-50 px-5 py-3 flex items-center gap-2">
+              <Building2 size={14} className="text-primary" />
+              <p className="text-xs font-black text-primary truncate">
+                {tenant.property?.name}
+              </p>
+              <span className="ml-auto text-[10px] bg-white text-slate-500 px-2 py-0.5 rounded-full font-bold">
+                {tenant.unit?.unitName}
+              </span>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* ভাড়াটিয়ার প্রোফাইল */}
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-violet-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  {tenant.photo ? (
+                    <img
+                      src={tenant.photo.startsWith("http") ? tenant.photo : `http://localhost:4000/${tenant.photo}`}
+                      className="w-full h-full object-cover"
+                      alt={tenant.name}
+                    />
+                  ) : (
+                    <User className="text-primary" size={22} />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-black text-slate-800 truncate">{tenant.name}</h3>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Phone size={11} className="text-slate-400" />
+                    <span className="text-xs text-slate-500 font-bold">{tenant.phone}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ভাড়া ও লোকেশন */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <MapPin size={12} />
+                  <span className="text-xs font-bold truncate max-w-[140px]">{tenant.property?.location}</span>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] text-slate-400 font-black uppercase">মাসিক ভাড়া</p>
+                  <p className="text-base font-black text-primary">৳ {tenant.rentAmount?.toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* ইউনিট তথ্য */}
+              <div className="flex gap-2">
+                <span className="px-2.5 py-1 bg-slate-50 text-slate-500 rounded-xl text-[10px] font-black uppercase">
+                  {tenant.unit?.floor} তলা
+                </span>
+                <span className="px-2.5 py-1 bg-slate-50 text-slate-500 rounded-xl text-[10px] font-black uppercase">
+                  {tenant.unit?.type}
+                </span>
+                <span className="ml-auto px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase">
+                  সক্রিয়
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Tenants;

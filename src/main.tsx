@@ -16,8 +16,9 @@ import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import PublicRoute from "./components/PublicRoute.tsx";
 import MainLayout from "./components/layout/MainLayout.tsx";
-import Properties from "./pages/Properties"; 
+import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails.tsx";
+import Tenants from "./pages/Tenants.tsx";
 
 
 const queryClient = new QueryClient();
@@ -66,8 +67,8 @@ const router = createBrowserRouter([
         element: <PropertyDetails />,
       },
       {
-        path: "tenants", // এটি হবে /tenants
-        element: <div>ভাড়াটিয়া পেজ (শীঘ্রই আসছে)</div>,
+        path: "tenants",
+        element: <Tenants />,
       },
     ],
   },
