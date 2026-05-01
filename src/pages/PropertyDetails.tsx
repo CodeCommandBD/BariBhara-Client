@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Plus, ArrowLeft, Trash2, Edit3 } from "lucide-react";
+import { MapPin, Plus, ArrowLeft, Trash2, Edit3, UserPlus, Users } from "lucide-react";
 import { useProperty } from "@/Hook/useProperty"; // ১. বাড়ির তথ্য আনার হুক
 import { useUnit } from "@/Hook/useUnit";         // ২. ইউনিটের তথ্য এবং ডিলিট হুক
 import AddUnitModal from "@/components/modals/AddUnitModal"; // ৩. নতুন ইউনিট যোগ করার মডাল
 import EditPropertyModal from "@/components/modals/EditPropertyModal";
+import AssignTenantModal from "@/components/modals/AssignTenantModal";
+import TenantDetailModal from "@/components/modals/TenantDetailModal";
 
 const PropertyDetails = () => {
   const { id } = useParams();
-  const [isModalOpen, setModalOpen] = useState(false); // মডাল ওপেন/ক্লোজ স্টেট
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // এডিট মডাল স্টেট
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAssignModalOpen, setAssignModalOpen] = useState(false);
+  const [isTenantDetailOpen, setTenantDetailOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<any>(null);
   
   // ৪. হুকগুলো থেকে লাইভ ডাটা নিয়ে আসছি
   const { useSingleProperty } = useProperty();
@@ -117,19 +122,31 @@ const PropertyDetails = () => {
                      </span>
                   </td>
                   <td className="p-5 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                       <button className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all" title="Edit Unit">
-                          <Edit3 size={16} />
-                       </button>
-                       <button 
-                          onClick={() => { if(window.confirm("আপনি কি নিশ্চিত?")) deleteUnitMutation.mutate(unit._id) }}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all" 
-                          title="Delete Unit"
-                       >
-                          <Trash2 size={16} />
-                       </button>
-                    </div>
-                  </td>
+                     <div className="flex justify-end gap-2">
+                       {unit.status === "খালি" ? (
+                         <button
+                           onClick={() => { setSelectedUnit(unit); setAssignModalOpen(true); }}
+                           className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black hover:bg-emerald-500 hover:text-white transition-all"
+                         >
+                           <UserPlus size={13} /> ভাড়া দিন
+                         </button>
+                       ) : (
+                         <button
+                           onClick={() => { setSelectedUnit(unit); setTenantDetailOpen(true); }}
+                           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-black hover:bg-blue-500 hover:text-white transition-all"
+                         >
+                           <Users size={13} /> ভাড়াটিয়া দেখুন
+                         </button>
+                       )}
+                        <button 
+                           onClick={() => { if(window.confirm("আপনি কি নিশ্চিত?")) deleteUnitMutation.mutate(unit._id) }}
+                           className="p-1.5 text-red-400 hover:bg-red-50 rounded-xl transition-all" 
+                           title="Delete Unit"
+                        >
+                           <Trash2 size={14} />
+                        </button>
+                     </div>
+                   </td>
                 </tr>
               ))
             )}
@@ -137,18 +154,21 @@ const PropertyDetails = () => {
         </table>
       </div>
 
-      {/* ৮. অ্যাড ইউনিট মডাল কানেকশন */}
-      <AddUnitModal 
-        isOpen={isModalOpen} 
-        onClose={() => setModalOpen(false)} 
-        propertyId={id} 
+      <AddUnitModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} propertyId={id} />
+
+      <EditPropertyModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} property={property} />
+
+      <AssignTenantModal
+        isOpen={isAssignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        unit={selectedUnit}
+        propertyId={id || ""}
       />
 
-      {/* ৯. এডিট প্রপার্টি মডাল কানেকশন */}
-      <EditPropertyModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        property={property}
+      <TenantDetailModal
+        isOpen={isTenantDetailOpen}
+        onClose={() => setTenantDetailOpen(false)}
+        unitId={selectedUnit?._id}
       />
     </div>
   );
