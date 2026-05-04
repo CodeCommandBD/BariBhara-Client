@@ -1,0 +1,39 @@
+import axios from "axios";
+
+const BASE_URL = "http://localhost:4000/api/rent";
+
+const getAuthHeader = (token: string) => ({
+  Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
+});
+
+// ১. বিল জেনারেট করা
+export const generateInvoiceApi = async (data: any, token: string) => {
+  const res = await axios.post(`${BASE_URL}/generate`, data, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ২. পেমেন্ট কালেক্ট করা
+export const collectPaymentApi = async (data: any, token: string) => {
+  const res = await axios.post(`${BASE_URL}/collect`, data, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ৩. সব বকেয়া ইনভয়েস
+export const getPendingInvoicesApi = async (token: string) => {
+  const res = await axios.get(`${BASE_URL}/pending`, {
+    headers: getAuthHeader(token),
+  });
+  return res.data.invoices;
+};
+
+// ৪. ট্রানজেকশন হিস্টোরি
+export const getInvoiceTransactionsApi = async (invoiceId: string, token: string) => {
+  const res = await axios.get(`${BASE_URL}/transactions/${invoiceId}`, {
+    headers: getAuthHeader(token),
+  });
+  return res.data.transactions;
+};
