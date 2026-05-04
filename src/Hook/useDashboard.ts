@@ -1,37 +1,65 @@
-import { useQuery } from "@tanstack/react-query"; // ডাটা ফেচিং এবং ক্যাশিং ম্যানেজ করার জন্য
-import axios from "axios"; // HTTP request পাঠানোর জন্য
-import { useAuthStore } from "../store/useAuthStore"; // আমাদের বানানো অথেন্টিকেশন স্টোর থেকে টোকেন নিতে
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { useAuthStore } from "../store/useAuthStore";
 
-// এটি আমাদের কাস্টম হুক যা ড্যাশবোর্ডের সব তথ্য এনে দেবে
+const BASE_URL = "http://localhost:4000/api/dashboard";
+
+const getAuthHeader = (token: string) => ({
+  Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
+});
+
 export const useDashboard = () => {
-  // ১. লগইন করা ইউজারের সিকিউরিটি টোকেনটি স্টোর থেকে নিচ্ছি
   const { token } = useAuthStore();
 
-  //২. TanStack Query ব্যবহার করে ডাটা ফেচিং করছি
-  const {
-    data: stats,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["dashboard-stats"], // এই কী (key) ব্যবহার করে React Query ডাটা ক্যাশ করবে
+  // ১. মূল স্ট্যাটস (মোট প্রপার্টি, ইউনিট, আয়, বকেয়া, অকুপেন্সি)
+  const { data: statsData, isLoading, error } = useQuery({
+    queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      // এই ফাংশনটি আসলে ডাটা নিয়ে আসবে
-      const response = await axios.get("http://localhost:4000/api/dashboard/stats", {
-        // 3. মাস্ট বি Bearer টোকেন পাঠাতে হবে, অন্যথায় ব্যাকএন্ড ৪০১ এরর দেবে
-        headers: {
-          // আমরা চেক করে নিচ্ছি টোকেনের শুরুতে Bearer আছে কি না
-          Authorization: token?.startsWith("Bearer ")
-            ? token
-            : `Bearer ${token}`,
-        },
-      });
-      return response.data; // API থেকে পাওয়া ডাটা রিটার্ন করছি
+      const res = await axios.get(`${BASE_URL}/stats`, { headers: getAuthHeader(token!) });
+      return res.data;
     },
-    enabled: !!token, // টোকেন থাকলেই কেবল এই কোয়েরি চলবে
-    // ৭. যদি এপিআই ফেইল করে তবে ৩ বার চেষ্টা করবে (এটি রিঅ্যাক্ট কোয়েরির ডিফল্ট বিহেভিয়ার)
-    retry: 3,
+    enabled: !!token,
   });
 
-  // ৩. ডাটা লোডিং, এরর এবং মূল ডাটা রিটার্ন করছি
-  return { stats, isLoading, error };
+  // ২. গত ৬ মাসের আয়ের ট্রেন্ড
+  const { data: revenueData, isLoading: isRevenueLoading } = useQuery({
+    queryKey: ["revenue-analytics"],
+    queryFn: async () => {
+      const res = await axios.get(`${BASE_URL}/revenue-analytics`, { headers: getAuthHeader(token!) });
+      return res.data.revenueData;
+    },
+    enabled: !!token,
+  });
+
+  // ৩. সাম্প্রতিক ট্রানজেকশন
+  const { data: recentTransactions, isLoading: isTransactionsLoading } = useQuery({
+    queryKey: ["recent-transactions"],
+    queryFn: async () => {
+      const res = await axios.get(`${BASE_URL}/recent-transactions`, { headers: getAuthHeader(token!) });
+      return res.data.transactions;
+    },
+    enabled: !!token,
+  });
+
+  // ৪. লিজ এক্সপায়ারি অ্যালার্ট
+  const { data: leaseAlerts, isLoading: isAlertsLoading } = useQuery({
+    queryKey: ["lease-alerts"],
+    queryFn: async () => {
+      const res = await axios.get(`${BASE_URL}/lease-alerts`, { headers: getAuthHeader(token!) });
+      return res.data.expiringTenants;
+    },
+    enabled: !!token,
+  });
+
+  return {
+    stats: statsData?.stats,
+    isLoading,
+    error,
+    revenueData: revenueData ?? [],
+    isRevenueLoading,
+    recentTransactions: recentTransactions ?? [],
+    isTransactionsLoading,
+    leaseAlerts: leaseAlerts ?? [],
+    isAlertsLoading,
+  };
 };
