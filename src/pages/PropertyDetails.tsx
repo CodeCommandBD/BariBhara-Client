@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Plus, ArrowLeft, Trash2, Edit3, UserPlus, Users } from "lucide-react";
+import { MapPin, Plus, ArrowLeft, Trash2, Edit3, UserPlus, Users, PlusCircle } from "lucide-react";
 import { useProperty } from "@/Hook/useProperty"; // ১. বাড়ির তথ্য আনার হুক
 import { useUnit } from "@/Hook/useUnit";         // ২. ইউনিটের তথ্য এবং ডিলিট হুক
 import AddUnitModal from "@/components/modals/AddUnitModal"; // ৩. নতুন ইউনিট যোগ করার মডাল
 import EditPropertyModal from "@/components/modals/EditPropertyModal";
 import AssignTenantModal from "@/components/modals/AssignTenantModal";
 import TenantDetailModal from "@/components/modals/TenantDetailModal";
+import GenerateBillModal from "@/components/modals/GenerateBillModal";
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const PropertyDetails = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAssignModalOpen, setAssignModalOpen] = useState(false);
   const [isTenantDetailOpen, setTenantDetailOpen] = useState(false);
+  const [isBillModalOpen, setBillModalOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<any>(null);
   
   // ৪. হুকগুলো থেকে লাইভ ডাটা নিয়ে আসছি
@@ -117,8 +119,8 @@ const PropertyDetails = () => {
                   <td className="p-5 text-sm text-slate-500 tracking-tighter">{unit.floor} তলা</td>
                   <td className="p-5 font-bold text-slate-800">৳ {unit.rent?.toLocaleString()}</td>
                   <td className="p-5">
-                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase ${unit.status === 'Vacant' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                       {unit.status === 'Vacant' ? 'খালি' : 'ভাড়া হয়েছে'}
+                     <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase ${unit.status === 'খালি' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                       {unit.status}
                      </span>
                   </td>
                   <td className="p-5 text-right">
@@ -131,12 +133,21 @@ const PropertyDetails = () => {
                            <UserPlus size={13} /> ভাড়া দিন
                          </button>
                        ) : (
-                         <button
-                           onClick={() => { setSelectedUnit(unit); setTenantDetailOpen(true); }}
-                           className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-black hover:bg-blue-500 hover:text-white transition-all"
-                         >
-                           <Users size={13} /> ভাড়াটিয়া দেখুন
-                         </button>
+                         <div className="flex items-center gap-2">
+                           <button
+                             onClick={() => { setSelectedUnit(unit); setTenantDetailOpen(true); }}
+                             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-black hover:bg-blue-500 hover:text-white transition-all"
+                           >
+                             <Users size={13} /> ভাড়াটিয়া দেখুন
+                           </button>
+                           <button
+                             onClick={() => { setSelectedUnit(unit); setBillModalOpen(true); }}
+                             className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-xl text-xs font-black hover:bg-orange-500 hover:text-white transition-all"
+                             title="বিল তৈরি"
+                           >
+                             <PlusCircle size={13} /> বিল তৈরি
+                           </button>
+                         </div>
                        )}
                         <button 
                            onClick={() => { if(window.confirm("আপনি কি নিশ্চিত?")) deleteUnitMutation.mutate(unit._id) }}
@@ -169,6 +180,12 @@ const PropertyDetails = () => {
         isOpen={isTenantDetailOpen}
         onClose={() => setTenantDetailOpen(false)}
         unitId={selectedUnit?._id}
+      />
+
+      <GenerateBillModal 
+        isOpen={isBillModalOpen}
+        onClose={() => setBillModalOpen(false)}
+        tenant={selectedUnit?.currentTenant}
       />
     </div>
   );

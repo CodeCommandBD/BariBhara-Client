@@ -19,6 +19,7 @@ import MainLayout from "./components/layout/MainLayout.tsx";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails.tsx";
 import Tenants from "./pages/Tenants.tsx";
+import RentManagement from "./pages/RentManagement";
 
 
 const queryClient = new QueryClient();
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
       {
         path: "tenants",
         element: <Tenants />,
+      },
+      {
+        path: "payments",
+        element: <RentManagement />,
       },
     ],
   },
