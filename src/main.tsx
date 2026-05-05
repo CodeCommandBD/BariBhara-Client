@@ -22,6 +22,7 @@ import Tenants from "./pages/Tenants.tsx";
 import RentManagement from "./pages/RentManagement";
 import Maintenance from "./pages/Maintenance";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 
 const queryClient = new QueryClient();
@@ -84,6 +85,10 @@ const router = createBrowserRouter([
       {
         path: "reports",
         element: <Reports />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
       },
     ],
   },
