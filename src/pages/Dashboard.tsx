@@ -12,19 +12,14 @@ import OccupancyChart from "../components/dashboard/OccupancyChart";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import ActivityTable from "../components/dashboard/ActivityTable";
 import LeaseAlerts from "../components/dashboard/LeaseAlerts";
+import { DashboardSkeleton } from "@/components/ui/SkeletonLoaders";
 import { useUIStore } from "@/store/useUIStore";
 
 const Dashboard = () => {
   const { openAddPropertyModal } = useUIStore();
   const { stats, isLoading, error } = useDashboard();
 
-  if (isLoading)
-    return (
-      <div className="p-20 flex items-center justify-center gap-3">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <span className="font-bold text-slate-400">ড্যাশবোর্ড লোড হচ্ছে...</span>
-      </div>
-    );
+  if (isLoading) return <DashboardSkeleton />;
 
   if (error)
     return (
