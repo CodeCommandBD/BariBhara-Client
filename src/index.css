@@ -99,7 +99,25 @@
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f5f7f9;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 h1, h2, h3, .brand-text {
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ডার্ক মোড গ্লোবাল স্টাইল */
+.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+.dark {
+  --background: 222 47% 7%;
+  color-scheme: dark;
+}
+
+/* স্মুথ ট্রানজিশন */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
 }
