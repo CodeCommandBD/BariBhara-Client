@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useReports } from "@/Hook/useReports";
+import { useAuthStore } from "@/store/useAuthStore";
 import {
   BarChart3, Filter, Download, TrendingUp, TrendingDown,
   Wallet, AlertCircle, Calendar, Home, CheckCircle2, Clock, RefreshCw
@@ -8,6 +9,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
 } from "recharts";
+
+const BASE_URL = "http://localhost:4000/api/reports";
 
 const Reports = () => {
   const today = new Date();
@@ -18,8 +21,31 @@ const Reports = () => {
   const [appliedFilters, setAppliedFilters] = useState(filters);
 
   const { report, isReportLoading, properties } = useReports(appliedFilters);
+  const { token } = useAuthStore();
 
   const handleApply = () => setAppliedFilters({ ...filters });
+
+  // CSV ডাউনলোড হেল্পার
+  const downloadCSV = (type: "transactions" | "expenses") => {
+    const params = new URLSearchParams({
+      startDate: appliedFilters.startDate,
+      endDate: appliedFilters.endDate,
+    });
+    const authToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+    // fetch + blob দিয়ে ডাউনলোড
+    fetch(`${BASE_URL}/export/${type}?${params}`, {
+      headers: { Authorization: authToken }
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${type}-${appliedFilters.startDate}-to-${appliedFilters.endDate}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+  };
 
   const getStatusStyle = (status: string) => {
     if (status === "Paid") return "bg-emerald-100 text-emerald-700";
@@ -45,10 +71,25 @@ const Reports = () => {
       {/* হেডার */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <BarChart3 className="text-primary" size={26} /> রিপোর্ট ও বিশ্লেষণ
           </h1>
-          <p className="text-slate-500 text-sm mt-1">তারিখ ও প্রপার্টি অনুযায়ী আর্থিক বিবরণ দেখুন</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">তারিখ ও প্রপার্টি অনুযায়ী আর্থিক বিবরণ দেখুন</p>
+        </div>
+        {/* CSV Export বাটন */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => downloadCSV("transactions")}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-emerald-200 text-sm"
+          >
+            <Download size={15} /> লেনদেন CSV
+          </button>
+          <button
+            onClick={() => downloadCSV("expenses")}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 text-white font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-blue-200 text-sm"
+          >
+            <Download size={15} /> খরচ CSV
+          </button>
         </div>
       </div>
 
