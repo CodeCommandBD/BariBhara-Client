@@ -1,43 +1,199 @@
-import { Search, Bell } from "lucide-react";
-import { useAuthStore } from "@/store/useAuthStore"; // আপনার ইউজার ডাটা ব্যবহারের জন্য
+import { useState, useRef, useEffect } from "react";
+import { Search, Bell, Sun, Moon, Settings, LogOut, User, ChevronRight } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useThemeStore } from "@/store/useThemeStore";
+import { useDashboard } from "@/Hook/useDashboard";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Topbar = () => {
-  const { user } = useAuthStore(); // বর্তমান লগইন করা ইউজারের তথ্য
+  const { user, logout, token } = useAuthStore();
+  const { isDark, toggleTheme } = useThemeStore();
+  const { leaseAlerts } = useDashboard();
+  const navigate = useNavigate();
+
+  // প্রোফাইল ছবি লোড করা (Settings এ আপলোড করলে এখানেও auto update হবে)
+  const { data: profileData } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: async () => {
+      const res = await axios.get("http://localhost:4000/api/profile/me", {
+        headers: { Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}` },
+      });
+      return res.data.user;
+    },
+    enabled: !!token,
+    staleTime: 1000 * 60 * 5, // ৫ মিনিট cache
+  });
+
+  const profilePhoto = profileData?.photo || null;
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // বাইরে ক্লিক করলে বন্ধ হবে
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const alertCount = leaseAlerts?.length ?? 0;
+
   return (
-    <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] w-full h-20 z-40 bg-background/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-white/10">
-      {/* Search Bar - মোবাইলে ছোট হয়ে যাবে */}
-      <div className="flex items-center bg-white rounded-full px-4 py-2 lg:w-96 w-40 md:w-64 shadow-sm border border-slate-100 transition-all">
+    <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] w-full h-20 z-40 bg-background/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-white/10 dark:border-slate-700/50">
+      {/* সার্চ বার */}
+      <div className="flex items-center bg-white dark:bg-slate-800 rounded-full px-4 py-2 lg:w-96 w-40 md:w-64 shadow-sm border border-slate-100 dark:border-slate-700 transition-all">
         <Search size={18} className="text-slate-400 shrink-0" />
         <input
-          className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 ml-2"
+          className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 ml-2 dark:text-slate-200"
           placeholder="খুঁজুন..."
           type="text"
         />
       </div>
 
       {/* Right Side Actions */}
-      <div className="flex items-center gap-2 lg:gap-6">
-        <div className="hidden sm:flex items-center gap-2">
-          <div className="relative cursor-pointer hover:bg-white/50 p-2 rounded-full transition-colors">
-            <Bell size={20} className="text-on-surface-variant" />
-            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-error rounded-full border-2 border-background"></span>
-          </div>
+      <div className="flex items-center gap-2 lg:gap-4">
+
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="relative w-14 h-7 rounded-full transition-all duration-300 flex items-center px-1 shadow-inner"
+          style={{ background: isDark ? "#702ae1" : "#e2e8f0" }}
+          title={isDark ? "লাইট মোড" : "ডার্ক মোড"}
+        >
+          <span
+            className="w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center transition-all duration-300"
+            style={{ transform: isDark ? "translateX(28px)" : "translateX(0)" }}
+          >
+            {isDark
+              ? <Moon size={11} className="text-primary" />
+              : <Sun size={11} className="text-amber-500" />
+            }
+          </span>
+        </button>
+
+        {/* Notification Bell */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
+            className="relative p-2.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+          >
+            <Bell size={20} className="text-slate-600 dark:text-slate-300" />
+            {alertCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                {alertCount > 9 ? "9+" : alertCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notification Dropdown */}
+          {notifOpen && (
+            <div className="absolute right-0 top-14 w-80 bg-white dark:bg-slate-800 rounded-[24px] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">নোটিফিকেশন</h3>
+                {alertCount > 0 && (
+                  <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full">{alertCount}টি নতুন</span>
+                )}
+              </div>
+              <div className="max-h-72 overflow-y-auto">
+                {alertCount === 0 ? (
+                  <div className="p-8 text-center text-slate-400">
+                    <Bell className="mx-auto mb-2 opacity-30" size={32} />
+                    <p className="text-sm font-bold">কোনো নোটিফিকেশন নেই</p>
+                  </div>
+                ) : (
+                  leaseAlerts?.map((tenant: any) => {
+                    const daysLeft = Math.ceil(
+                      (new Date(tenant.leaseEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                    );
+                    return (
+                      <div key={tenant._id} className="p-4 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                            <Bell size={14} className="text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{tenant.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              চুক্তির মেয়াদ {daysLeft <= 0 ? "শেষ হয়ে গেছে!" : `${daysLeft} দিনের মধ্যে শেষ হবে`}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">{tenant.property?.name} • {tenant.unit?.unitName}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <Link
+                to="/dashboard"
+                onClick={() => setNotifOpen(false)}
+                className="flex items-center justify-center gap-1 p-3 text-primary text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+              >
+                সব দেখুন <ChevronRight size={14} />
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* User Profile Section */}
-        <div className="flex items-center gap-3 lg:pl-4 lg:border-l border-slate-200">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-bold leading-none capitalize">
-              {user?.fullName || "বাড়িওয়ালা"}
-            </p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm ring-1 ring-slate-100 shrink-0">
-            <img
-              alt="Profile"
-              className="w-full h-full object-cover"
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky"
-            />
-          </div>
+        {/* User Profile Dropdown */}
+        <div className="relative" ref={profileRef}>
+          <button
+            onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+            className="flex items-center gap-3 pl-3 lg:pl-4 lg:border-l border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl pr-2 py-1.5 transition-all"
+          >
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold leading-none capitalize dark:text-slate-200">
+                {user?.fullName || "বাড়িওয়ালা"}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5 capitalize">{user?.role || "landlord"}</p>
+            </div>
+            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm ring-1 ring-primary/20 shrink-0 flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-black text-sm">
+                  {user?.fullName?.charAt(0)?.toUpperCase() || "B"}
+                </span>
+              )}
+            </div>
+          </button>
+
+          {/* Profile Dropdown */}
+          {profileOpen && (
+            <div className="absolute right-0 top-14 w-52 bg-white dark:bg-slate-800 rounded-[20px] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-700">
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm capitalize">{user?.fullName}</p>
+                <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+              </div>
+              <div className="p-2 space-y-1">
+                <Link
+                  to="/settings"
+                  onClick={() => setProfileOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-bold"
+                >
+                  <Settings size={16} /> প্রোফাইল সেটিংস
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-sm font-bold"
+                >
+                  <LogOut size={16} /> লগআউট
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>
