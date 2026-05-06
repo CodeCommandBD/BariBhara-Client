@@ -36,7 +36,7 @@ const Properties = () => {
   // ৪. যদি ডাটা লোড হতে থাকে, তবে একটি টেক্সট দেখানো
   if (isPropertiesLoading)
     return (
-      <div className="p-10 text-center font-bold">
+      <div className="p-10 text-center font-bold text-slate-500 dark:text-slate-400">
         আপনার প্রপার্টি লোড হচ্ছে...
       </div>
     );
@@ -46,10 +46,10 @@ const Properties = () => {
       {/* ৪. হেডার সেকশন */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 font-headline">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 font-headline">
             আপনার প্রপার্টিসমূহ
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             আপনার মালিকানাধীন সব বিল্ডিং এবং হাউজিং প্রকল্পের তালিকা
           </p>
         </div>
@@ -67,7 +67,7 @@ const Properties = () => {
         {properties?.map((property: any) => (
           <div
             key={property._id}
-            className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
+            className="bg-white dark:bg-slate-800 rounded-[32px] overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl dark:hover:shadow-slate-900/40 transition-all group"
           >
             {/* ছবির সেকশন */}
             <div className="relative h-56 overflow-hidden">
@@ -137,24 +137,24 @@ const Properties = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">
+                <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
                   {property.name}
                 </h3>
-                <p className="text-slate-500 text-sm flex items-center gap-2">
+                <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2">
                   <MapPin size={14} /> {property.location}
                 </p>
               </div>
-              <div className="flex justify-between items-center pt-5 border-t border-slate-50">
-                <div className="flex items-center gap-3 text-slate-600">
-                  <div className="p-2.5 bg-slate-100 rounded-xl">
-                    <Building2 size={18} className="text-slate-500" />
+              <div className="flex justify-between items-center pt-5 border-t border-slate-50 dark:border-slate-700">
+                <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                  <div className="p-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                    <Building2 size={18} className="text-slate-500 dark:text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-400 uppercase font-black">স্ট্রাকচার</p>
-                    <p className="text-xs font-bold">{property.totalFloors} তলা বিল্ডিং</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black">স্ট্রাকচার</p>
+                    <p className="text-xs font-bold dark:text-slate-200">{property.totalFloors} তলা বিল্ডিং</p>
                   </div>
                 </div>
-                <Link to={`/properties/${property._id}`} className="px-4 py-2 bg-slate-50 text-primary text-xs font-bold rounded-xl hover:bg-primary hover:text-white transition-all">
+                <Link to={`/properties/${property._id}`} className="px-4 py-2 bg-slate-50 dark:bg-slate-700 text-primary text-xs font-bold rounded-xl hover:bg-primary hover:text-white transition-all">
                   ডিটেইলস দেখুন
                 </Link>
               </div>
@@ -164,7 +164,7 @@ const Properties = () => {
       </div>
 
        {properties?.length === 0 && (
-        <div className="text-center py-20 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
+        <div className="text-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-700">
            <p className="text-slate-500 font-bold">আপনার কোনো বিল্ডিং এখনো যুক্ত করা হয়নি!</p>
         </div>
        )}
