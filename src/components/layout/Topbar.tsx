@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, Sun, Moon, Settings, LogOut, User, ChevronRight } from "lucide-react";
+import { Search, Bell, Sun, Moon, Settings, LogOut, User, ChevronRight, Building2, Users, CreditCard } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useDashboard } from "@/Hook/useDashboard";
@@ -50,17 +50,102 @@ const Topbar = () => {
 
   const alertCount = leaseAlerts?.length ?? 0;
 
+  // --- Global Search ---
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const { data: searchResults } = useQuery({
+    queryKey: ["global-search", searchQuery],
+    queryFn: async () => {
+      if (searchQuery.length < 2) return null;
+      const res = await axios.get(`http://localhost:4000/api/search?q=${searchQuery}`, {
+        headers: { Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}` },
+      });
+      return res.data.results;
+    },
+    enabled: searchQuery.length >= 2,
+  });
+
+  // সার্চ বারের বাইরে ক্লিক করলে বন্ধ
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   return (
     <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] w-full h-20 z-40 bg-background/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-white/10 dark:border-slate-700/50">
       {/* সার্চ বার */}
-      <div className="flex items-center bg-white dark:bg-slate-800 rounded-full px-4 py-2 lg:w-96 w-40 md:w-64 shadow-sm border border-slate-100 dark:border-slate-700 transition-all">
-        <Search size={18} className="text-slate-400 shrink-0" />
-        <input
-          className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 ml-2 dark:text-slate-200"
-          placeholder="খুঁজুন..."
-          type="text"
-        />
+      {/* \u0997\u09cd\u09b2\u09cb\u09ac\u09be\u09b2 \u09b8\u09be\u09b0\u09cd\u099a \u09ac\u09be\u09b0 */}
+      <div ref={searchRef} className="relative lg:w-96 w-40 md:w-64">
+        <div className="flex items-center bg-white dark:bg-slate-800 rounded-full px-4 py-2 shadow-sm border border-slate-100 dark:border-slate-700 transition-all">
+          <Search size={18} className="text-slate-400 shrink-0" />
+          <input
+            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 ml-2 dark:text-slate-200 outline-none"
+            placeholder="টেনেন্ট, প্রপার্টি খুঁজুন..."
+            type="text"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+            onFocus={() => setSearchOpen(true)}
+          />
+        </div>
+
+        {/* \u09b8\u09be\u09b0\u09cd\u099a \u09b0\u09bf\u099c\u09be\u09b2\u09cd\u099f \u09a1\u09cd\u09b0\u09aa\u09a1\u09be\u0989\u09a8 */}
+        {searchOpen && searchQuery.length >= 2 && searchResults && (
+          <div className="absolute top-full mt-2 left-0 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
+            {/* \u099f\u09c7\u09a8\u09c7\u09a8\u09cd\u099f */}
+            {searchResults.tenants?.length > 0 && (
+              <div>
+                <p className="px-4 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase flex items-center gap-1">
+                  <Users size={10} /> ভাড়াটিয়া
+                </p>
+                {searchResults.tenants.map((t: any) => (
+                  <Link key={t._id} to="/tenants" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                    <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary font-black text-xs">
+                      {t.name?.charAt(0)?.toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t.name}</p>
+                      <p className="text-xs text-slate-400">{t.phone}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            {/* \u09aa\u09cd\u09b0\u09aa\u09be\u09b0\u09cd\u099f\u09bf */}
+            {searchResults.properties?.length > 0 && (
+              <div>
+                <p className="px-4 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase flex items-center gap-1">
+                  <Building2 size={10} /> প্রপার্টি
+                </p>
+                {searchResults.properties.map((p: any) => (
+                  <Link key={p._id} to="/properties" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                    <div className="w-7 h-7 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                      <Building2 size={13} className="text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{p.name}</p>
+                      <p className="text-xs text-slate-400">{p.address}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            {/* কোনো ফলাফল না থাকলে */}
+            {searchResults.tenants?.length === 0 && searchResults.properties?.length === 0 && (
+              <div className="p-6 text-center">
+                <p className="text-sm font-bold text-slate-400">কোনো ফলাফল পাওয়া যায়নি</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-2 lg:gap-4">

@@ -17,12 +17,12 @@ export const addTenantApi = async (formData: FormData, token: string) => {
   return res.data;
 };
 
-// ২. সকল ভাড়াটিয়ার তালিকা
-export const getAllTenantsApi = async (token: string) => {
-  const res = await axios.get(`${BASE_URL}/all`, {
+// ২. সকল ভাড়াটিয়ার তালিকা (Pagination সহ)
+export const getAllTenantsApi = async (token: string, page = 1, limit = 9) => {
+  const res = await axios.get(`${BASE_URL}/all?page=${page}&limit=${limit}`, {
     headers: getAuthHeader(token),
   });
-  return res.data.tenants;
+  return res.data; // { tenants, total, page, totalPages }
 };
 
 // ৩. নির্দিষ্ট ইউনিটের ভাড়াটিয়া
