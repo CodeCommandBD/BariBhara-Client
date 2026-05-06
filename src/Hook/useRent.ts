@@ -8,27 +8,32 @@ import {
   getInvoiceTransactionsApi,
 } from "@/api/rent.api";
 
-export const useRent = () => {
+export const useRent = (page = 1, limit = 10) => {
   const queryClient = useQueryClient();
   const { token } = useAuthStore();
 
-  // --- ১. সব বকেয়া ইনভয়েস লোড করা ---
-  const { data: pendingInvoices = [], isLoading: isPendingLoading } = useQuery({
-    queryKey: ["pending-invoices"],
-    queryFn: () => getPendingInvoicesApi(token!),
+  // --- ১. সব বকেয়া ইনভয়েস লোড করা (Pagination সহ) ---
+  const { data, isLoading: isPendingLoading } = useQuery({
+    queryKey: ["pending-invoices", page, limit],
+    queryFn: () => getPendingInvoicesApi(token!, page, limit),
     enabled: !!token,
+    placeholderData: (prev) => prev,
   });
+
+  const pendingInvoices: any[] = data?.invoices ?? [];
+  const total: number = data?.total ?? 0;
+  const totalPages: number = data?.totalPages ?? 1;
 
   // --- ২. বিল জেনারেট মিউটেশন ---
   const generateInvoiceMutation = useMutation({
     mutationFn: (data: any) => generateInvoiceApi(data, token!),
     onSuccess: (res) => {
-      toast.success(res.message || "বিল তৈরি হয়েছে!");
+      toast.success(res.message || "বিল তৈরি হয়েছে!");
       queryClient.invalidateQueries({ queryKey: ["pending-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "বিল তৈরি করতে সমস্যা হয়েছে!");
+      toast.error(error.response?.data?.message || "বিল তৈরি করতে সমস্যা হয়েছে!");
     },
   });
 
@@ -36,12 +41,12 @@ export const useRent = () => {
   const collectPaymentMutation = useMutation({
     mutationFn: (data: any) => collectPaymentApi(data, token!),
     onSuccess: (res) => {
-      toast.success(res.message || "পেমেন্ট সম্পন্ন হয়েছে!");
+      toast.success(res.message || "পেমেন্ট সম্পন্ন হয়েছে!");
       queryClient.invalidateQueries({ queryKey: ["pending-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "পেমেন্ট নিতে সমস্যা হয়েছে!");
+      toast.error(error.response?.data?.message || "পেমেন্ট নিতে সমস্যা হয়েছে!");
     },
   });
 
@@ -55,6 +60,8 @@ export const useRent = () => {
 
   return {
     pendingInvoices,
+    total,
+    totalPages,
     isPendingLoading,
     generateInvoiceMutation,
     collectPaymentMutation,

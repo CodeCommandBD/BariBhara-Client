@@ -22,12 +22,12 @@ export const collectPaymentApi = async (data: any, token: string) => {
   return res.data;
 };
 
-// ৩. সব বকেয়া ইনভয়েস
-export const getPendingInvoicesApi = async (token: string) => {
-  const res = await axios.get(`${BASE_URL}/pending`, {
+// ৩. সব বকেয়া ইনভয়েস — Pagination সহ
+export const getPendingInvoicesApi = async (token: string, page = 1, limit = 10) => {
+  const res = await axios.get(`${BASE_URL}/pending?page=${page}&limit=${limit}`, {
     headers: getAuthHeader(token),
   });
-  return res.data.invoices;
+  return res.data; // { invoices, total, page, totalPages }
 };
 
 // ৪. ট্রানজেকশন হিস্টোরি

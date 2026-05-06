@@ -9,16 +9,21 @@ import {
   vacateTenantApi,
 } from "@/api/tenant.api";
 
-export const useTenant = () => {
+export const useTenant = (page = 1, limit = 9) => {
   const queryClient = useQueryClient();
   const { token } = useAuthStore();
 
   // --- ১. সকল ভাড়াটিয়া লোড করার কুয়েরি ---
-  const { data: tenants = [], isLoading: isTenantsLoading } = useQuery({
-    queryKey: ["tenants"],
-    queryFn: () => getAllTenantsApi(token!),
+  const { data, isLoading: isTenantsLoading } = useQuery({
+    queryKey: ["tenants", page, limit],
+    queryFn: () => getAllTenantsApi(token!, page, limit),
     enabled: !!token,
+    placeholderData: (prev) => prev, // smooth page transitions
   });
+
+  const tenants: any[] = data?.tenants ?? [];
+  const total: number = data?.total ?? 0;
+  const totalPages: number = data?.totalPages ?? 1;
 
   // --- ২. একটি নির্দিষ্ট ইউনিটের ভাড়াটিয়া ---
   const useGetTenantByUnit = (unitId: string | undefined) =>
@@ -76,6 +81,8 @@ export const useTenant = () => {
   return {
     // ডাটা
     tenants,
+    total,
+    totalPages,
     isTenantsLoading,
     // কুয়েরি (ফাংশন হিসেবে)
     useGetTenantByUnit,
