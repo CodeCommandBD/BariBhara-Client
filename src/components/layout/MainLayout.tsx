@@ -4,9 +4,11 @@ import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import AddPropertyModal from "../modals/AddPropertyModal";
 import { useThemeStore } from "@/store/useThemeStore";
+import { useSocket } from "@/Hook/useSocket";
 
 const MainLayout = () => {
   const { isDark } = useThemeStore();
+  useSocket(); // 🔌 Real-time socket connection শুরু করা
 
   // App লোড হলে সেভ করা থিম DOM-এ প্রয়োগ করা
   useEffect(() => {
