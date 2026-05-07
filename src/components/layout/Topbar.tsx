@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Bell, Sun, Moon, Settings, LogOut, User, ChevronRight, Building2, Users, CreditCard } from "lucide-react";
+import { Search, Sun, Moon, ChevronRight, Building2, Users } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useDashboard } from "@/Hook/useDashboard";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import NotificationBell from "@/components/ui/NotificationBell";
 
 const Topbar = () => {
   const { user, logout, token } = useAuthStore();
@@ -168,69 +169,8 @@ const Topbar = () => {
           </span>
         </button>
 
-        {/* Notification Bell */}
-        <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
-            className="relative p-2.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-          >
-            <Bell size={20} className="text-slate-600 dark:text-slate-300" />
-            {alertCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-                {alertCount > 9 ? "9+" : alertCount}
-              </span>
-            )}
-          </button>
-
-          {/* Notification Dropdown */}
-          {notifOpen && (
-            <div className="absolute right-0 top-14 w-80 bg-white dark:bg-slate-800 rounded-[24px] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">নোটিফিকেশন</h3>
-                {alertCount > 0 && (
-                  <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full">{alertCount}টি নতুন</span>
-                )}
-              </div>
-              <div className="max-h-72 overflow-y-auto">
-                {alertCount === 0 ? (
-                  <div className="p-8 text-center text-slate-400">
-                    <Bell className="mx-auto mb-2 opacity-30" size={32} />
-                    <p className="text-sm font-bold">কোনো নোটিফিকেশন নেই</p>
-                  </div>
-                ) : (
-                  leaseAlerts?.map((tenant: any) => {
-                    const daysLeft = Math.ceil(
-                      (new Date(tenant.leaseEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-                    );
-                    return (
-                      <div key={tenant._id} className="p-4 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
-                            <Bell size={14} className="text-amber-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{tenant.name}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                              চুক্তির মেয়াদ {daysLeft <= 0 ? "শেষ হয়ে গেছে!" : `${daysLeft} দিনের মধ্যে শেষ হবে`}
-                            </p>
-                            <p className="text-[10px] text-slate-400 mt-0.5">{tenant.property?.name} • {tenant.unit?.unitName}</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-              <Link
-                to="/dashboard"
-                onClick={() => setNotifOpen(false)}
-                className="flex items-center justify-center gap-1 p-3 text-primary text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-              >
-                সব দেখুন <ChevronRight size={14} />
-              </Link>
-            </div>
-          )}
-        </div>
+        {/* 🔔 Real-time Notification Bell */}
+        <NotificationBell />
 
         {/* User Profile Dropdown */}
         <div className="relative" ref={profileRef}>
