@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 
-import { createBrowserRouter } from "react-router";
-import { RouterProvider } from "react-router/dom";
+import { createBrowserRouter, Navigate } from "react-router";
+import { RouterProvider } from "react-router-dom";
 import Home from "./components/Home.tsx";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,10 +25,18 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 
 
+// Tenant Portal Components
+import TenantProtectedRoute from "./components/TenantProtectedRoute";
+import TenantLogin from "./pages/tenant/TenantLogin";
+import TenantLayout from "./components/layout/TenantLayout";
+import TenantDashboard from "./pages/tenant/TenantDashboard";
+import TenantInvoices from "./pages/tenant/TenantInvoices";
+import TenantMaintenance from "./pages/tenant/TenantMaintenance";
+
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
-  // ১. পাবলিক রাউট (হোমপেজ, লগইন, রেজিস্ট্রেশন - এখানে সাইডবার থাকবে না)
+  // ১. পাবলিক রাউট (হোমপেজ, লগইন, রেজিস্ট্রেশন)
   {
     path: "/",
     element: <App />,
@@ -49,7 +57,7 @@ const router = createBrowserRouter([
     element: <PublicRoute><Login /></PublicRoute>,
   },
 
-  // ২. প্রোটেক্টেড রাউট (ড্যাশবোর্ড এবং অন্যান্য - এখানে সাইডবার + টপবার থাকবে)
+  // ২. ল্যান্ডলর্ড প্রোটেক্টেড রাউট
   {
     path: "/",
     element: (
@@ -59,15 +67,15 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "dashboard", // এটি হবে /dashboard
+        path: "dashboard",
         element: <Dashboard />,
       },
       {
-        path: "properties", // এটি হবে /properties
+        path: "properties",
         element: <Properties />,
       },
       {
-        path: "properties/:id", // এটি হবে /properties/:id
+        path: "properties/:id",
         element: <PropertyDetails />,
       },
       {
@@ -92,8 +100,39 @@ const router = createBrowserRouter([
       },
     ],
   },
+
+  // ৩. টেনেন্ট পোর্টাল রাউট
+  {
+    path: "/tenant/login",
+    element: <TenantLogin />,
+  },
+  {
+    path: "/tenant",
+    element: (
+      <TenantProtectedRoute>
+        <TenantLayout />
+      </TenantProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <TenantDashboard />,
+      },
+      {
+        path: "invoices",
+        element: <TenantInvoices />,
+      },
+      {
+        path: "maintenance",
+        element: <TenantMaintenance />,
+      },
+    ],
+  },
 ]);
- 
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -102,5 +141,5 @@ createRoot(document.getElementById("root")!).render(
       <RouterProvider router={router} />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
-  </StrictMode>,
+  </StrictMode>
 );
