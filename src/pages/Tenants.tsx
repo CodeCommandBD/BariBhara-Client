@@ -3,11 +3,14 @@ import { useTenant } from "@/Hook/useTenant";
 import { Building2, MapPin, Phone, User, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "@/components/ui/Pagination";
+import TenantPortalAccessModal from "@/components/modals/TenantPortalAccessModal";
+import { ShieldCheck, ShieldOff } from "lucide-react";
 
 const ITEMS_PER_PAGE = 9;
 
 const Tenants = () => {
   const [page, setPage] = useState(1);
+  const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const { tenants, total, totalPages, isTenantsLoading } = useTenant(page, ITEMS_PER_PAGE);
 
   if (isTenantsLoading) {
@@ -122,6 +125,20 @@ const Tenants = () => {
                       সক্রিয়
                     </span>
                   </div>
+
+                  {/* পোর্টাল অ্যাক্সেস বাটন */}
+                  <div className="pt-4 border-t border-slate-50 dark:border-slate-700">
+                    <button
+                      onClick={() => setSelectedTenant(tenant)}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                    >
+                      {tenant.portalEnabled ? (
+                        <><ShieldCheck size={16} className="text-emerald-500" /> পোর্টাল এনাবলড</>
+                      ) : (
+                        <><ShieldOff size={16} className="text-slate-400" /> পোর্টাল অ্যাক্সেস দিন</>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -137,6 +154,13 @@ const Tenants = () => {
           />
         </>
       )}
+
+      {/* Modal */}
+      <TenantPortalAccessModal
+        isOpen={!!selectedTenant}
+        onClose={() => setSelectedTenant(null)}
+        tenant={selectedTenant}
+      />
     </div>
   );
 };
