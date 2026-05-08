@@ -15,14 +15,21 @@ const Login = () => {
 
   // Landlord Auth
   const { loginUser, isLoading: isLandlordLoading, error } = useAuth();
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
     defaultValues: { email: "", password: "" },
-    resolver: zodResolver(loginSchema)
+    resolver: zodResolver(loginSchema),
   });
 
   // Tenant Auth
   const { login: tenantLoginStore } = useTenantAuthStore();
-  const [tenantFormData, setTenantFormData] = useState({ identifier: "", password: "" });
+  const [tenantFormData, setTenantFormData] = useState({
+    identifier: "",
+    password: "",
+  });
   const [isTenantLoading, setIsTenantLoading] = useState(false);
 
   // Submit Handlers
@@ -34,7 +41,10 @@ const Login = () => {
     e.preventDefault();
     setIsTenantLoading(true);
     try {
-      const res = await axios.post("http://localhost:4000/api/tenant-portal/login", tenantFormData);
+      const res = await axios.post(
+        "http://localhost:4000/api/tenant-portal/login",
+        tenantFormData,
+      );
       if (res.data.success) {
         tenantLoginStore(res.data.tenant, res.data.token);
         toast.success(res.data.message);
@@ -131,7 +141,10 @@ const Login = () => {
             </div>
 
             {role === "landlord" ? (
-              <form onSubmit={handleSubmit(onLandlordSubmit)} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <form
+                onSubmit={handleSubmit(onLandlordSubmit)}
+                className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              >
                 <div className="space-y-4">
                   {error && (
                     <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
@@ -187,9 +200,10 @@ const Login = () => {
                           {errors.password.message}
                         </p>
                       )}
-                      <span 
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer">
+                      <span
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer"
+                      >
                         {showPassword ? "visibility_off" : "visibility"}
                       </span>
                     </div>
@@ -210,12 +224,19 @@ const Login = () => {
                   </label>
                 </div>
 
-                <button type="submit" disabled={isLandlordLoading} className="w-full py-5 btn-brand rounded-xl font-bold text-lg">
+                <button
+                  type="submit"
+                  disabled={isLandlordLoading}
+                  className="w-full py-5 btn-brand rounded-xl font-bold text-lg"
+                >
                   {isLandlordLoading ? "লগইন হচ্ছে..." : "লগইন করুন"}
                 </button>
               </form>
             ) : (
-              <form onSubmit={onTenantSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <form
+                onSubmit={onTenantSubmit}
+                className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300"
+              >
                 <div className="space-y-4">
                   <div className="group">
                     <label className="block text-sm font-semibold text-on-surface-variant mb-2 ml-1 italic">
@@ -228,7 +249,12 @@ const Login = () => {
                       <input
                         required
                         value={tenantFormData.identifier}
-                        onChange={(e) => setTenantFormData({...tenantFormData, identifier: e.target.value})}
+                        onChange={(e) =>
+                          setTenantFormData({
+                            ...tenantFormData,
+                            identifier: e.target.value,
+                          })
+                        }
                         className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/50 font-body shadow-sm"
                         placeholder="01XXXXXXXXX বা ইমেইল"
                         type="text"
@@ -247,24 +273,38 @@ const Login = () => {
                       <input
                         required
                         value={tenantFormData.password}
-                        onChange={(e) => setTenantFormData({...tenantFormData, password: e.target.value})}
+                        onChange={(e) =>
+                          setTenantFormData({
+                            ...tenantFormData,
+                            password: e.target.value,
+                          })
+                        }
                         className="w-full pl-12 pr-12 py-4 bg-white rounded-xl border border-outline/10 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline/50 font-body shadow-sm"
                         placeholder="••••••••"
                         type={showPassword ? "text" : "password"}
                       />
-                      <span 
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer">
+                      <span
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant cursor-pointer"
+                      >
                         {showPassword ? "visibility_off" : "visibility"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <button type="submit" disabled={isTenantLoading} className="w-full py-5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-lg transition-all">
-                  {isTenantLoading ? "লগইন হচ্ছে..." : "ভাড়াটিয়া হিসেবে লগইন করুন"}
+                <button
+                  type="submit"
+                  disabled={isTenantLoading}
+                  className="w-full py-5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-lg transition-all"
+                >
+                  {isTenantLoading
+                    ? "লগইন হচ্ছে..."
+                    : "ভাড়াটিয়া হিসেবে লগইন করুন"}
                 </button>
-                <p className="text-center text-xs text-gray-500 font-bold mt-4">লগইন করতে সমস্যা হলে আপনার মালিকের সাথে যোগাযোগ করুন।</p>
+                <p className="text-center text-xs text-gray-500 font-bold mt-4">
+                  লগইন করতে সমস্যা হলে আপনার মালিকের সাথে যোগাযোগ করুন।
+                </p>
               </form>
             )}
 
