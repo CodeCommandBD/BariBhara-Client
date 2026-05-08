@@ -10,7 +10,6 @@ const Register = () => {
   const  {registerUser, isLoading, error} = useAuth()
   const {register, handleSubmit, formState: {errors}} = useForm<RegisterFormData>({
     defaultValues:{
-      role: "tenant",
       fullName:"",
       email: "",
       phone: "",
@@ -72,32 +71,7 @@ const Register = () => {
                   {error.message}
                 </div>
               )}
-              {/* User Role Switcher - Premium Black & White Gradient Style */}
-              <div className="p-1.5 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex border border-gray-300/50 shadow-inner overflow-hidden">
-                <label className="flex-1 cursor-pointer">
-                  <input 
-                  {...register("role")}
-                  defaultChecked className="sr-only peer" name="role" type="radio" value="tenant" />
-                  <div className="py-3.5 text-center rounded-xl font-bold transition-all duration-300 
-                    peer-checked:bg-gradient-to-r peer-checked:from-gray-900 peer-checked:to-gray-800 
-                    peer-checked:text-white peer-checked:shadow-xl 
-                    text-gray-500 hover:text-gray-800">
-                    ভাড়াটিয়া (Tenant)
-                  </div>
-                </label>
-                <label className="flex-1 cursor-pointer">
-                  <input 
-                  {...register("role")}
-                  className="sr-only peer" name="role" type="radio" value="landlord" />
-                  <div className="py-3.5 text-center rounded-xl font-bold transition-all duration-300 
-                    peer-checked:bg-gradient-to-r peer-checked:from-gray-900 peer-checked:to-gray-800 
-                    peer-checked:text-white peer-checked:shadow-xl 
-                    text-gray-500 hover:text-gray-800">
-                    বাড়িওয়ালা (Landlord)
-                  </div>
-                </label>
-              </div>
-
+              
               <div className="space-y-4">
                 <div className="group">
                   <label className="block text-sm font-semibold text-on-surface-variant mb-2 ml-1 italic">আপনার নাম</label>
@@ -195,9 +169,11 @@ const Register = () => {
               </button>
             </div>
 
-            <p className="text-center text-on-surface-variant font-headline">
-              ইতিমধ্যেই অ্যাকাউন্ট আছে? <Link className="text-primary font-bold hover:underline" to="/login">লগইন করুন</Link>
-            </p>
+            <div className="flex flex-col items-center gap-4 mt-8">
+              <p className="text-center text-on-surface-variant font-headline">
+                ইতিমধ্যেই অ্যাকাউন্ট আছে? <Link className="text-primary font-bold hover:underline" to="/login">লগইন করুন</Link>
+              </p>
+            </div>
           </div>
         </div>
       </main>

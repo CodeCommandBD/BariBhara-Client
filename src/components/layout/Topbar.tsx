@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Sun, Moon, ChevronRight, Building2, Users } from "lucide-react";
+import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useDashboard } from "@/Hook/useDashboard";

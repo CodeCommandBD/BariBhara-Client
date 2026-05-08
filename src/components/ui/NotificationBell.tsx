@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, Check, CheckCheck, Trash2, X, ExternalLink } from "lucide-react";
-import { useNotificationStore, AppNotification } from "@/store/useNotificationStore";
+import { useNotificationStore, type AppNotification } from "@/store/useNotificationStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
 import { toast } from "sonner";
