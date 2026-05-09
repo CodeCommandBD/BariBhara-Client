@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   X, CheckCircle2, CreditCard, Calendar, Hash,
   NotebookPen, Download, Mail, FileText, Sparkles
@@ -33,6 +33,20 @@ const CollectPaymentModal = ({ isOpen, onClose, invoice }: CollectPaymentModalPr
     note: "",
     paymentDate: new Date().toISOString().split("T")[0],
   });
+
+  // invoice বদলালে সব state reset করো (extra safety)
+  useEffect(() => {
+    if (isOpen && invoice) {
+      setSuccessData(null);
+      setFormData({
+        amount: invoice.dueAmount || "",
+        paymentMethod: "Cash",
+        transactionId: "",
+        note: "",
+        paymentDate: new Date().toISOString().split("T")[0],
+      });
+    }
+  }, [isOpen, invoice?._id]);
 
   if (!isOpen || !invoice) return null;
 

@@ -22,12 +22,22 @@ export const collectPaymentApi = async (data: any, token: string) => {
   return res.data;
 };
 
-// ৩. সব বকেয়া ইনভয়েস — Pagination সহ
-export const getPendingInvoicesApi = async (token: string, page = 1, limit = 10) => {
-  const res = await axios.get(`${BASE_URL}/pending?page=${page}&limit=${limit}`, {
+// ৩. সব ইনভয়েস — স্ট্যাটাস / মাস / বছর ফিল্টার সহ Pagination
+export const getPendingInvoicesApi = async (
+  token: string,
+  page = 1,
+  limit = 10,
+  status = "all",
+  month = "",
+  year = ""
+) => {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit), status });
+  if (month) params.append("month", month);
+  if (year) params.append("year", year);
+  const res = await axios.get(`${BASE_URL}/pending?${params.toString()}`, {
     headers: getAuthHeader(token),
   });
-  return res.data; // { invoices, total, page, totalPages }
+  return res.data; // { invoices, total, page, totalPages, stats }
 };
 
 // ৪. ট্রানজেকশন হিস্টোরি
@@ -37,3 +47,23 @@ export const getInvoiceTransactionsApi = async (invoiceId: string, token: string
   });
   return res.data.transactions;
 };
+
+// ৫. ইনভয়েস এডিট করা
+export const editInvoiceApi = async (invoiceId: string, data: any, token: string) => {
+  const res = await axios.put(`${BASE_URL}/edit/${invoiceId}`, data, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ৬. ইনভয়েস ডিলিট করা
+export const deleteInvoiceApi = async (invoiceId: string, token: string) => {
+  const res = await axios.delete(`${BASE_URL}/delete/${invoiceId}`, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ৭. PDF ডাউনলোড URL
+export const getInvoicePdfUrl = (invoiceId: string) =>
+  `${BASE_URL}/invoice/${invoiceId}/pdf`;

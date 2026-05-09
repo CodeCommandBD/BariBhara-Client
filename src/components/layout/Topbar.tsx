@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut } from "lucide-react";
+import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
+import { useLanguageStore } from "@/store/useLanguageStore";
 import { useDashboard } from "@/Hook/useDashboard";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,6 +12,7 @@ import NotificationBell from "@/components/ui/NotificationBell";
 const Topbar = () => {
   const { user, logout, token } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { language, setLanguage } = useLanguageStore();
   const { leaseAlerts } = useDashboard();
   const navigate = useNavigate();
 
@@ -166,6 +168,18 @@ const Topbar = () => {
               ? <Moon size={11} className="text-primary" />
               : <Sun size={11} className="text-amber-500" />
             }
+          </span>
+        </button>
+
+        {/* 🌐 Language Toggle */}
+        <button
+          onClick={() => setLanguage(language === "bn" ? "en" : "bn")}
+          title={language === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন করুন"}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 shadow-sm hover:scale-105 transition-all"
+        >
+          <Languages size={14} className="text-slate-500" />
+          <span className="text-xs font-black text-slate-600 dark:text-slate-300">
+            {language === "bn" ? "EN" : "বা"}
           </span>
         </button>
 
