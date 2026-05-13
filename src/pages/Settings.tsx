@@ -6,7 +6,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import {
   User, Camera, Lock, Moon, Sun, Save, Eye, EyeOff,
-  Shield, Phone, Mail, FileText, CheckCircle2
+  Shield, Phone, Mail, FileText, CheckCircle2, ShieldAlert, ShieldOff, ShieldCheck
 } from "lucide-react";
 
 const BASE_URL = "http://localhost:4000/api/profile";
@@ -45,6 +45,56 @@ const Settings = () => {
     currentPassword: "", newPassword: "", confirmPassword: ""
   });
   const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false });
+
+  // ২FA স্টেট
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [pending2FAState, setPending2FAState] = useState<boolean | null>(null);
+
+  // 2FA Toggle Mutation
+  const toggle2FAMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const res = await axios.patch(`http://localhost:4000/api/2fa/toggle`, { enabled }, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      setOtpModalOpen(false);
+      setOtpValue("");
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "2FA টগল ব্যর্থ!"),
+  });
+
+  const sendOtpMutation = useMutation({
+    mutationFn: async () => {
+      const res = await axios.post(`http://localhost:4000/api/2fa/send-otp`, { email: profileData?.email || user?.email }, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setOtpModalOpen(true);
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "OTP পাঠাতে সমস্যা হয়েছে!"),
+  });
+
+  const verifyOtpMutation = useMutation({
+    mutationFn: async (otp: string) => {
+      const res = await axios.post(`http://localhost:4000/api/2fa/verify-otp`, { otp }, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: () => {
+      if (pending2FAState !== null) {
+        toggle2FAMutation.mutate(pending2FAState);
+      }
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "OTP সঠিক নয়!"),
+  });
+
+  const handle2FAToggleClick = (currentEnabled: boolean) => {
+    setPending2FAState(!currentEnabled);
+    sendOtpMutation.mutate();
+  };
 
   // প্রোফাইল আপডেট
   const updateProfileMutation = useMutation({
@@ -273,6 +323,55 @@ const Settings = () => {
             পাসওয়ার্ড পরিবর্তন করুন
           </button>
         </form>
+      </div>
+
+      {/* Two-Factor Authentication */}
+      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+          <ShieldAlert size={20} className="text-primary" /> ২-ধাপ যাচাইকরণ (2FA)
+        </h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${profileData?.twoFactorEnabled ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-slate-200 text-slate-500 dark:bg-slate-600 dark:text-slate-400"}`}>
+              {profileData?.twoFactorEnabled ? <ShieldCheck size={20} /> : <ShieldOff size={20} />}
+            </div>
+            <div>
+              <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">2FA স্ট্যাটাস: {profileData?.twoFactorEnabled ? "সক্রিয়" : "নিষ্ক্রিয়"}</p>
+              <p className="text-xs text-slate-400 mt-0.5">লগইনের সময় ইমেইলে ওটিপি পাঠানো হবে।</p>
+            </div>
+          </div>
+          <button
+            onClick={() => handle2FAToggleClick(!!profileData?.twoFactorEnabled)}
+            disabled={sendOtpMutation.isPending}
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-all ${profileData?.twoFactorEnabled ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40" : "bg-primary text-white hover:bg-primary/90"}`}
+          >
+            {sendOtpMutation.isPending ? "অপেক্ষা করুন..." : profileData?.twoFactorEnabled ? "নিষ্ক্রিয় করুন" : "সক্রিয় করুন"}
+          </button>
+        </div>
+
+        {/* OTP Input UI (Inline Modal) */}
+        {otpModalOpen && (
+          <div className="mt-4 p-5 bg-primary/5 border border-primary/20 rounded-2xl animate-in slide-in-from-top-4">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">ইমেইলে পাঠানো ৬-ডিজিটের কোডটি লিখুন:</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                maxLength={6}
+                value={otpValue}
+                onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                placeholder="000000"
+                className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-center tracking-[10px] font-black text-xl outline-none focus:border-primary/50 text-slate-800 dark:text-slate-100"
+              />
+              <button
+                onClick={() => verifyOtpMutation.mutate(otpValue)}
+                disabled={otpValue.length !== 6 || verifyOtpMutation.isPending || toggle2FAMutation.isPending}
+                className="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary/90 disabled:opacity-50 transition-colors h-[54px]"
+              >
+                {verifyOtpMutation.isPending || toggle2FAMutation.isPending ? "যাচাই হচ্ছে..." : "যাচাই করুন"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dark Mode & Appearance */}

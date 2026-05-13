@@ -12,9 +12,12 @@ const Login = () => {
   const [role, setRole] = useState<"landlord" | "tenant">("landlord");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [show2FA, setShow2FA] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [userId, setUserId] = useState("");
 
   // Landlord Auth
-  const { loginUser, isLoading: isLandlordLoading, error } = useAuth();
+  const { loginUserAsync, isLoading: isLandlordLoading, error } = useAuth();
   const {
     register,
     handleSubmit,
@@ -33,8 +36,33 @@ const Login = () => {
   const [isTenantLoading, setIsTenantLoading] = useState(false);
 
   // Submit Handlers
-  const onLandlordSubmit = (data: LoginFormData) => {
-    loginUser(data);
+  const onLandlordSubmit = async (data: LoginFormData) => {
+    try {
+      const res = await loginUserAsync(data);
+      if (res.requires2FA) {
+        setShow2FA(true);
+        setUserId(res.userId);
+        toast.info(res.message);
+        await axios.post("http://localhost:4000/api/2fa/send-login-otp", { email: res.email });
+      }
+    } catch (err) {
+      // Error is handled by useAuth hook
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post("http://localhost:4000/api/2fa/verify-login-otp", { userId, otp: otpValue });
+      if (res.data.success) {
+        const { useAuthStore } = await import("@/store/useAuthStore");
+        useAuthStore.getState().setAuth(res.data.user, res.data.token);
+        toast.success(res.data.message || "লগইন সফল হয়েছে!");
+        navigate("/dashboard");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "OTP যাচাই ব্যর্থ!");
+    }
   };
 
   const onTenantSubmit = async (e: React.FormEvent) => {
@@ -141,10 +169,45 @@ const Login = () => {
             </div>
 
             {role === "landlord" ? (
-              <form
-                onSubmit={handleSubmit(onLandlordSubmit)}
-                className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300"
-              >
+              show2FA ? (
+                <form onSubmit={handleVerifyOTP} className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="space-y-3">
+                    <p className="text-on-surface-variant font-medium text-sm mb-4">
+                      আপনার ইমেইলে একটি ৬-ডিজিটের কোড পাঠানো হয়েছে। কোডটি নিচে লিখুন:
+                    </p>
+                    <div className="flex gap-2 justify-center">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={otpValue}
+                        onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                        className="w-full text-center px-4 py-4 rounded-2xl bg-surface border border-outline focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all duration-300 text-on-surface text-3xl font-black tracking-[1em]"
+                        placeholder="000000"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={otpValue.length !== 6}
+                    className="w-full py-4 bg-primary text-on-primary rounded-2xl font-bold text-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                  >
+                    যাচাই করুন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShow2FA(false)}
+                    className="w-full py-2 text-primary font-bold text-sm hover:underline"
+                  >
+                    ফিরে যান
+                  </button>
+                </form>
+              ) : (
+                <form
+                  onSubmit={handleSubmit(onLandlordSubmit)}
+                  className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300"
+                >
                 <div className="space-y-4">
                   {error && (
                     <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
@@ -232,6 +295,7 @@ const Login = () => {
                   {isLandlordLoading ? "লগইন হচ্ছে..." : "লগইন করুন"}
                 </button>
               </form>
+              )
             ) : (
               <form
                 onSubmit={onTenantSubmit}
