@@ -1,17 +1,41 @@
 import { useState } from "react";
 import { useTenant } from "@/Hook/useTenant";
-import { Building2, MapPin, Phone, User, Users } from "lucide-react";
+import { Building2, MapPin, Phone, User, Users, Clock, AlertTriangle, CalendarClock, RefreshCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "@/components/ui/Pagination";
 import TenantPortalAccessModal from "@/components/modals/TenantPortalAccessModal";
-import { ShieldCheck, ShieldOff } from "lucide-react";
+import ManualRenewModal from "@/components/modals/ManualRenewModal";
+import DocumentModal from "@/components/modals/DocumentModal";
+import { ShieldCheck, ShieldOff, FileText } from "lucide-react";
 
 const ITEMS_PER_PAGE = 9;
 
 const Tenants = () => {
   const [page, setPage] = useState(1);
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
-  const { tenants, total, totalPages, isTenantsLoading } = useTenant(page, ITEMS_PER_PAGE);
+  const [renewingTenant, setRenewingTenant] = useState<any>(null);
+  const [documentTenant, setDocumentTenant] = useState<any>(null);
+  const { tenants, total, totalPages, isTenantsLoading, toggleAutoRenewMutation, renewLeaseMutation } = useTenant(page, ITEMS_PER_PAGE);
+
+  const getLeaseStatus = (leaseEnd: string | undefined) => {
+    if (!leaseEnd) return { status: 'none', days: 0 };
+    const end = new Date(leaseEnd);
+    const today = new Date();
+    const diffTime = end.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return { status: 'expired', days: diffDays };
+    if (diffDays <= 30) return { status: 'expiring-soon', days: diffDays };
+    return { status: 'active', days: diffDays };
+  };
+
+  const handleToggleAutoRenew = (id: string, currentStatus: boolean) => {
+    toggleAutoRenewMutation.mutate({ id, autoRenew: !currentStatus });
+  };
+
+  const handleManualRenew = (id: string, newEndDate: string) => {
+    renewLeaseMutation.mutate({ id, newEndDate });
+  };
 
   if (isTenantsLoading) {
     return (
@@ -126,17 +150,65 @@ const Tenants = () => {
                     </span>
                   </div>
 
-                  {/* পোর্টাল অ্যাক্সেস বাটন */}
-                  <div className="pt-4 border-t border-slate-50 dark:border-slate-700">
+                  {/* Lease Expiry Warning Badge */}
+                  {(() => {
+                    const lease = getLeaseStatus(tenant.leaseEnd);
+                    if (lease.status === 'none') return null;
+                    return (
+                      <div className={`flex items-center justify-between p-3 rounded-xl border ${lease.status === 'expired' ? 'bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30' : lease.status === 'expiring-soon' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:border-orange-900/30' : 'bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700'}`}>
+                        <div className="flex items-center gap-2">
+                          {lease.status === 'expired' ? <AlertTriangle size={16} className="text-red-500" /> : <Clock size={16} className={lease.status === 'expiring-soon' ? 'text-orange-500' : 'text-slate-400'} />}
+                          <div>
+                            <p className={`text-xs font-bold ${lease.status === 'expired' ? 'text-red-600 dark:text-red-400' : lease.status === 'expiring-soon' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                              {lease.status === 'expired' ? 'লিজের মেয়াদ শেষ' : lease.status === 'expiring-soon' ? `${lease.days} দিন পর মেয়াদ শেষ` : 'মেয়াদ আছে'}
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400">{new Date(tenant.leaseEnd).toLocaleDateString('bn-BD')} পর্যন্ত</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setRenewingTenant(tenant)}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-colors ${lease.status === 'expired' ? 'bg-red-500 text-white hover:bg-red-600' : lease.status === 'expiring-soon' ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600'}`}
+                        >
+                          <RefreshCcw size={12} /> নবায়ন
+                        </button>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Auto Renew Toggle */}
+                  <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div>
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200">অটো-রিনিউয়াল</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">মেয়াদ শেষে স্বয়ংক্রিয়ভাবে বাড়বে</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={tenant.autoRenew}
+                        onChange={() => handleToggleAutoRenew(tenant._id, tenant.autoRenew)}
+                      />
+                      <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+                    </label>
+                  </div>
+
+                  {/* পোর্টাল ও ডকুমেন্টস */}
+                  <div className="pt-2 border-t border-slate-50 dark:border-slate-700 grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setSelectedTenant(tenant)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-xs transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
                     >
                       {tenant.portalEnabled ? (
-                        <><ShieldCheck size={16} className="text-emerald-500" /> পোর্টাল এনাবলড</>
+                        <><ShieldCheck size={14} className="text-emerald-500" /> পোর্টাল অ্যাক্সেস</>
                       ) : (
-                        <><ShieldOff size={16} className="text-slate-400" /> পোর্টাল অ্যাক্সেস দিন</>
+                        <><ShieldOff size={14} className="text-slate-400" /> পোর্টাল</>
                       )}
+                    </button>
+                    <button
+                      onClick={() => setDocumentTenant(tenant)}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-900/20"
+                    >
+                      <FileText size={14} className="text-violet-500" /> ডকুমেন্টস
                     </button>
                   </div>
                 </div>
@@ -155,11 +227,23 @@ const Tenants = () => {
         </>
       )}
 
-      {/* Modal */}
+      {/* Modals */}
       <TenantPortalAccessModal
         isOpen={!!selectedTenant}
         onClose={() => setSelectedTenant(null)}
         tenant={selectedTenant}
+      />
+      <ManualRenewModal
+        isOpen={!!renewingTenant}
+        onClose={() => setRenewingTenant(null)}
+        tenant={renewingTenant}
+        onRenew={handleManualRenew}
+      />
+      <DocumentModal
+        isOpen={!!documentTenant}
+        onClose={() => setDocumentTenant(null)}
+        tenantId={documentTenant?._id}
+        tenantName={documentTenant?.name}
       />
     </div>
   );

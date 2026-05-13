@@ -55,3 +55,19 @@ export const vacateTenantApi = async (id: string, token: string) => {
   });
   return res.data;
 };
+
+// ৬. Auto Renew টগল করা
+export const toggleAutoRenewApi = async (id: string, autoRenew: boolean, token: string) => {
+  const res = await axios.patch(`${BASE_URL}/${id}/auto-renew`, { autoRenew }, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ৭. ম্যানুয়াল রিনিউ (মেয়াদ বাড়ানো)
+export const renewLeaseApi = async (id: string, newEndDate: string, token: string) => {
+  const res = await axios.post(`${BASE_URL}/${id}/renew-lease`, { newEndDate }, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};

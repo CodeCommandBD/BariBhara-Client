@@ -125,7 +125,7 @@ const Sidebar = () => {
         rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.12)]
         z-[100] flex items-center justify-between px-6
         transition-colors duration-300">
-        {navItems.slice(0, 5).map((item) => {
+        {navItems.filter(item => item.path !== "/payments").map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
           return (

@@ -11,7 +11,12 @@ interface GenerateBillModalProps {
 const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) => {
   const { generateInvoiceMutation } = useRent();
   
-  const currentMonth = new Date().toLocaleString('en-us', { month: 'long' });
+  const months = [
+    "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+    "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+  ];
+  
+  const currentMonth = months[new Date().getMonth()];
   const currentYear = new Date().getFullYear();
 
   const [formData, setFormData] = useState({
@@ -41,10 +46,7 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
     });
   };
 
-  const months = [
-    "January", "February", "March", "April", "May", "June", 
-    "July", "August", "September", "October", "November", "December"
-  ];
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

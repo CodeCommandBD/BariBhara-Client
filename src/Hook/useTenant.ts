@@ -7,6 +7,8 @@ import {
   getTenantByUnitApi,
   updateTenantApi,
   vacateTenantApi,
+  toggleAutoRenewApi,
+  renewLeaseApi,
 } from "@/api/tenant.api";
 
 export const useTenant = (page = 1, limit = 9) => {
@@ -77,6 +79,31 @@ export const useTenant = (page = 1, limit = 9) => {
       toast.error(error.response?.data?.message || "ভাড়াটিয়া সরাতে সমস্যা হয়েছে!");
     },
   });
+  // --- ৬. Auto Renew টগল করা ---
+  const toggleAutoRenewMutation = useMutation({
+    mutationFn: ({ id, autoRenew }: { id: string; autoRenew: boolean }) =>
+      toggleAutoRenewApi(id, autoRenew, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "অটো-রিনিউয়াল আপডেট হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "আপডেট করতে সমস্যা হয়েছে!");
+    },
+  });
+
+  // --- ৭. ম্যানুয়াল রিনিউ ---
+  const renewLeaseMutation = useMutation({
+    mutationFn: ({ id, newEndDate }: { id: string; newEndDate: string }) =>
+      renewLeaseApi(id, newEndDate, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "লিজ সফলভাবে রিনিউ করা হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "রিনিউ করতে সমস্যা হয়েছে!");
+    },
+  });
 
   return {
     // ডাটা
@@ -90,5 +117,7 @@ export const useTenant = (page = 1, limit = 9) => {
     addTenantMutation,
     updateTenantMutation,
     vacateTenantMutation,
+    toggleAutoRenewMutation,
+    renewLeaseMutation,
   };
 };

@@ -33,9 +33,11 @@ export const useAuth = () => {
       return response.data
     },
     onSuccess(data){
-      setAuth(data.user, data.token)
-      toast.success("Login successfully!")
-      navigate("/dashboard")
+      if (!data.requires2FA) {
+        setAuth(data.user, data.token)
+        toast.success("লগইন সফল হয়েছে!")
+        navigate("/dashboard")
+      }
     },
     onError(error: any){
       const message = error.response?.data?.message || "Login failed!"
@@ -46,6 +48,7 @@ export const useAuth = () => {
   return {
     registerUser: registerMutation.mutate,
     loginUser: loginMutation.mutate,
+    loginUserAsync: loginMutation.mutateAsync,
     isLoading: registerMutation.isPending || loginMutation.isPending,
     error: registerMutation.error || loginMutation.error,
     isSuccess: registerMutation.isSuccess || loginMutation.isSuccess
