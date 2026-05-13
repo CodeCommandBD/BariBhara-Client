@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages } from "lucide-react";
+import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages, CreditCard } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -217,6 +217,13 @@ const Topbar = () => {
                 <p className="text-xs text-slate-400 truncate">{user?.email}</p>
               </div>
               <div className="p-2 space-y-1">
+                <Link
+                  to="/payments"
+                  onClick={() => setProfileOpen(false)}
+                  className="flex lg:hidden items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-bold"
+                >
+                  <CreditCard size={16} /> পেমেন্ট
+                </Link>
                 <Link
                   to="/settings"
                   onClick={() => setProfileOpen(false)}
