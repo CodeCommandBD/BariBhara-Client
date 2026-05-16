@@ -141,34 +141,6 @@ const Register = () => {
               </button>
             </form>
 
-            <div className="relative py-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-surface-container-high"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-on-surface-variant font-medium">অথবা সোশ্যাল মিডিয়া ব্যবহার করুন</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex items-center justify-center gap-3 py-4 bg-surface-container-low rounded-xl font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
-                <img 
-                    alt="Google Logo" 
-                    className="w-6 h-6" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDL7cI2ExAGoA7ZxsfnIpuFzEVQxDbqZK3U-QTo2F5r3p_INaIgWsV3FyJSXKaNwLQgLw7NwwIypm8UhUWlZltqkdwzozuGOEiDvCJt8RLBll2KLeGMnOJwulz8rPJmOhLVuy8JNepTzAFpsSgqxA33c89tLclUhhz7Uef6zTiDNP17yuFtc3_pP11bs9tp_5Z2HBw_raCRqgUknESUScVjNDyNkY0tlVz9L_sqcjnw-ZaFRen2fKhQDJlEsiq-1mEP3UbwRAIITCF" 
-                />
-                <span className="font-headline">Google</span>
-              </button>
-              <button className="flex items-center justify-center gap-3 py-4 bg-surface-container-low rounded-xl font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
-                <img 
-                    alt="Facebook Logo" 
-                    className="w-6 h-6" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG0rcoCIfmV0Mjv54TVLxqh6jGerOp_3yQ7wFcBFbYZarqIVwZOwj93RGfrZ0b8R16TwPjnf_MaVfFOFA4sDNLGcfk4p31Jrc6j9wwjAtrgct7q9MNbJl87DSmYmzWRnsOy10tLMAt39k3vHdGzSHruPCokDkEr4R0_Q4we7SasEzBPQovpx0riKOIMq9al4yoxSk9B7DgZre_-ojXhzXJHGVLdTWgdt_2FRaXxRaNrHJ-DFoYvpHwfCB10g49mQz84Qo-7rf4ueCv" 
-                />
-                <span className="font-headline">Facebook</span>
-              </button>
-            </div>
-
             <div className="flex flex-col items-center gap-4 mt-8">
               <p className="text-center text-on-surface-variant font-headline">
                 ইতিমধ্যেই অ্যাকাউন্ট আছে? <Link className="text-primary font-bold hover:underline" to="/login">লগইন করুন</Link>

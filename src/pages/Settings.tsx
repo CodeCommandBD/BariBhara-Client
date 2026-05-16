@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,8 +6,10 @@ import axios from "axios";
 import { toast } from "sonner";
 import {
   User, Camera, Lock, Moon, Sun, Save, Eye, EyeOff,
-  Shield, Phone, Mail, FileText, CheckCircle2, ShieldAlert, ShieldOff, ShieldCheck
+  Shield, Phone, Mail, FileText, CheckCircle2, ShieldAlert, ShieldOff, ShieldCheck,
+  MessageSquare, QrCode, LogOut as LogOutIcon, RefreshCw, PenTool
 } from "lucide-react";
+import { io } from "socket.io-client";
 
 const BASE_URL = "http://localhost:4000/api/profile";
 
@@ -33,11 +35,11 @@ const Settings = () => {
     enabled: !!token,
   });
 
-  // প্রোফাইল ফর্ম স্টেট
   const [profileForm, setProfileForm] = useState({
     fullName: user?.fullName || "",
     phone: user?.phone || "",
     bio: "",
+    agreementTemplate: "",
   });
 
   // পাসওয়ার্ড ফর্ম স্টেট
@@ -107,6 +109,7 @@ const Settings = () => {
       if (data.user && token) {
         setAuth({ ...user!, fullName: data.user.fullName, phone: data.user.phone }, token);
       }
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "আপডেট ব্যর্থ হয়েছে!"),
   });
@@ -163,6 +166,70 @@ const Settings = () => {
       newPassword: passForm.newPassword,
     });
   };
+
+  // WhatsApp স্টেট
+  const [waStatus, setWaStatus] = useState<"disconnected" | "connecting" | "connected">("disconnected");
+  const [waQr, setWaQr] = useState<string | null>(null);
+
+  // WhatsApp Status Load
+  useQuery({
+    queryKey: ["whatsapp-status"],
+    queryFn: async () => {
+      const res = await axios.get("http://localhost:4000/api/whatsapp/status", { headers: authHeader });
+      setWaStatus(res.data.status);
+      setWaQr(res.data.qr);
+      return res.data;
+    },
+    enabled: !!token,
+  });
+
+  // Sync profileForm with profileData
+  useEffect(() => {
+    if (profileData) {
+      setProfileForm({
+        fullName: profileData.fullName || "",
+        phone: profileData.phone || "",
+        bio: profileData.bio || "",
+        agreementTemplate: profileData.agreementTemplate || `১. ভাড়াটিয়া প্রতি মাসের ৫ তারিখের মধ্যে ভাড়া পরিশোধ করিতে বাধ্য থাকিবেন।
+২. প্রপার্টির কোনো ক্ষতি হইলে ভাড়াটিয়া তাহা মেরামত করিয়া দিতে বাধ্য থাকিবেন।
+৩. অগ্রিম বাবদ জমাকৃত টাকা চুক্তি শেষে সমন্বয় করা হইবে।
+৪. বাসা ছাড়ার ১ মাস পূর্বে নোটিশ প্রদান করিতে হইবে।`,
+      });
+    }
+  }, [profileData]);
+
+  // Socket Listeners for WhatsApp
+  useEffect(() => {
+    if (!token) return;
+    const socket = io("http://localhost:4000");
+
+    socket.on("whatsapp_qr", (data) => {
+      setWaQr(data.qr);
+      setWaStatus("connecting");
+    });
+
+    socket.on("whatsapp_status", (data) => {
+      setWaStatus(data.status);
+      if (data.status === "connected") setWaQr(null);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [token]);
+
+  const logoutWhatsAppMutation = useMutation({
+    mutationFn: async () => {
+      const res = await axios.post("http://localhost:4000/api/whatsapp/logout", {}, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: () => {
+      setWaStatus("disconnected");
+      setWaQr(null);
+      toast.success("WhatsApp ডিসকানেক্ট হয়েছে!");
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "ডিসকানেক্ট ব্যর্থ!"),
+  });
 
   // Avatar initials
   const initials = (profileData?.fullName || user?.fullName || "B")
@@ -372,6 +439,111 @@ const Settings = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* WhatsApp Integration */}
+      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+          <MessageSquare size={20} className="text-primary" /> WhatsApp ইন্টিগ্রেশন
+        </h3>
+        
+        <div className="flex flex-col md:flex-row items-center gap-8 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-3xl border border-slate-100 dark:border-slate-700">
+          {/* QR Code / Status Icon */}
+          <div className="relative">
+            <div className="w-48 h-48 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-600 flex items-center justify-center overflow-hidden">
+              {waStatus === "connected" ? (
+                <div className="flex flex-col items-center gap-3 text-emerald-500">
+                  <CheckCircle2 size={64} strokeWidth={1.5} />
+                  <span className="font-black text-sm uppercase tracking-widest">Connected</span>
+                </div>
+              ) : waQr ? (
+                <img src={waQr} alt="WhatsApp QR" className="w-full h-full object-contain p-2" />
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-slate-300">
+                  <QrCode size={64} strokeWidth={1.5} />
+                  <span className="font-black text-xs uppercase tracking-widest">Generating QR...</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Info & Controls */}
+          <div className="flex-1 space-y-4">
+            <div>
+              <h4 className="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                WhatsApp Bot 
+                <span className={`w-3 h-3 rounded-full animate-pulse ${waStatus === "connected" ? "bg-emerald-500" : "bg-amber-500"}`} />
+              </h4>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                আপনার WhatsApp লিংক করুন স্বয়ংক্রিয় মেসেজ পাঠানোর জন্য।
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 size={16} className={waStatus === "connected" ? "text-emerald-500" : "text-slate-300"} />
+                <span className={waStatus === "connected" ? "text-slate-700 dark:text-slate-200 font-bold" : "text-slate-400"}>অটোমেটিক ইনভয়েস মেসেজ</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 size={16} className={waStatus === "connected" ? "text-emerald-500" : "text-slate-300"} />
+                <span className={waStatus === "connected" ? "text-slate-700 dark:text-slate-200 font-bold" : "text-slate-400"}>পেমেন্ট কনফার্মেশন অ্যালার্ট</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              {waStatus === "connected" ? (
+                <button 
+                  onClick={() => logoutWhatsAppMutation.mutate()}
+                  disabled={logoutWhatsAppMutation.isPending}
+                  className="px-6 py-3 bg-red-50 text-red-600 font-black rounded-2xl border border-red-100 hover:bg-red-100 transition-all flex items-center gap-2"
+                >
+                  <LogOutIcon size={18} />
+                  ডিসকানেক্ট করুন
+                </button>
+              ) : (
+                <button 
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ["whatsapp-status"] })}
+                  className="px-6 py-3 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all flex items-center gap-2"
+                >
+                  <RefreshCw size={18} />
+                  QR রিফ্রেশ করুন
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* চুক্তিপত্রের শর্তাবলী (Agreement Template) */}
+      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+          <PenTool size={20} className="text-primary" /> ডিজিটাল চুক্তিপত্র টেমপ্লেট
+        </h3>
+        <div className="space-y-4">
+          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl">
+            <p className="text-xs text-amber-700 dark:text-amber-400 font-bold leading-relaxed">
+              * এখানে আপনার চুক্তির প্রধান শর্তগুলো লিখুন। নতুন কোনো ভাড়াটিয়ার জন্য চুক্তিপত্র জেনারেট করার সময় এই শর্তগুলোই ব্যবহৃত হবে। প্রতি লাইনের জন্য আলাদা নম্বর ব্যবহার করুন।
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-slate-400 uppercase ml-1">চুক্তির শর্তাবলী (Terms & Conditions)</label>
+            <textarea
+              value={profileForm.agreementTemplate}
+              onChange={(e) => setProfileForm({ ...profileForm, agreementTemplate: e.target.value })}
+              rows={8}
+              placeholder="১. ভাড়াটিয়া প্রতি মাসের ৫ তারিখের মধ্যে ভাড়া পরিশোধ করিবেন..."
+              className="w-full px-4 py-4 bg-slate-50 dark:bg-slate-700 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200 resize-none leading-relaxed"
+            />
+          </div>
+          <button 
+            onClick={handleProfileSubmit}
+            disabled={updateProfileMutation.isPending}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50"
+          >
+            {updateProfileMutation.isPending ? <RefreshCw size={17} className="animate-spin" /> : <Save size={17} />}
+            টেমপ্লেট সেভ করুন
+          </button>
+        </div>
       </div>
 
       {/* Dark Mode & Appearance */}

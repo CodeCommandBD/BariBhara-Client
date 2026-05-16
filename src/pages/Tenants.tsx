@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useTenant } from "@/Hook/useTenant";
-import { Building2, MapPin, Phone, User, Users, Clock, AlertTriangle, CalendarClock, RefreshCcw } from "lucide-react";
+import { Building2, MapPin, Phone, User, Users, Clock, AlertTriangle, CalendarClock, RefreshCcw, PenTool, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "@/components/ui/Pagination";
 import TenantPortalAccessModal from "@/components/modals/TenantPortalAccessModal";
 import ManualRenewModal from "@/components/modals/ManualRenewModal";
 import DocumentModal from "@/components/modals/DocumentModal";
+import DeleteAgreementModal from "@/components/modals/DeleteAgreementModal";
 import { ShieldCheck, ShieldOff, FileText } from "lucide-react";
 
 const ITEMS_PER_PAGE = 9;
@@ -15,7 +16,12 @@ const Tenants = () => {
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [renewingTenant, setRenewingTenant] = useState<any>(null);
   const [documentTenant, setDocumentTenant] = useState<any>(null);
-  const { tenants, total, totalPages, isTenantsLoading, toggleAutoRenewMutation, renewLeaseMutation } = useTenant(page, ITEMS_PER_PAGE);
+  const [deletingAgreementId, setDeletingAgreementId] = useState<string | null>(null);
+  const { 
+    tenants, total, totalPages, isTenantsLoading, 
+    toggleAutoRenewMutation, renewLeaseMutation, 
+    generateAgreementMutation, deleteAgreementMutation 
+  } = useTenant(page, ITEMS_PER_PAGE);
 
   const getLeaseStatus = (leaseEnd: string | undefined) => {
     if (!leaseEnd) return { status: 'none', days: 0 };
@@ -211,6 +217,55 @@ const Tenants = () => {
                       <FileText size={14} className="text-violet-500" /> ডকুমেন্টস
                     </button>
                   </div>
+
+                  {/* ডিজিটাল চুক্তি বাটন */}
+                  <div className="pt-2">
+                    {tenant.agreement?.pdfUrl ? (
+                      <div className="flex items-center justify-between p-3 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${tenant.agreement?.isSigned ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                            {tenant.agreement?.isSigned ? <ShieldCheck size={16} /> : <FileText size={16} />}
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase text-slate-400">চুক্তি স্ট্যাটাস</p>
+                            <p className={`text-xs font-bold ${tenant.agreement?.isSigned ? 'text-emerald-600' : 'text-amber-600'}`}>
+                              {tenant.agreement?.isSigned ? 'স্বাক্ষরিত' : 'স্বাক্ষর পেন্ডিং'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <a 
+                            href={tenant.agreement.pdfUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="px-3 py-1.5 bg-white dark:bg-slate-700 text-primary border border-primary/20 rounded-lg text-[10px] font-black hover:bg-primary hover:text-white transition-all"
+                          >
+                            দেখুন
+                          </a>
+                          <button
+                            onClick={() => setDeletingAgreementId(tenant._id)}
+                            disabled={deleteAgreementMutation.isPending}
+                            className="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-100 dark:border-red-900/30 rounded-lg text-[10px] font-black hover:bg-red-500 hover:text-white transition-all"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => generateAgreementMutation.mutate(tenant._id)}
+                        disabled={generateAgreementMutation.isPending}
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-2xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        {generateAgreementMutation.isPending ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <PenTool size={14} />
+                        )}
+                        ডিজিটাল চুক্তিপত্র তৈরি করুন
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -244,6 +299,18 @@ const Tenants = () => {
         onClose={() => setDocumentTenant(null)}
         tenantId={documentTenant?._id}
         tenantName={documentTenant?.name}
+      />
+      <DeleteAgreementModal
+        isOpen={!!deletingAgreementId}
+        onClose={() => setDeletingAgreementId(null)}
+        isLoading={deleteAgreementMutation.isPending}
+        onConfirm={() => {
+          if (deletingAgreementId) {
+            deleteAgreementMutation.mutate(deletingAgreementId, {
+              onSuccess: () => setDeletingAgreementId(null),
+            });
+          }
+        }}
       />
     </div>
   );

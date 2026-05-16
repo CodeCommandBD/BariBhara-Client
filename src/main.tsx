@@ -23,6 +23,8 @@ import RentManagement from "./pages/RentManagement";
 import Maintenance from "./pages/Maintenance";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 
 
 // Tenant Portal Components
@@ -32,6 +34,7 @@ import TenantLayout from "./components/layout/TenantLayout";
 import TenantDashboard from "./pages/tenant/TenantDashboard";
 import TenantInvoices from "./pages/tenant/TenantInvoices";
 import TenantMaintenance from "./pages/tenant/TenantMaintenance";
+import TenantAgreement from "./pages/tenant/TenantAgreement";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +58,14 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <PublicRoute><Login /></PublicRoute>,
+  },
+  {
+    path: "/forgot-password",
+    element: <PublicRoute><ForgotPassword /></PublicRoute>,
+  },
+  {
+    path: "/reset-password",
+    element: <PublicRoute><ResetPassword /></PublicRoute>,
   },
 
   // ২. ল্যান্ডলর্ড প্রোটেক্টেড রাউট
@@ -101,11 +112,6 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ৩. টেনেন্ট পোর্টাল রাউট
-  {
-    path: "/tenant/login",
-    element: <TenantLogin />,
-  },
   {
     path: "/tenant",
     element: (
@@ -129,6 +135,10 @@ const router = createBrowserRouter([
       {
         path: "maintenance",
         element: <TenantMaintenance />,
+      },
+      {
+        path: "agreement",
+        element: <TenantAgreement />,
       },
     ],
   },

@@ -35,10 +35,20 @@ const Login = () => {
   });
   const [isTenantLoading, setIsTenantLoading] = useState(false);
 
+  // Device ID জেনারেট বা রিট্রিভ করা (2FA বাইপাস করার জন্য)
+  const getDeviceId = () => {
+    let id = localStorage.getItem("unique_device_id");
+    if (!id) {
+      id = "dev_" + Math.random().toString(36).substring(2, 15) + Date.now();
+      localStorage.setItem("unique_device_id", id);
+    }
+    return id;
+  };
+
   // Submit Handlers
   const onLandlordSubmit = async (data: LoginFormData) => {
     try {
-      const res = await loginUserAsync(data);
+      const res = await loginUserAsync({ ...data, deviceId: getDeviceId() });
       if (res.requires2FA) {
         setShow2FA(true);
         setUserId(res.userId);
@@ -53,7 +63,11 @@ const Login = () => {
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:4000/api/2fa/verify-login-otp", { userId, otp: otpValue });
+      const res = await axios.post("http://localhost:4000/api/2fa/verify-login-otp", { 
+        userId, 
+        otp: otpValue,
+        deviceId: getDeviceId() // ভেরিফিকেশনের সময় ডিভাইসটিকে ট্রাস্টেড মার্ক করা
+      });
       if (res.data.success) {
         const { useAuthStore } = await import("@/store/useAuthStore");
         useAuthStore.getState().setAuth(res.data.user, res.data.token);
@@ -198,9 +212,10 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShow2FA(false)}
-                    className="w-full py-2 text-primary font-bold text-sm hover:underline"
+                    className="w-full py-2 text-primary font-bold text-sm hover:underline flex items-center justify-center gap-1"
                   >
-                    ফিরে যান
+                    <span className="material-symbols-outlined text-sm">refresh</span>
+                    আবার চেষ্টা করুন
                   </button>
                 </form>
               ) : (
@@ -370,40 +385,6 @@ const Login = () => {
                   লগইন করতে সমস্যা হলে আপনার মালিকের সাথে যোগাযোগ করুন।
                 </p>
               </form>
-            )}
-
-            {role === "landlord" && (
-              <>
-                <div className="relative py-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-surface-container-high"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white text-on-surface-variant font-medium">
-                      অথবা সোশ্যাল মিডিয়া ব্যবহার করুন
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <button className="flex items-center justify-center gap-3 py-4 bg-surface-container-low rounded-xl font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
-                    <img
-                      alt="Google Logo"
-                      className="w-6 h-6"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDL7cI2ExAGoA7ZxsfnIpuFzEVQxDbqZK3U-QTo2F5r3p_INaIgWsV3FyJSXKaNwLQgLw7NwwIypm8UhUWlZltqkdwzozuGOEiDvCJt8RLBll2KLeGMnOJwulz8rPJmOhLVuy8JNepTzAFpsSgqxA33c89tLclUhhz7Uef6zTiDNP17yuFtc3_pP11bs9tp_5Z2HBw_raCRqgUknESUScVjNDyNkY0tlVz9L_sqcjnw-ZaFRen2fKhQDJlEsiq-1mEP3UbwRAIITCF"
-                    />
-                    <span className="font-headline">Google</span>
-                  </button>
-                  <button className="flex items-center justify-center gap-3 py-4 bg-surface-container-low rounded-xl font-semibold hover:bg-surface-container-high transition-colors active:scale-95">
-                    <img
-                      alt="Facebook Logo"
-                      className="w-6 h-6"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG0rcoCIfmV0Mjv54TVLxqh6jGerOp_3yQ7wFcBFbYZarqIVwZOwj93RGfrZ0b8R16TwPjnf_MaVfFOFA4sDNLGcfk4p31Jrc6j9wwjAtrgct7q9MNbJl87DSmYmzWRnsOy10tLMAt39k3vHdGzSHruPCokDkEr4R0_Q4we7SasEzBPQovpx0riKOIMq9al4yoxSk9B7DgZre_-ojXhzXJHGVLdTWgdt_2FRaXxRaNrHJ-DFoYvpHwfCB10g49mQz84Qo-7rf4ueCv"
-                    />
-                    <span className="font-headline">Facebook</span>
-                  </button>
-                </div>
-              </>
             )}
 
             {role === "landlord" && (

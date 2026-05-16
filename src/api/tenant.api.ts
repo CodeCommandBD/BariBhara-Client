@@ -71,3 +71,26 @@ export const renewLeaseApi = async (id: string, newEndDate: string, token: strin
   });
   return res.data;
 };
+
+// ৮. ডিজিটাল চুক্তিপত্র জেনারেট করা
+export const generateAgreementApi = async (id: string, token: string) => {
+  const res = await axios.post(`${BASE_URL}/${id}/generate-agreement`, {}, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ৯. চুক্তিপত্রে স্বাক্ষর করা (ভাড়াটিয়া পোর্টাল থেকে)
+export const signAgreementApi = async (signatureData: string, token: string) => {
+  const res = await axios.post(`${BASE_URL}/sign-agreement`, { signatureData }, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+export const deleteAgreementApi = async (id: string, token: string) => {
+  const res = await axios.delete(`${BASE_URL}/${id}/agreement`, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
