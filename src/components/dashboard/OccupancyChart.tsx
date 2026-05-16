@@ -14,8 +14,8 @@ const OccupancyChart = () => {
   ];
 
   return (
-    <div className="bg-surface-container-lowest p-8 rounded-[3rem] shadow-sm flex flex-col items-center justify-center text-center border border-white/50 h-full">
-      <h3 className="text-xl font-bold mb-2 font-headline">প্রপার্টি অকুপেন্সি</h3>
+    <div className="bg-surface-container-lowest p-8 rounded-[3rem] shadow-sm flex flex-col items-center justify-center text-center border border-slate-200 dark:border-slate-800 h-full">
+      <h3 className="text-xl font-bold mb-2 font-headline text-on-surface">প্রপার্টি অকুপেন্সি</h3>
       <p className="text-sm text-on-surface-variant mb-8 font-body">রিয়েল-টাইম অবস্থা</p>
 
       {isLoading ? (
@@ -26,7 +26,10 @@ const OccupancyChart = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data}
+                  data={[
+                    { name: "ভাড়া হয়েছে", value: rentedUnits || 1, color: "#702ae1" },
+                    { name: "খালি আছে", value: availableUnits || (rentedUnits === 0 ? 1 : 0), color: "hsl(var(--surface-container))" },
+                  ]}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -36,26 +39,29 @@ const OccupancyChart = () => {
                   stroke="none"
                   cornerRadius={10}
                 >
-                  {data.map((entry, index) => (
+                  {[
+                    { color: "#702ae1" },
+                    { color: "hsl(var(--surface-container))" },
+                  ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-black font-headline">{occupancyRate}%</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-body">ভর্তি</span>
+              <span className="text-3xl font-black font-headline text-on-surface">{occupancyRate}%</span>
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest font-body">ভর্তি</span>
             </div>
           </div>
 
           <div className="mt-8 grid grid-cols-2 gap-4 w-full">
             <div className="flex items-center gap-2 justify-center">
               <span className="w-3 h-3 rounded-full bg-primary" />
-              <span className="text-xs font-bold font-body">ভাড়া হয়েছে ({rentedUnits})</span>
+              <span className="text-xs font-bold font-body text-on-surface-variant">ভাড়া হয়েছে ({rentedUnits})</span>
             </div>
             <div className="flex items-center gap-2 justify-center">
-              <span className="w-3 h-3 rounded-full bg-slate-200" />
-              <span className="text-xs font-bold font-body">খালি আছে ({availableUnits})</span>
+              <span className="w-3 h-3 rounded-full bg-surface-container" />
+              <span className="text-xs font-bold font-body text-on-surface-variant">খালি আছে ({availableUnits})</span>
             </div>
           </div>
         </>
