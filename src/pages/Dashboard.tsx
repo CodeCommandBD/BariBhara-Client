@@ -5,6 +5,7 @@ import {
   TrendingUp,
   AlertCircle,
   BadgeDollarSign,
+  Wrench,
 } from "lucide-react";
 import { useDashboard } from "../Hook/useDashboard";
 import StatCard from "../components/dashboard/StatCard";
@@ -50,24 +51,24 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Grid — এখন ৪ কার্ড সবই Dynamic */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      {/* Stats Grid — এখন ৫টি কার্ড (Responsive) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
         <StatCard
           title="মোট প্রপার্টি"
           value={stats?.totalProperties ?? "০"}
           icon={Home}
           trend={`মোট ইউনিট: ${stats?.totalUnits ?? "০"}`}
           trendIcon={TrendingUp}
-          iconBg="bg-violet-100"
-          iconColor="text-violet-600"
+          iconBg="bg-violet-100 dark:bg-violet-900/20"
+          iconColor="text-violet-600 dark:text-violet-400"
         />
         <StatCard
-          title="অ্যাক্টিভ ভাড়াটিয়া"
+          title="ভাড়াটিয়া"
           value={stats?.rentedUnits ?? "০"}
           icon={Users}
-          trend={`খালি আছে: ${stats?.availableUnits ?? "০"}`}
-          iconBg="bg-blue-100"
-          iconColor="text-blue-600"
+          trend={`খালি: ${stats?.availableUnits ?? "০"}`}
+          iconBg="bg-blue-100 dark:bg-blue-900/20"
+          iconColor="text-blue-600 dark:text-blue-400"
         />
         <StatCard
           title="এই মাসের আয়"
@@ -75,16 +76,24 @@ const Dashboard = () => {
           icon={Wallet}
           trend={`অকুপেন্সি: ${stats?.occupancyRate ?? "০"}%`}
           trendIcon={TrendingUp}
-          iconBg="bg-emerald-100"
-          iconColor="text-emerald-600"
+          iconBg="bg-emerald-100 dark:bg-emerald-900/20"
+          iconColor="text-emerald-600 dark:text-emerald-400"
         />
         <StatCard
           title="মোট বকেয়া"
           value={"৳ " + (stats?.totalDue?.toLocaleString() ?? "০")}
           icon={AlertCircle}
           trend={stats?.totalDue > 0 ? "পেমেন্ট সংগ্রহ করুন" : "কোনো বকেয়া নেই ✓"}
-          iconBg="bg-red-50"
-          iconColor="text-red-500"
+          iconBg="bg-rose-100 dark:bg-rose-900/20"
+          iconColor="text-rose-600 dark:text-rose-400"
+        />
+        <StatCard
+          title="মেইনটেন্যান্স"
+          value={stats?.pendingMaintenance ?? "০"}
+          icon={Wrench}
+          trend={stats?.pendingMaintenance > 0 ? "অনুরোধ পেন্ডিং আছে" : "সব ঠিক আছে ✓"}
+          iconBg="bg-amber-100 dark:bg-amber-900/20"
+          iconColor="text-amber-600 dark:text-amber-400"
         />
       </div>
 
