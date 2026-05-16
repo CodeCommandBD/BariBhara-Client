@@ -48,8 +48,9 @@ export const useSocket = () => {
   useEffect(() => {
     if (!token || !user?._id) return;
 
-    // Socket তৈরি করা
+    // Socket তৈরি করা (userId কুয়েরি হিসেবে পাঠানো হচ্ছে)
     const socket = io(SOCKET_URL, {
+      query: { userId: user._id },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -60,8 +61,6 @@ export const useSocket = () => {
 
     socket.on("connect", () => {
       console.log("🔌 Socket connected:", socket.id);
-      // নিজের userId দিয়ে register করা
-      socket.emit("register", user._id);
       // পুরনো notifications লোড
       loadNotifications();
     });
@@ -71,15 +70,22 @@ export const useSocket = () => {
       addNotification(notification);
 
       // Toast দেখানো
-      const icon = typeIcon[notification.type] ?? "🔔";
+      const icons: any = {
+        payment: "💰",
+        maintenance: "🛠️",
+        invoice: "🧾",
+        system: "🔔"
+      };
+      const icon = icons[notification.type] ?? "🔔";
+
       toast(notification.title, {
         description: notification.message,
         icon,
         duration: 5000,
-        action: notification.meta?.url
+        action: notification.link
           ? {
               label: "দেখুন",
-              onClick: () => window.location.href = notification.meta.url,
+              onClick: () => window.location.href = notification.link,
             }
           : undefined,
       });

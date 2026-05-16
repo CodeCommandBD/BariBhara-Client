@@ -80,14 +80,13 @@ const Topbar = () => {
   }, []);
 
   return (
-    <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] w-full h-20 z-40 bg-background/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-white/10 dark:border-slate-700/50">
+    <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] w-full h-20 z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-slate-200 dark:border-slate-800">
       {/* সার্চ বার */}
-      {/* \u0997\u09cd\u09b2\u09cb\u09ac\u09be\u09b2 \u09b8\u09be\u09b0\u09cd\u099a \u09ac\u09be\u09b0 */}
       <div ref={searchRef} className="relative lg:w-96 w-40 md:w-64">
-        <div className="flex items-center bg-white dark:bg-slate-800 rounded-full px-4 py-2 shadow-sm border border-slate-100 dark:border-slate-700 transition-all">
-          <Search size={18} className="text-slate-400 shrink-0" />
+        <div className="flex items-center bg-surface-container-lowest rounded-full px-4 py-2 shadow-sm border border-slate-200 dark:border-slate-700 transition-all">
+          <Search size={18} className="text-on-surface-variant shrink-0" />
           <input
-            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 ml-2 dark:text-slate-200 outline-none"
+            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-on-surface-variant/60 ml-2 text-on-surface outline-none"
             placeholder="টেনেন্ট, প্রপার্টি খুঁজুন..."
             type="text"
             value={searchQuery}
@@ -96,18 +95,18 @@ const Topbar = () => {
           />
         </div>
 
-        {/* \u09b8\u09be\u09b0\u09cd\u099a \u09b0\u09bf\u099c\u09be\u09b2\u09cd\u099f \u09a1\u09cd\u09b0\u09aa\u09a1\u09be\u0989\u09a8 */}
+        {/* সার্চ রেজাল্ট ড্রপডাউন */}
         {searchOpen && searchQuery.length >= 2 && searchResults && (
-          <div className="absolute top-full mt-2 left-0 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 z-50 overflow-hidden">
-            {/* \u099f\u09c7\u09a8\u09c7\u09a8\u09cd\u099f */}
+          <div className="absolute top-full mt-2 left-0 w-full bg-surface-container-lowest rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden">
+            {/* টেনেন্ট */}
             {searchResults.tenants?.length > 0 && (
               <div>
-                <p className="px-4 pt-3 pb-1 text-[10px] font-black text-slate-400 uppercase flex items-center gap-1">
+                <p className="px-4 pt-3 pb-1 text-[10px] font-black text-on-surface-variant uppercase flex items-center gap-1">
                   <Users size={10} /> ভাড়াটিয়া
                 </p>
                 {searchResults.tenants.map((t: any) => (
                   <Link key={t._id} to="/tenants" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
-                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container transition-all">
                     <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center text-primary font-black text-xs">
                       {t.name?.charAt(0)?.toUpperCase()}
                     </div>
@@ -175,10 +174,10 @@ const Topbar = () => {
         <button
           onClick={() => setLanguage(language === "bn" ? "en" : "bn")}
           title={language === "bn" ? "Switch to English" : "বাংলায় পরিবর্তন করুন"}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 shadow-sm hover:scale-105 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest rounded-full border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-105 transition-all"
         >
-          <Languages size={14} className="text-slate-500" />
-          <span className="text-xs font-black text-slate-600 dark:text-slate-300">
+          <Languages size={14} className="text-on-surface-variant" />
+          <span className="text-xs font-black text-on-surface">
             {language === "bn" ? "EN" : "বা"}
           </span>
         </button>
@@ -190,15 +189,15 @@ const Topbar = () => {
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
-            className="flex items-center gap-3 pl-3 lg:pl-4 lg:border-l border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl pr-2 py-1.5 transition-all"
+            className="flex items-center gap-3 pl-3 lg:pl-4 lg:border-l border-slate-200 dark:border-slate-800 hover:bg-surface-container rounded-2xl pr-2 py-1.5 transition-all"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold leading-none capitalize dark:text-slate-200">
+              <p className="text-sm font-bold leading-none capitalize text-on-surface">
                 {user?.fullName || "বাড়িওয়ালা"}
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5 capitalize">{user?.role || "landlord"}</p>
+              <p className="text-[10px] text-on-surface-variant mt-0.5 capitalize">{user?.role || "landlord"}</p>
             </div>
-            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white shadow-sm ring-1 ring-primary/20 shrink-0 flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
+            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-background shadow-sm ring-1 ring-primary/20 shrink-0 flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="avatar" className="w-full h-full object-cover" />
               ) : (
@@ -211,23 +210,23 @@ const Topbar = () => {
 
           {/* Profile Dropdown */}
           {profileOpen && (
-            <div className="absolute right-0 top-14 w-52 bg-white dark:bg-slate-800 rounded-[20px] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
+            <div className="absolute right-0 top-14 w-52 bg-surface-container-lowest rounded-[20px] shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
               <div className="p-4 border-b border-slate-100 dark:border-slate-700">
-                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm capitalize">{user?.fullName}</p>
-                <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                <p className="font-bold text-on-surface text-sm capitalize">{user?.fullName}</p>
+                <p className="text-xs text-on-surface-variant truncate">{user?.email}</p>
               </div>
               <div className="p-2 space-y-1">
                 <Link
                   to="/payments"
                   onClick={() => setProfileOpen(false)}
-                  className="flex lg:hidden items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-bold"
+                  className="flex lg:hidden items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all text-sm font-bold"
                 >
                   <CreditCard size={16} /> পেমেন্ট
                 </Link>
                 <Link
                   to="/settings"
                   onClick={() => setProfileOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all text-sm font-bold"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all text-sm font-bold"
                 >
                   <Settings size={16} /> প্রোফাইল সেটিংস
                 </Link>

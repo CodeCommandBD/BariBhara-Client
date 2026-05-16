@@ -5,7 +5,7 @@ const TenantProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const { isAuthenticated } = useTenantAuthStore();
 
   if (!isAuthenticated) {
-    return <Navigate to="/tenant/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children ? <>{children}</> : <Outlet />;

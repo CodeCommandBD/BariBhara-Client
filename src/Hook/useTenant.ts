@@ -9,6 +9,8 @@ import {
   vacateTenantApi,
   toggleAutoRenewApi,
   renewLeaseApi,
+  generateAgreementApi,
+  deleteAgreementApi,
 } from "@/api/tenant.api";
 
 export const useTenant = (page = 1, limit = 9) => {
@@ -105,6 +107,29 @@ export const useTenant = (page = 1, limit = 9) => {
     },
   });
 
+  // --- ৮. ডিজিটাল চুক্তিপত্র জেনারেট করা ---
+  const generateAgreementMutation = useMutation({
+    mutationFn: (id: string) => generateAgreementApi(id, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "চুক্তিপত্র সফলভাবে জেনারেট হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "চুক্তিপত্র জেনারেট করতে সমস্যা হয়েছে!");
+    },
+  });
+
+  const deleteAgreementMutation = useMutation({
+    mutationFn: (id: string) => deleteAgreementApi(id, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "চুক্তিপত্র মুছে ফেলা হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "মুছে ফেলতে সমস্যা হয়েছে!");
+    },
+  });
+
   return {
     // ডাটা
     tenants,
@@ -119,5 +144,7 @@ export const useTenant = (page = 1, limit = 9) => {
     vacateTenantMutation,
     toggleAutoRenewMutation,
     renewLeaseMutation,
+    generateAgreementMutation,
+    deleteAgreementMutation,
   };
 };

@@ -10,13 +10,10 @@ const API_URL = "http://localhost:4000/api/notifications";
 
 // notification type → icon + color
 const typeConfig: Record<string, { icon: string; color: string; bg: string }> = {
-  payment_received:  { icon: "💰", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/30" },
-  invoice_generated: { icon: "🧾", color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/30" },
-  maintenance_update:{ icon: "🔧", color: "text-orange-600",  bg: "bg-orange-50 dark:bg-orange-900/30" },
-  lease_expiry:      { icon: "⏰", color: "text-red-600",      bg: "bg-red-50 dark:bg-red-900/30" },
-  tenant_added:      { icon: "👤", color: "text-violet-600",   bg: "bg-violet-50 dark:bg-violet-900/30" },
-  tenant_vacated:    { icon: "🏠", color: "text-slate-600",    bg: "bg-slate-100 dark:bg-slate-700/50" },
-  reminder_sent:     { icon: "📧", color: "text-cyan-600",     bg: "bg-cyan-50 dark:bg-cyan-900/30" },
+  payment:     { icon: "💰", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/30" },
+  invoice:     { icon: "🧾", color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/30" },
+  maintenance: { icon: "🛠️", color: "text-orange-600",  bg: "bg-orange-50 dark:bg-orange-900/30" },
+  system:      { icon: "🔔", color: "text-slate-600",    bg: "bg-slate-100 dark:bg-slate-700/50" },
 };
 
 const NotificationBell = () => {
@@ -51,8 +48,8 @@ const NotificationBell = () => {
       await axios.patch(`${API_URL}/${n._id}/read`, {}, { headers: authHeader });
     } catch {}
 
-    if (n.meta?.url) {
-      navigate(n.meta.url);
+    if (n.link) {
+      navigate(n.link);
       setIsOpen(false);
     }
   };
@@ -190,13 +187,8 @@ const NotificationBell = () => {
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
                         <p className="text-[10px] text-slate-400 font-bold">{timeAgo(n.createdAt)}</p>
-                        {n.meta?.url && (
+                        {n.link && (
                           <ExternalLink size={10} className="text-slate-300" />
-                        )}
-                        {n.meta?.amount && (
-                          <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-1.5 py-0.5 rounded-full">
-                            ৳{n.meta.amount.toLocaleString()}
-                          </span>
                         )}
                       </div>
                     </div>

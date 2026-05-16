@@ -105,16 +105,17 @@ const AssignTenantModal = ({ isOpen, onClose, unit, propertyId }: AssignTenantMo
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-400 uppercase ml-1">ফোন নম্বর *</label>
+              <label className="text-xs font-black text-slate-400 uppercase ml-1">WhatsApp নম্বর *</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                   name="phone" required
                   value={formData.phone} onChange={handleChange}
-                  placeholder="01XXXXXXXXX"
+                  placeholder="01XXXXXXXXX (WhatsApp)"
                   className="w-full pl-10 pr-3 py-2.5 bg-slate-50 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-primary/30"
                 />
               </div>
+              <p className="text-[10px] text-slate-400 ml-1">অটোমেটেড ইনভয়েস মেসেজের জন্য এটি প্রয়োজনীয়।</p>
             </div>
           </div>
 
