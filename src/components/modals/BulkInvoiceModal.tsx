@@ -151,7 +151,7 @@ const BulkInvoiceModal = ({ onClose, properties }: Props) => {
                 <div key={key} className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400">{label}</label>
                   <input type="number" min={0} value={(extras as any)[key]}
-                    onChange={e => setExtras(prev => ({ ...prev, [key]: e.target.value }))}
+                    onChange={e => setExtras((prev: any) => ({ ...prev, [key]: e.target.value }))}
                     placeholder="0"
                     className="w-full px-3 py-2 bg-slate-50 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/20" />
                 </div>
