@@ -50,7 +50,7 @@ const RevenueChart = () => {
                   color: "hsl(var(--on-surface))"
                 }}
                 itemStyle={{ color: "inherit" }}
-                formatter={(value: any, name: string) => [
+                formatter={(value: any, name: any) => [
                   `৳${Number(value).toLocaleString()}`,
                   name === "revenue" ? "কালেকশন" : "বকেয়া",
                 ]}

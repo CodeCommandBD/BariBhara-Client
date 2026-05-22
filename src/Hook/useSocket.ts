@@ -35,7 +35,7 @@ export const useSocket = () => {
       };
       const res = await axios.get(API_URL, { headers: authHeader });
       if (res.data.success) {
-        setNotifications(res.data.notifications, res.data.unreadCount);
+        setNotifications(res.data.notifications);
       }
     } catch (err) {
       // Silent fail — not critical
