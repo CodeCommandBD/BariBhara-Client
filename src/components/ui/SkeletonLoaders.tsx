@@ -115,3 +115,42 @@ export const RentTableSkeleton = () => (
     </table>
   </div>
 );
+
+// প্রপার্টি কার্ড স্কেলিটন (Properties পেজের জন্য)
+export const PropertyCardSkeleton = () => (
+  <div className="bg-white dark:bg-slate-800 rounded-[32px] overflow-hidden border border-slate-100 dark:border-slate-700">
+    <div className={`h-56 ${shimmer}`} />
+    <div className="p-6 space-y-4">
+      <div className="space-y-2">
+        <SkeletonBox className="h-6 w-40" />
+        <SkeletonBox className="h-4 w-32" />
+      </div>
+      <div className="flex justify-between items-center pt-4 border-t border-slate-50 dark:border-slate-700">
+        <div className="flex items-center gap-3">
+          <SkeletonBox className="w-10 h-10 rounded-xl" />
+          <div className="space-y-1">
+            <SkeletonBox className="h-3 w-16" />
+            <SkeletonBox className="h-4 w-20" />
+          </div>
+        </div>
+        <SkeletonBox className="h-8 w-24 rounded-xl" />
+      </div>
+    </div>
+  </div>
+);
+
+// Properties পেজ ফুল গ্রিড স্কেলিটন
+export const PropertiesGridSkeleton = () => (
+  <div className="space-y-8 p-6">
+    <div className="flex justify-between items-center">
+      <div className="space-y-2">
+        <SkeletonBox className="h-8 w-48" />
+        <SkeletonBox className="h-4 w-64" />
+      </div>
+      <SkeletonBox className="h-12 w-44 rounded-2xl" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[0, 1, 2, 3, 4, 5].map(i => <PropertyCardSkeleton key={i} />)}
+    </div>
+  </div>
+);
