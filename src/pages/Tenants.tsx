@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTenant } from "@/Hook/useTenant";
-import { Building2, MapPin, Phone, User, Users, Clock, AlertTriangle, CalendarClock, RefreshCcw, PenTool, Trash2 } from "lucide-react";
+import { Building2, MapPin, Phone, User, Users, Clock, AlertTriangle, CalendarClock, RefreshCcw, PenTool, Trash2, Search, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import Pagination from "@/components/ui/Pagination";
 import TenantPortalAccessModal from "@/components/modals/TenantPortalAccessModal";
@@ -13,6 +13,7 @@ const ITEMS_PER_PAGE = 9;
 
 const Tenants = () => {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
   const [renewingTenant, setRenewingTenant] = useState<any>(null);
   const [documentTenant, setDocumentTenant] = useState<any>(null);
@@ -43,6 +44,13 @@ const Tenants = () => {
     renewLeaseMutation.mutate({ id, newEndDate });
   };
 
+  const filteredTenants = tenants.filter((t: any) =>
+    t.name?.toLowerCase().includes(search.toLowerCase()) ||
+    t.phone?.includes(search) ||
+    t.property?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    t.unit?.unitName?.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (isTenantsLoading) {
     return (
       <div className="p-10 flex items-center justify-center gap-3">
@@ -64,35 +72,56 @@ const Tenants = () => {
             আপনার সকল সক্রিয় ভাড়াটিয়াদের কেন্দ্রীয় তালিকা
           </p>
         </div>
-        <div className="px-5 py-2.5 bg-primary/10 dark:bg-primary/20 text-primary rounded-2xl font-black text-sm">
-          মোট: {total} জন
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="নাম, ফোন, প্রপার্টি খুঁজুন..."
+              className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-slate-800 rounded-2xl text-sm font-bold border border-slate-200 dark:border-slate-700 outline-none focus:border-primary/40 dark:text-slate-200"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <div className="px-5 py-2.5 bg-primary/10 dark:bg-primary/20 text-primary rounded-2xl font-black text-sm shrink-0">
+            মোট: {total} জন
+          </div>
         </div>
       </div>
 
       {/* খালি স্টেট */}
-      {tenants.length === 0 && (
+      {filteredTenants.length === 0 && !isTenantsLoading && (
         <div className="text-center py-24 bg-slate-50 dark:bg-slate-800/50 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-700">
           <div className="w-20 h-20 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
             <Users className="text-slate-300 dark:text-slate-500" size={36} />
           </div>
-          <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">কোনো ভাড়াটিয়া নেই</p>
+          <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">
+            {search ? `"${search}" এর জন্য কোনো ভাড়াটিয়া পাওয়া যায়নি` : "কোনো ভাড়াটিয়া নেই"}
+          </p>
           <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
             প্রপার্টির কোনো ইউনিটে ভাড়াটিয়া যোগ করুন
           </p>
+          {!search && (
           <Link
             to="/properties"
             className="inline-block mt-5 px-6 py-2.5 bg-primary text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20"
           >
             প্রপার্টি দেখুন
           </Link>
+          )}
         </div>
       )}
 
       {/* ভাড়াটিয়া কার্ড গ্রিড */}
-      {tenants.length > 0 && (
+      {filteredTenants.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tenants.map((tenant: any) => (
+            {filteredTenants.map((tenant: any) => (
               <div
                 key={tenant._id}
                 className="bg-white dark:bg-slate-800 rounded-[28px] border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl dark:hover:shadow-slate-900/40 transition-all overflow-hidden group"
