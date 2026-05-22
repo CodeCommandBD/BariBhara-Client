@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import EditPropertyModal from "@/components/modals/EditPropertyModal";
 import { Edit3, Trash2, Share2 } from "lucide-react";
+import { PropertiesGridSkeleton } from "@/components/ui/SkeletonLoaders";
 
 const Properties = () => {
   // ২. হুক থেকে প্রপার্টি লিস্ট এবং লোডিং স্টেট নিয়ে আসা
@@ -33,13 +34,7 @@ const Properties = () => {
     setOpenMenuId(null);
   };
 
-  // ৪. যদি ডাটা লোড হতে থাকে, তবে একটি টেক্সট দেখানো
-  if (isPropertiesLoading)
-    return (
-      <div className="p-10 text-center font-bold text-slate-500 dark:text-slate-400">
-        আপনার প্রপার্টি লোড হচ্ছে...
-      </div>
-    );
+  if (isPropertiesLoading) return <PropertiesGridSkeleton />;
 
   return (
     <div className="space-y-8 p-6">
