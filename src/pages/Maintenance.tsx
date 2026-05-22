@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useMaintenance } from "@/Hook/useMaintenance";
+import { useExpense } from "@/Hook/useExpense";
 import { useProperty } from "@/Hook/useProperty";
 import {
   Wrench, Plus, Trash2, Calendar, Home, Search,
   X, Save, CheckCircle2, Clock, AlertTriangle,
-  TrendingDown, ChevronDown, Filter, ArrowUpRight
+  TrendingDown, ChevronDown, Filter, ArrowUpRight,
+  Receipt, DollarSign, PlusCircle, Tag
 } from "lucide-react";
 
 // --- Types ---
@@ -28,6 +30,13 @@ const emptyForm = {
   cost: "", reportedDate: new Date().toISOString().split("T")[0],
 };
 
+const EXPENSE_CATEGORIES = ["মেরামত", "রক্ষণাবেক্ষণ", "পরিষ্কার", "ইলেকট্রিক্যাল", "প্লাম্বিং", "অন্যান্য"];
+
+const emptyExpenseForm = {
+  title: "", category: "অন্যান্য", amount: "",
+  property: "", expenseDate: new Date().toISOString().split("T")[0], note: "",
+};
+
 const Maintenance = () => {
   const [activeTab, setActiveTab] = useState<"requests" | "expenses">("requests");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -42,6 +51,26 @@ const Maintenance = () => {
     priority: priorityFilter || undefined,
   });
   const { properties } = useProperty();
+
+  // Expense state
+  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
+  const [expenseForm, setExpenseForm] = useState(emptyExpenseForm);
+  const [expenseSearch, setExpenseSearch] = useState("");
+  const { expenses, totalExpense, isLoading: isExpenseLoading, addExpenseMutation, deleteExpenseMutation } = useExpense();
+
+  const filteredExpenses = expenses.filter((e: any) =>
+    e.title?.toLowerCase().includes(expenseSearch.toLowerCase()) ||
+    e.property?.name?.toLowerCase().includes(expenseSearch.toLowerCase()) ||
+    e.category?.toLowerCase().includes(expenseSearch.toLowerCase())
+  );
+
+  const handleExpenseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expenseForm.property || !expenseForm.title || !expenseForm.amount) return;
+    addExpenseMutation.mutate(expenseForm, {
+      onSuccess: () => { setExpenseFormOpen(false); setExpenseForm(emptyExpenseForm); }
+    });
+  };
 
   const filteredItems = items.filter((item: any) =>
     item.title?.toLowerCase().includes(search.toLowerCase()) ||
@@ -75,11 +104,49 @@ const Maintenance = () => {
             প্রপার্টির রক্ষণাবেক্ষণ রিকোয়েস্ট পরিচালনা করুন
           </p>
         </div>
+        {activeTab === "requests" ? (
+          <button
+            onClick={() => setFormOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 transition-all"
+          >
+            <Plus size={18} /> নতুন রিকোয়েস্ট
+          </button>
+        ) : (
+          <button
+            onClick={() => setExpenseFormOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 hover:scale-105 transition-all"
+          >
+            <PlusCircle size={18} /> নতুন খরচ
+          </button>
+        )}
+      </div>
+
+      {/* ট্যাব বাটন */}
+      <div className="flex gap-2">
         <button
-          onClick={() => setFormOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 transition-all"
+          onClick={() => setActiveTab("requests")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${
+            activeTab === "requests"
+              ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-200"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"
+          }`}
         >
-          <Plus size={18} /> নতুন রিকোয়েস্ট
+          <Wrench size={16} /> মেইনটেন্যান্স রিকোয়েস্ট
+        </button>
+        <button
+          onClick={() => setActiveTab("expenses")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${
+            activeTab === "expenses"
+              ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-200"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"
+          }`}
+        >
+          <Receipt size={16} /> খরচ ট্র্যাকিং
+          {totalExpense > 0 && (
+            <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-black">
+              ৳{totalExpense.toLocaleString()}
+            </span>
+          )}
         </button>
       </div>
 
@@ -103,6 +170,9 @@ const Maintenance = () => {
         ))}
       </div>
 
+      {/* === REQUESTS TAB === */}
+      {activeTab === "requests" && (
+      <>
       {/* ফিল্টার বার */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -216,9 +286,162 @@ const Maintenance = () => {
           </div>
         )}
       </div>
+      </>
+      )}
+
+      {/* === EXPENSES TAB === */}
+      {activeTab === "expenses" && (
+      <>
+        {/* খরচ সামারি */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-[24px] flex items-center gap-3">
+            <div className="w-10 h-10 bg-white dark:bg-slate-700 rounded-xl flex items-center justify-center shadow-sm text-emerald-500">
+              <Receipt size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">মোট খরচ</p>
+              <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">৳{totalExpense.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="bg-slate-50 dark:bg-slate-800 p-5 rounded-[24px] flex items-center gap-3">
+            <div className="w-10 h-10 bg-white dark:bg-slate-700 rounded-xl flex items-center justify-center shadow-sm text-slate-500">
+              <DollarSign size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wide">মোট রেকর্ড</p>
+              <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{expenses.length}</p>
+            </div>
+          </div>
+          <div className="col-span-2 md:col-span-1 relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text" value={expenseSearch} onChange={(e) => setExpenseSearch(e.target.value)}
+              placeholder="খরচ সার্চ করুন..."
+              className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 rounded-2xl outline-none text-sm font-bold border border-slate-100 dark:border-slate-700 shadow-sm dark:text-slate-200"
+            />
+          </div>
+        </div>
+
+        {/* খরচ লিস্ট */}
+        <div className="bg-white dark:bg-slate-800/60 rounded-[32px] border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+          {isExpenseLoading ? (
+            <div className="p-16 flex justify-center">
+              <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
+            </div>
+          ) : filteredExpenses.length === 0 ? (
+            <div className="p-16 text-center">
+              <Receipt className="mx-auto mb-3 text-slate-200 dark:text-slate-600" size={48} />
+              <p className="font-bold text-slate-400">কোনো খরচের রেকর্ড নেই</p>
+              <button onClick={() => setExpenseFormOpen(true)} className="mt-4 text-emerald-500 text-sm font-bold hover:underline">
+                + নতুন খরচ যোগ করুন
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50 dark:divide-slate-700">
+              {filteredExpenses.map((exp: any) => (
+                <div key={exp._id} className="p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-all">
+                  <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center shrink-0">
+                    <TrendingDown size={18} className="text-emerald-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">{exp.title}</p>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className="flex items-center gap-1 text-xs text-slate-400">
+                        <Home size={11} /> {exp.property?.name ?? "—"}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs text-slate-400">
+                        <Calendar size={11} /> {new Date(exp.expenseDate).toLocaleDateString("bn-BD")}
+                      </span>
+                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full text-[10px] font-black">
+                        {exp.category}
+                      </span>
+                    </div>
+                    {exp.note && <p className="text-xs text-slate-400 mt-1 truncate">{exp.note}</p>}
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className="font-black text-emerald-600 dark:text-emerald-400 text-lg">৳{exp.amount?.toLocaleString()}</p>
+                    <button
+                      onClick={() => { if (window.confirm("এই খরচের রেকর্ড মুছবেন?")) deleteExpenseMutation.mutate(exp._id); }}
+                      className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </>
+      )}
+
+      {/* নতুন খরচ মডাল */}
+      {expenseFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl overflow-hidden">
+            <div className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 border-b border-emerald-100 dark:border-slate-700 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <Receipt className="text-emerald-500" size={20} /> নতুন খরচের রেকর্ড
+              </h2>
+              <button onClick={() => setExpenseFormOpen(false)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-all">
+                <X size={20} className="text-slate-400" />
+              </button>
+            </div>
+            <form onSubmit={handleExpenseSubmit} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">প্রপার্টি *</label>
+                <select value={expenseForm.property} onChange={(e) => setExpenseForm({ ...expenseForm, property: e.target.value })} required
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-emerald-200 dark:text-slate-200">
+                  <option value="">সিলেক্ট করুন</option>
+                  {properties?.map((p: any) => <option key={p._id} value={p._id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">খরচের বিবরণ *</label>
+                <input value={expenseForm.title} onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })} required
+                  placeholder="যেমন: পানির পাম্প মেরামত"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-emerald-200 dark:text-slate-200" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">ক্যাটাগরি</label>
+                  <select value={expenseForm.category} onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-emerald-200 dark:text-slate-200">
+                    {EXPENSE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">পরিমাণ (৳) *</label>
+                  <input type="number" value={expenseForm.amount} onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })} required
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-emerald-200 dark:text-slate-200" />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">তারিখ</label>
+                <input type="date" value={expenseForm.expenseDate} onChange={(e) => setExpenseForm({ ...expenseForm, expenseDate: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-emerald-200 dark:text-slate-200" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">নোট</label>
+                <textarea value={expenseForm.note} onChange={(e) => setExpenseForm({ ...expenseForm, note: e.target.value })}
+                  rows={2} placeholder="অতিরিক্ত তথ্য..."
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-700 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-emerald-200 dark:text-slate-200 resize-none" />
+              </div>
+              <button type="submit" disabled={addExpenseMutation.isPending}
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                {addExpenseMutation.isPending
+                  ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> সেভ হচ্ছে...</>
+                  : <><Save size={17} /> খরচ সেভ করুন</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* নতুন রিকোয়েস্ট মডাল */}
       {isFormOpen && (
+
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl overflow-hidden">
             <div className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-b border-blue-100 dark:border-slate-700 flex justify-between items-center">
