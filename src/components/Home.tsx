@@ -1,15 +1,21 @@
-import { Button } from "@/components/ui/button"
+import HeroSection from "./home/HeroSection";
+import TrustBar from "./home/TrustBar";
+import MarketplaceSection from "./home/MarketplaceSection";
+import SaaSSection from "./home/SaaSSection";
+import HowItWorksSection from "./home/HowItWorksSection";
+import PricingSection from "./home/PricingSection";
 
 const Home = () => {
   return (
-    <div className="p-4 flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">Home Page</h1>
-        <p>Welcome to the Rental Management System</p>
-        <div>
-            <Button>Shadcn Button</Button>
-        </div>
+    <div className="w-full">
+      <HeroSection />
+      <TrustBar />
+      <MarketplaceSection />
+      <SaaSSection />
+      <HowItWorksSection />
+      <PricingSection />
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

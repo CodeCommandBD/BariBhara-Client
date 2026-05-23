@@ -3,8 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 
-import { createBrowserRouter, Navigate } from "react-router";
-import { RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import Home from "./components/Home.tsx";
 import { Toaster } from "sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,6 +24,10 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import PaymentPage from "./pages/PaymentPage.tsx";
+import AdminSubscriptions from "./pages/AdminSubscriptions.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminUsers from "./pages/admin/AdminUsers.tsx";
 
 
 // Tenant Portal Components
@@ -109,7 +112,31 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
       },
+      {
+        path: "admin",
+        element: <Navigate to="/admin/dashboard" replace />,
+      },
+      {
+        path: "admin/dashboard",
+        element: <AdminDashboard />,
+      },
+      {
+        path: "admin/users",
+        element: <AdminUsers />,
+      },
+      {
+        path: "admin/subscriptions",
+        element: <AdminSubscriptions />,
+      },
     ],
+  },
+  {
+    path: "/payment/:plan",
+    element: (
+      <ProtectedRoute>
+        <PaymentPage />
+      </ProtectedRoute>
+    ),
   },
 
   {
