@@ -1,7 +1,7 @@
 import { Building2, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useProperty } from "../Hook/useProperty"; // আমাদের বানানো প্রপার্টি হুক
 import { useUIStore } from "../store/useUIStore"; // মডাল ওপেন করার জন্য স্টোর
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import EditPropertyModal from "@/components/modals/EditPropertyModal";

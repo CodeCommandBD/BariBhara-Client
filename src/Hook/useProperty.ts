@@ -31,6 +31,15 @@ export const useProperty = () => {
   // Add Property
   const createPropertyMutation = useMutation({
     mutationFn: async (formData: FormData) => {
+      // Enforce Free Plan limit of 1 building
+      const user = useAuthStore.getState().user;
+      if (user?.subscriptionPlan === "free") {
+        const currentCount = properties?.length || 0;
+        if (currentCount >= 1) {
+          throw new Error("আপনার ফ্রি প্ল্যানের লিমিট শেষ! আরও বিল্ডিং যোগ করতে দয়া করে প্রো প্ল্যানে সাবস্ক্রাইব করুন।");
+        }
+      }
+
       const response = await axios.post(
         "http://localhost:4000/api/property/add-property",
         formData,
@@ -54,7 +63,7 @@ export const useProperty = () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] }); // ড্যাশবোর্ড আপডেট করবে
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "কিছু একটা ভুল হয়েছে!");
+      toast.error(error.message || error.response?.data?.message || "কিছু একটা ভুল হয়েছে!");
     },
   });
 

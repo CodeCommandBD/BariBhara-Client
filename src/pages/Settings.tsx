@@ -2,12 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import {
   User, Camera, Lock, Moon, Sun, Save, Eye, EyeOff,
   Shield, Phone, Mail, FileText, CheckCircle2, ShieldAlert, ShieldOff, ShieldCheck,
-  MessageSquare, QrCode, LogOut as LogOutIcon, RefreshCw, PenTool
+  MessageSquare, QrCode, LogOut as LogOutIcon, RefreshCw, PenTool, CreditCard
 } from "lucide-react";
 import { io } from "socket.io-client";
 
@@ -290,6 +291,78 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* বিলিং ও সাবস্ক্রিপশন সেকশন */}
+      {profileData?.role === "landlord" && (
+        <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-900/10 relative overflow-hidden">
+          {/* Decorative shapes */}
+          <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="text-violet-200" size={22} />
+                <h3 className="text-lg font-black tracking-tight text-white uppercase">বিলিং ও সাবস্ক্রিপশন</h3>
+              </div>
+              
+              <div>
+                <p className="text-xs text-violet-200 font-bold uppercase tracking-wider">বর্তমান প্ল্যান</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-2xl font-black">
+                    {profileData?.subscriptionPlan === "pro" ? "প্রো প্ল্যান (Pro Plan) 💎" : "ফ্রি প্ল্যান (Free Plan) ৳০"}
+                  </span>
+                  
+                  {profileData?.subscriptionStatus === "active" ? (
+                    <span className="px-3 py-0.5 bg-emerald-500 text-white font-extrabold text-[10px] rounded-full uppercase tracking-wider shadow-sm">
+                      সক্রিয়
+                    </span>
+                  ) : profileData?.subscriptionStatus === "pending" ? (
+                    <span className="px-3 py-0.5 bg-amber-500 text-white font-extrabold text-[10px] rounded-full uppercase tracking-wider animate-pulse shadow-sm">
+                      পেন্ডিং
+                    </span>
+                  ) : (
+                    <span className="px-3 py-0.5 bg-rose-500 text-white font-extrabold text-[10px] rounded-full uppercase tracking-wider shadow-sm">
+                      লকড / মেয়াদোত্তীর্ণ
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-xs text-violet-100 space-y-1">
+                {profileData?.subscriptionPlan === "free" ? (
+                  <p>✓ লিমিট: ১টি বিল্ডিং ও সর্বোচ্চ ২ জন ভাড়াটিয়া ম্যানেজমেন্ট।</p>
+                ) : (
+                  <p>✓ লিমিট: আনলিমিটেড বিল্ডিং ও আনলিমিটেড ভাড়াটিয়া ম্যানেজমেন্ট সহ সম্পূর্ণ ড্যাশবোর্ড অ্যাক্সেস।</p>
+                )}
+                {profileData?.subscriptionExpiresAt && profileData?.subscriptionPlan === "pro" && (
+                  <p className="text-violet-200 font-bold mt-2">
+                    ⏳ মেয়াদ শেষ হওয়ার তারিখ: {new Date(profileData.subscriptionExpiresAt).toLocaleDateString("bn-BD", { year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 w-full md:w-auto">
+              {profileData?.subscriptionPlan === "free" ? (
+                <Link
+                  to="/payment/pro"
+                  className="block text-center px-6 py-3.5 bg-white text-indigo-700 font-black rounded-2xl shadow-lg hover:bg-slate-50 transition-all text-sm hover:scale-105 active:scale-95"
+                >
+                  প্রো প্ল্যানে আপগ্রেড করুন ⚡
+                </Link>
+              ) : (
+                <Link
+                  to="/payment/pro"
+                  className="block text-center px-6 py-3.5 bg-white/20 text-white font-black rounded-2xl shadow-lg hover:bg-white/30 transition-all text-sm border border-white/20 hover:scale-105 active:scale-95"
+                >
+                  সাবস্ক্রিপশন রিনিউ করুন 🔄
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* প্রোফাইল তথ্য সম্পাদনা */}
       <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
