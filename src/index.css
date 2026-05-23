@@ -86,6 +86,15 @@
   .text-on-surface-variant {
     color: hsl(var(--on-surface-variant));
   }
+  .gradient-text {
+    background: linear-gradient(135deg, #702ae1 0%, #b00d6a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-gradient {
+    background: radial-gradient(circle at top right, rgba(112, 42, 225, 0.08), transparent),
+                radial-gradient(circle at bottom left, rgba(176, 13, 106, 0.05), transparent);
+  }
 }
 
 @layer components {

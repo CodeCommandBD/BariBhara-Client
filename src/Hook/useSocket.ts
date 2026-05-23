@@ -91,6 +91,20 @@ export const useSocket = () => {
       });
     });
 
+    // রিয়েল-টাইম সাবস্ক্রিপশন স্ট্যাটাস আপডেট লিসেনার
+    socket.on("subscription_status_updated", ({ status, plan }) => {
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        const updatedUser = { 
+          ...currentUser, 
+          subscriptionStatus: status, 
+          subscriptionPlan: plan 
+        };
+        useAuthStore.getState().setAuth(updatedUser, token);
+        console.log("🔒 Subscription updated in real-time:", status, plan);
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log("❌ Socket disconnected");
     });

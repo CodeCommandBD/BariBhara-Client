@@ -40,7 +40,17 @@ export const useTenant = (page = 1, limit = 9) => {
 
   // --- ৩. নতুন ভাড়াটিয়া যোগ করা ---
   const addTenantMutation = useMutation({
-    mutationFn: (formData: FormData) => addTenantApi(formData, token!),
+    mutationFn: (formData: FormData) => {
+      // Enforce Free Plan limit of 2 tenants
+      const user = useAuthStore.getState().user;
+      if (user?.subscriptionPlan === "free") {
+        const currentCount = total || 0;
+        if (currentCount >= 2) {
+          throw new Error("আপনার ফ্রি প্ল্যানের লিমিট শেষ! আরও ভাড়াটিয়া যোগ করতে দয়া করে প্রো প্ল্যানে সাবস্ক্রাইব করুন।");
+        }
+      }
+      return addTenantApi(formData, token!);
+    },
     onSuccess: (data) => {
       toast.success(data.message || "ভাড়াটিয়া সফলভাবে যোগ করা হয়েছে!");
       // সব সম্পর্কিত কুয়েরি রিফ্রেশ করা
@@ -49,7 +59,7 @@ export const useTenant = (page = 1, limit = 9) => {
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "ভাড়াটিয়া যোগ করতে সমস্যা হয়েছে!");
+      toast.error(error.message || error.response?.data?.message || "ভাড়াটিয়া যোগ করতে সমস্যা হয়েছে!");
     },
   });
 

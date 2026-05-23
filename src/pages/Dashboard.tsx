@@ -52,7 +52,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid — এখন ৫টি কার্ড (Responsive) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
         <StatCard
           title="মোট প্রপার্টি"
           value={stats?.totalProperties ?? "০"}
@@ -101,8 +101,8 @@ const Dashboard = () => {
       <LeaseAlerts />
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
           <RevenueChart />
         </div>
         <div className="col-span-1">
