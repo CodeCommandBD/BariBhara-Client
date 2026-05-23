@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages, CreditCard } from "lucide-react";
+import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages, CreditCard, Home } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -80,7 +80,7 @@ const Topbar = () => {
   }, []);
 
   return (
-    <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] w-full h-20 z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-slate-200 dark:border-slate-800">
+    <header className="fixed top-0 right-0 lg:w-[calc(100%-18rem)] md:w-[calc(100%-6rem)] w-full h-20 z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between lg:px-8 px-4 border-b border-slate-200 dark:border-slate-800">
       {/* সার্চ বার */}
       <div ref={searchRef} className="relative lg:w-96 w-40 md:w-64">
         <div className="flex items-center bg-surface-container-lowest rounded-full px-4 py-2 shadow-sm border border-slate-200 dark:border-slate-700 transition-all">
@@ -216,6 +216,13 @@ const Topbar = () => {
                 <p className="text-xs text-on-surface-variant truncate">{user?.email}</p>
               </div>
               <div className="p-2 space-y-1">
+                <Link
+                  to="/"
+                  onClick={() => setProfileOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all text-sm font-bold"
+                >
+                  <Home size={16} /> হোমপেজে যান
+                </Link>
                 <Link
                   to="/payments"
                   onClick={() => setProfileOpen(false)}
