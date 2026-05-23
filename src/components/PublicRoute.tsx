@@ -1,4 +1,4 @@
-import { Navigate } from "react-router";
+import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 
 const PublicRoute = ({children}: {children: React.ReactNode}) => {

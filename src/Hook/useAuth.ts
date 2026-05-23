@@ -2,13 +2,14 @@ import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuthStore } from '../store/useAuthStore'; // Fixed path from @/ to relative
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const API_URL = "http://localhost:4000/api/auth";
 
 export const useAuth = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -36,7 +37,8 @@ export const useAuth = () => {
       if (!data.requires2FA) {
         setAuth(data.user, data.token)
         toast.success("লগইন সফল হয়েছে!")
-        navigate("/dashboard")
+        const from = (location.state as any)?.from?.pathname || (data.user.role === 'admin' ? "/admin/dashboard" : "/dashboard");
+        navigate(from, { replace: true })
       }
     },
     onError(error: any){

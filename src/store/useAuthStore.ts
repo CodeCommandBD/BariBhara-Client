@@ -7,6 +7,9 @@ interface User {
   fullName: string;
   phone: string;
   role: string;
+  subscriptionPlan?: "free" | "basic" | "pro";
+  subscriptionStatus?: "active" | "pending" | "expired" | "none";
+  subscriptionExpiresAt?: Date | null;
 }
 
 interface AuthState {

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/Hook/useAuth";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ const Login = () => {
   const [role, setRole] = useState<"landlord" | "tenant">("landlord");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [show2FA, setShow2FA] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [userId, setUserId] = useState("");
@@ -72,7 +73,8 @@ const Login = () => {
         const { useAuthStore } = await import("@/store/useAuthStore");
         useAuthStore.getState().setAuth(res.data.user, res.data.token);
         toast.success(res.data.message || "লগইন সফল হয়েছে!");
-        navigate("/dashboard");
+        const from = (location.state as any)?.from?.pathname || (res.data.user.role === 'admin' ? "/admin/dashboard" : "/dashboard");
+        navigate(from, { replace: true });
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || "OTP যাচাই ব্যর্থ!");
