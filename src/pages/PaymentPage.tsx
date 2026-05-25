@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
@@ -10,11 +10,23 @@ const PaymentPage = () => {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [settings, setSettings] = useState({ bkashNumber: "০১৭XX-XXXXXX", nagadNumber: "০১৭XX-XXXXXX", rocketNumber: "" });
   const [formData, setFormData] = useState({
     senderNumber: "",
     trxId: "",
     paymentMethod: "bkash",
   });
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public/system-settings`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          setSettings(data.settings);
+        }
+      })
+      .catch(err => console.error("Error fetching system settings:", err));
+  }, []);
 
   const plans: Record<string, { name: string; price: number }> = {
     basic: { name: "বেসিক প্ল্যান", price: 499 },
@@ -110,18 +122,30 @@ const PaymentPage = () => {
             </ol>
           </div>
 
-          <div className="flex justify-around items-center mb-8 p-4 bg-surface-container rounded-xl">
-            <div className="text-center">
-              <img src="https://download.logo.wine/logo/BKash/BKash-Icon-Logo.wine.png" alt="bKash" className="w-16 h-16 object-contain mx-auto mb-2" />
-              <p className="font-bold">০১৭XX-XXXXXX</p>
-              <p className="text-xs text-on-surface-variant">পার্সোনাল</p>
+          <div className="flex justify-around items-center mb-8 p-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-800 rounded-xl gap-4 flex-wrap">
+            <div className="text-center min-w-[120px]">
+              <img src="https://download.logo.wine/logo/BKash/BKash-Icon-Logo.wine.png" alt="bKash" className="w-16 h-12 object-contain mx-auto mb-1" />
+              <p className="font-extrabold text-sm">{settings.bkashNumber}</p>
+              <p className="text-[10px] text-slate-400 font-bold">পার্সোনাল</p>
             </div>
-            <div className="w-px h-16 bg-outline-variant/30"></div>
-            <div className="text-center">
-              <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="w-20 h-16 object-contain mx-auto mb-2" />
-              <p className="font-bold">০১৭XX-XXXXXX</p>
-              <p className="text-xs text-on-surface-variant">পার্সোনাল</p>
+            <div className="hidden sm:block w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
+            <div className="text-center min-w-[120px]">
+              <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="w-16 h-12 object-contain mx-auto mb-1" />
+              <p className="font-extrabold text-sm">{settings.nagadNumber}</p>
+              <p className="text-[10px] text-slate-400 font-bold">পার্সোনাল</p>
             </div>
+            {settings.rocketNumber && (
+              <>
+                <div className="hidden sm:block w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
+                <div className="text-center min-w-[120px]">
+                  <div className="w-16 h-12 flex items-center justify-center mx-auto mb-1 bg-purple-100 dark:bg-purple-950/30 rounded-lg">
+                    <span className="font-black text-xs text-purple-700 dark:text-purple-400 tracking-wider">Rocket</span>
+                  </div>
+                  <p className="font-extrabold text-sm">{settings.rocketNumber}</p>
+                  <p className="text-[10px] text-slate-400 font-bold">পার্সোনাল</p>
+                </div>
+              </>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
