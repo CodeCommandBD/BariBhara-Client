@@ -1,4 +1,4 @@
-import { Building2, Layers, MapPin, Upload, X } from "lucide-react";
+import { Building2, Layers, MapPin, Upload, X, DollarSign, Bed, Bath, Maximize2, Phone, Globe, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useProperty } from "../../Hook/useProperty";
 
@@ -14,6 +14,14 @@ const EditPropertyModal = ({ isOpen, onClose, property }: EditPropertyModalProps
     name: "",
     location: "",
     totalFloors: "",
+    rent: "",
+    bedrooms: "1",
+    bathrooms: "1",
+    area: "",
+    description: "",
+    contactNumber: "",
+    googleMapUrl: "",
+    isPublic: false,
   });
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -24,6 +32,14 @@ const EditPropertyModal = ({ isOpen, onClose, property }: EditPropertyModalProps
         name: property.name || "",
         location: property.location || "",
         totalFloors: property.totalFloors || "",
+        rent: property.rent || "",
+        bedrooms: property.bedrooms?.toString() || "1",
+        bathrooms: property.bathrooms?.toString() || "1",
+        area: property.area || "",
+        description: property.description || "",
+        contactNumber: property.contactNumber || "",
+        googleMapUrl: property.googleMapUrl || "",
+        isPublic: !!property.isPublic,
       });
       setExistingImages(property.images || []);
       setSelectedImages([]);
@@ -46,6 +62,14 @@ const EditPropertyModal = ({ isOpen, onClose, property }: EditPropertyModalProps
     data.append("name", formData.name);
     data.append("location", formData.location);
     data.append("totalFloors", formData.totalFloors);
+    data.append("rent", formData.rent);
+    data.append("bedrooms", formData.bedrooms);
+    data.append("bathrooms", formData.bathrooms);
+    data.append("area", formData.area);
+    data.append("description", formData.description);
+    data.append("contactNumber", formData.contactNumber);
+    data.append("googleMapUrl", formData.googleMapUrl);
+    data.append("isPublic", formData.isPublic.toString());
     
     existingImages.forEach(img => {
       data.append("existingImages", img);
@@ -76,29 +100,15 @@ const EditPropertyModal = ({ isOpen, onClose, property }: EditPropertyModalProps
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[85vh] overflow-y-auto">
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase ml-1">প্রপার্টির নাম</label>
-                  <div className="relative">
-                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
-                    />
-                  </div>
-               </div>
-               <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase ml-1">মোট তলা</label>
-                  <div className="relative">
-                    <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      type="number"
-                      value={formData.totalFloors}
-                      onChange={(e) => setFormData({...formData, totalFloors: e.target.value})}
-                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
-                    />
-                  </div>
+            <div className="space-y-2">
+               <label className="text-xs font-black text-slate-400 uppercase ml-1">প্রপার্টির নাম</label>
+               <div className="relative">
+                 <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                 <input 
+                   value={formData.name}
+                   onChange={(e) => setFormData({...formData, name: e.target.value})}
+                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+                 />
                </div>
             </div>
 
@@ -112,6 +122,114 @@ const EditPropertyModal = ({ isOpen, onClose, property }: EditPropertyModalProps
                     className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
                   />
                 </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">মোট তলা</label>
+                  <div className="relative">
+                    <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      type="number"
+                      value={formData.totalFloors}
+                      onChange={(e) => setFormData({...formData, totalFloors: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+                    />
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">আয়তন (স্কয়ার ফিট)</label>
+                  <div className="relative">
+                    <Maximize2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      type="number"
+                      value={formData.area}
+                      onChange={(e) => setFormData({...formData, area: e.target.value})}
+                      placeholder="উদা: ১২০০"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+                    />
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">বেডরুমের সংখ্যা</label>
+                  <div className="relative">
+                    <Bed className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <select 
+                      value={formData.bedrooms}
+                      onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                    >
+                      <option value="1">১ রুম</option>
+                      <option value="2">২ রুম</option>
+                      <option value="3">৩ রুম</option>
+                      <option value="4">৪ রুম</option>
+                      <option value="5">৫+ রুম</option>
+                    </select>
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">বাথরুমের সংখ্যা</label>
+                  <div className="relative">
+                    <Bath className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <select 
+                      value={formData.bathrooms}
+                      onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                    >
+                      <option value="1">১ বাথ</option>
+                      <option value="2">২ বাথ</option>
+                      <option value="3">৩ বাথ</option>
+                      <option value="4">৪+ বাথ</option>
+                    </select>
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">যোগাযোগের নম্বর</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      value={formData.contactNumber}
+                      onChange={(e) => setFormData({...formData, contactNumber: e.target.value})}
+                      placeholder="উদা: 017XXXXXXXX"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+                    />
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">হোমপেজে পাবলিশ করুন</label>
+                  <div className="flex items-center h-[46px] px-4 bg-slate-50 rounded-2xl">
+                    <input 
+                      type="checkbox"
+                      id="editIsPublic"
+                      checked={formData.isPublic}
+                      onChange={(e) => setFormData({...formData, isPublic: e.target.checked})}
+                      className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all cursor-pointer"
+                    />
+                    <label htmlFor="editIsPublic" className="ml-3 text-slate-600 text-xs font-bold cursor-pointer select-none">
+                      হোমপেজ মার্কেটপ্লেসে দেখান
+                    </label>
+                  </div>
+               </div>
+            </div>
+
+            <div className="space-y-2">
+               <label className="text-xs font-black text-slate-400 uppercase ml-1">বাসার বিবরণ (বিস্তারিত)</label>
+               <div className="relative">
+                 <FileText className="absolute left-4 top-4 text-slate-400" size={18} />
+                 <textarea 
+                   value={formData.description}
+                   onChange={(e) => setFormData({...formData, description: e.target.value})}
+                   placeholder="বাসার চমৎকার বর্ণনা বা শর্ত এখানে লিখুন..."
+                   rows={3}
+                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold resize-none"
+                 />
+               </div>
             </div>
 
             <div className="space-y-3 pt-2">
