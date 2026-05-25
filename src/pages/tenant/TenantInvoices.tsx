@@ -5,7 +5,7 @@ import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:4000/api/tenant-portal";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
 const TenantInvoices = () => {
   const { token } = useTenantAuthStore();

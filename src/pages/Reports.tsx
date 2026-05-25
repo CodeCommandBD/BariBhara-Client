@@ -15,7 +15,7 @@ import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const BASE_URL = "http://localhost:4000/api/reports";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/reports`;
 
 const PIE_COLORS = ["#7c3aed", "#2563eb", "#059669", "#d97706", "#dc2626", "#0891b2"];
 

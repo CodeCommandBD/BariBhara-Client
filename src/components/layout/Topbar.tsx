@@ -20,7 +20,7 @@ const Topbar = () => {
   const { data: profileData } = useQuery({
     queryKey: ["my-profile"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:4000/api/profile/me", {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/profile/me`, {
         headers: { Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}` },
       });
       return res.data.user;
@@ -62,7 +62,7 @@ const Topbar = () => {
     queryKey: ["global-search", searchQuery],
     queryFn: async () => {
       if (searchQuery.length < 2) return null;
-      const res = await axios.get(`http://localhost:4000/api/search?q=${searchQuery}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/search?q=${searchQuery}`, {
         headers: { Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}` },
       });
       return res.data.results;

@@ -16,7 +16,7 @@ const MONTHS = [
   "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
 ];
 
-const BASE_URL = "http://localhost:4000/api";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api`;
 
 const BulkInvoiceModal = ({ onClose, properties }: Props) => {
   const { token } = useAuthStore();

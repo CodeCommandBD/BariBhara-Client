@@ -71,7 +71,7 @@ const Properties = () => {
                   property.images && property.images.length > 0
                     ? property.images[0].startsWith("http")
                       ? property.images[0]
-                      : `http://localhost:4000/${property.images[0].replace(/\\/g, "/")}`
+                      : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${property.images[0].replace(/\\/g, "/")}`
                     : "https://images.unsplash.com/photo-1564013799919-ab600027ffc6"
                 }
                 alt={property.name}

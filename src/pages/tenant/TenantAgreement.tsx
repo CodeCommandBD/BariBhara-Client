@@ -20,7 +20,7 @@ const TenantAgreement = () => {
   const { data: tenantData, isLoading } = useQuery({
     queryKey: ["my-tenant-profile"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:4000/api/tenant-portal/me", { headers: authHeader });
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal/me`, { headers: authHeader });
       return res.data.tenant;
     },
     enabled: !!token,
@@ -28,7 +28,7 @@ const TenantAgreement = () => {
 
   const signMutation = useMutation({
     mutationFn: async (signatureData: string) => {
-      const res = await axios.post("http://localhost:4000/api/tenant/sign-agreement", { signatureData }, { headers: authHeader });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant/sign-agreement`, { signatureData }, { headers: authHeader });
       return res.data;
     },
     onSuccess: () => {

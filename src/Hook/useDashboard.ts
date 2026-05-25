@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useAuthStore } from "../store/useAuthStore";
 
-const BASE_URL = "http://localhost:4000/api/dashboard";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/dashboard`;
 
 const getAuthHeader = (token: string) => ({
   Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,

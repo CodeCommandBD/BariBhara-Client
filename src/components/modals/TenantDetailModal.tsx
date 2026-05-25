@@ -56,7 +56,7 @@ const TenantDetailModal = ({ isOpen, onClose, unitId }: TenantDetailModalProps) 
                 <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-violet-100 flex items-center justify-center shadow-md flex-shrink-0">
                   {tenant.photo ? (
                     <img
-                      src={tenant.photo.startsWith("http") ? tenant.photo : `http://localhost:4000/${tenant.photo}`}
+                      src={tenant.photo.startsWith("http") ? tenant.photo : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${tenant.photo}`}
                       className="w-full h-full object-cover"
                       alt={tenant.name}
                     />

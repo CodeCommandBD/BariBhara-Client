@@ -12,7 +12,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await axios.post("http://localhost:4000/api/auth/forgot-password", { email });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/auth/forgot-password`, { email });
       if (res.data.success) {
         toast.success(res.data.message);
         navigate("/reset-password", { state: { email } });

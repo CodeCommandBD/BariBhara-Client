@@ -27,7 +27,7 @@ const PricingSection = () => {
   const { data: plans, isLoading } = useQuery<PublicPlan[]>({
     queryKey: ["public-plans"],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:4000/api/public/plans");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public/plans`);
       return response.data.data;
     },
     refetchOnWindowFocus: false,

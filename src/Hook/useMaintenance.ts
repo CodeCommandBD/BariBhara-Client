@@ -3,7 +3,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 
-const BASE_URL = "http://localhost:4000/api/maintenance";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/maintenance`;
 
 export const useMaintenance = (filters?: { status?: string; priority?: string }) => {
   const { token } = useAuthStore();

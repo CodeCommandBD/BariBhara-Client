@@ -13,7 +13,7 @@ interface CollectPaymentModalProps {
   invoice: any;
 }
 
-const RENT_API = "http://localhost:4000/api/rent";
+const RENT_API = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/rent`;
 
 const CollectPaymentModal = ({ isOpen, onClose, invoice }: CollectPaymentModalProps) => {
   const { collectPaymentMutation } = useRent();

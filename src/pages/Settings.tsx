@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { io } from "socket.io-client";
 
-const BASE_URL = "http://localhost:4000/api/profile";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/profile`;
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const Settings = () => {
   const { user, token, setAuth } = useAuthStore();
@@ -61,7 +62,7 @@ const Settings = () => {
   // 2FA Toggle Mutation
   const toggle2FAMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      const res = await axios.patch(`http://localhost:4000/api/2fa/toggle`, { enabled }, { headers: authHeader });
+      const res = await axios.patch(`${API}/api/2fa/toggle`, { enabled }, { headers: authHeader });
       return res.data;
     },
     onSuccess: (data) => {
@@ -75,7 +76,7 @@ const Settings = () => {
 
   const sendOtpMutation = useMutation({
     mutationFn: async () => {
-      const res = await axios.post(`http://localhost:4000/api/2fa/send-otp`, { email: profileData?.email || user?.email }, { headers: authHeader });
+      const res = await axios.post(`${API}/api/2fa/send-otp`, { email: profileData?.email || user?.email }, { headers: authHeader });
       return res.data;
     },
     onSuccess: (data) => {
@@ -87,7 +88,7 @@ const Settings = () => {
 
   const verifyOtpMutation = useMutation({
     mutationFn: async (otp: string) => {
-      const res = await axios.post(`http://localhost:4000/api/2fa/verify-otp`, { otp }, { headers: authHeader });
+      const res = await axios.post(`${API}/api/2fa/verify-otp`, { otp }, { headers: authHeader });
       return res.data;
     },
     onSuccess: () => {
@@ -158,7 +159,7 @@ const Settings = () => {
   // ৫. ভেরিফিকেশন অনুরোধ পাঠানো মিউটেশন
   const requestVerifyMutation = useMutation({
     mutationFn: async (payload: { nidNumber: string; holdingNumber: string; message: string }) => {
-      const res = await axios.post(`http://localhost:4000/api/profile/request-verification`, payload, { headers: authHeader });
+      const res = await axios.post(`${API}/api/profile/request-verification`, payload, { headers: authHeader });
       return res.data;
     },
     onSuccess: (data) => {
@@ -172,7 +173,7 @@ const Settings = () => {
   // ৬. ভেরিফিকেশন সিমুলেশন মিউটেশন
   const simulateVerifyMutation = useMutation({
     mutationFn: async () => {
-      const res = await axios.post(`http://localhost:4000/api/profile/simulate-toggle-verification`, {}, { headers: authHeader });
+      const res = await axios.post(`${API}/api/profile/simulate-toggle-verification`, {}, { headers: authHeader });
       return res.data;
     },
     onSuccess: (data) => {
@@ -207,7 +208,7 @@ const Settings = () => {
   useQuery({
     queryKey: ["whatsapp-status"],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:4000/api/whatsapp/status", { headers: authHeader });
+      const res = await axios.get(`${API}/api/whatsapp/status`, { headers: authHeader });
       setWaStatus(res.data.status);
       setWaQr(res.data.qr);
       return res.data;
@@ -233,7 +234,7 @@ const Settings = () => {
   // Socket Listeners for WhatsApp
   useEffect(() => {
     if (!token) return;
-    const socket = io("http://localhost:4000");
+    const socket = io(API);
 
     socket.on("whatsapp_qr", (data) => {
       setWaQr(data.qr);
@@ -252,7 +253,7 @@ const Settings = () => {
 
   const logoutWhatsAppMutation = useMutation({
     mutationFn: async () => {
-      const res = await axios.post("http://localhost:4000/api/whatsapp/logout", {}, { headers: authHeader });
+      const res = await axios.post(`${API}/api/whatsapp/logout`, {}, { headers: authHeader });
       return res.data;
     },
     onSuccess: () => {

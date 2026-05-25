@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 export const useProperty = () => {
   const queryClient = useQueryClient();
   const { token } = useAuthStore();
@@ -14,7 +16,7 @@ export const useProperty = () => {
     queryFn: async () => {
       //
       const response = await axios.get(
-        "http://localhost:4000/api/property/my-property",
+        `${API}/api/property/my-property`,
         {
           headers: {
             Authorization: token?.startsWith("Bearer ")
@@ -41,7 +43,7 @@ export const useProperty = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:4000/api/property/add-property",
+        `${API}/api/property/add-property`,
         formData,
         {
           headers: {
@@ -73,7 +75,7 @@ export const useProperty = () => {
       queryKey: ["property", id], // আইডির ওপর ভিত্তি করে ডাটা আলাদাভাবে জমা থাকবে
       queryFn: async () => {
         const response = await axios.get(
-          `http://localhost:4000/api/property/${id}`,
+          `${API}/api/property/${id}`,
           {
             headers: {
               Authorization: token?.startsWith("Bearer ")
@@ -98,7 +100,7 @@ export const useProperty = () => {
       formData: FormData;
     }) => {
       const response = await axios.put(
-        `http://localhost:4000/api/property/${id}`,
+        `${API}/api/property/${id}`,
         formData,
         {
           headers: {
@@ -125,7 +127,7 @@ export const useProperty = () => {
   const deletePropertyMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await axios.delete(
-        `http://localhost:4000/api/property/${id}`,
+        `${API}/api/property/${id}`,
         {
           headers: {
             Authorization: token?.startsWith("Bearer ")

@@ -238,7 +238,7 @@ const EditPropertyModal = ({ isOpen, onClose, property }: EditPropertyModalProps
                 {existingImages.map((path, idx) => (
                   <div key={`existing-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border border-slate-100 group shadow-sm">
                     <img 
-                      src={path.startsWith("http") ? path : `http://localhost:4000/${path.replace(/\\/g, "/")}`} 
+                      src={path.startsWith("http") ? path : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${path.replace(/\\/g, "/")}`} 
                       className="w-full h-full object-cover" 
                       alt="Existing" 
                     />
