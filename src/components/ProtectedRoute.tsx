@@ -6,7 +6,7 @@ const ProtectedRoute = ({children}: {children: React.ReactNode}) => {
     const location = useLocation()
     const hasHydrated = useAuthStore.persist.hasHydrated();
 
-    // লোড হওয়ার আগে রিডাইরেক্ট বন্ধ রাখা
+    // লোড হওয়ার আগে রিডাইরেক্ট বন্ধ রাখা
     if (!hasHydrated) return null;
     
     if(!isAuthenticated){
@@ -19,8 +19,12 @@ const ProtectedRoute = ({children}: {children: React.ReactNode}) => {
         return <Navigate to="/tenant/login" replace />
     }
 
-    // Allow landlords with any status to access dashboard layouts so MainLayout can render the premium locked overlay
+    // Admin should use AdminProtectedRoute — redirect them
+    if(user?.role === "admin"){
+        return <Navigate to="/admin/dashboard" replace />
+    }
 
+    // Allow landlords with any status to access dashboard layouts so MainLayout can render the premium locked overlay
     return children
 }
 

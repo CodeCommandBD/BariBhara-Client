@@ -1,4 +1,4 @@
-import { X, Building2, MapPin, Layers, ImagePlus, Loader2 } from "lucide-react";
+import { X, Building2, MapPin, Layers, ImagePlus, Loader2, DollarSign, Bed, Bath, Maximize2, Phone, Globe, FileText } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useUIStore } from "../../store/useUIStore";
@@ -9,6 +9,14 @@ interface PropertyFormData {
   location: string;
   totalFloors: number;
   images: FileList;
+  rent?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  area?: number;
+  description?: string;
+  contactNumber?: string;
+  googleMapUrl?: string;
+  isPublic?: boolean;
 }
 
 const AddPropertyModal = () => {
@@ -56,6 +64,14 @@ const AddPropertyModal = () => {
     formData.append("name", data.name); // form data তে নাম যোগ করা
     formData.append("location", data.location); // form data তে ঠিকানা যোগ করা
     formData.append("totalFloors", data.totalFloors.toString()); // form data তে ফ্লোর সংখ্যা যোগ করা
+    if (data.rent) formData.append("rent", data.rent.toString());
+    if (data.bedrooms) formData.append("bedrooms", data.bedrooms.toString());
+    if (data.bathrooms) formData.append("bathrooms", data.bathrooms.toString());
+    if (data.area) formData.append("area", data.area.toString());
+    if (data.description) formData.append("description", data.description);
+    if (data.contactNumber) formData.append("contactNumber", data.contactNumber);
+    if (data.googleMapUrl) formData.append("googleMapUrl", data.googleMapUrl);
+    formData.append("isPublic", (!!data.isPublic).toString());
 
      // ২. লুপ চালিয়ে প্রতিটি ফাইল খামে (FormData) ভরা
     selectedFiles.forEach((file) => {
@@ -155,6 +171,99 @@ const AddPropertyModal = () => {
                   {errors.totalFloors.message}
                 </p>
               )}
+            </div>
+
+
+
+            {/* Area Sqft */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
+                <Maximize2 size={16} className="text-primary" /> আয়তন (স্কয়ার ফিট)
+              </label>
+              <input
+                type="number"
+                {...register("area")}
+                placeholder="উদা: ১২০০"
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all"
+              />
+            </div>
+
+            {/* Bedrooms count */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
+                <Bed size={16} className="text-primary" /> বেডরুমের সংখ্যা
+              </label>
+              <select
+                {...register("bedrooms")}
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all appearance-none cursor-pointer"
+              >
+                <option value="1">১ রুম</option>
+                <option value="2">২ রুম</option>
+                <option value="3">৩ রুম</option>
+                <option value="4">৪ রুম</option>
+                <option value="5">৫+ রুম</option>
+              </select>
+            </div>
+
+            {/* Bathrooms count */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
+                <Bath size={16} className="text-primary" /> বাথরুমের সংখ্যা
+              </label>
+              <select
+                {...register("bathrooms")}
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all appearance-none cursor-pointer"
+              >
+                <option value="1">১ বাথ</option>
+                <option value="2">২ বাথ</option>
+                <option value="3">৩ বাথ</option>
+                <option value="4">৪+ বাথ</option>
+              </select>
+            </div>
+
+            {/* Contact Number */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
+                <Phone size={16} className="text-primary" /> যোগাযোগের নম্বর
+              </label>
+              <input
+                {...register("contactNumber")}
+                placeholder="উদা: 017XXXXXXXX"
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all"
+              />
+            </div>
+
+
+
+            {/* Public Listing Toggle */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
+                <Globe size={16} className="text-primary" /> হোমপেজে পাবলিশ করুন
+              </label>
+              <div className="flex items-center h-[56px] px-6 bg-slate-50 rounded-2xl">
+                <input
+                  type="checkbox"
+                  id="isPublic"
+                  {...register("isPublic")}
+                  className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all cursor-pointer"
+                />
+                <label htmlFor="isPublic" className="ml-3 text-slate-600 text-xs font-bold cursor-pointer select-none">
+                  হোমপেজ মার্কেটপ্লেসে দেখান
+                </label>
+              </div>
+            </div>
+
+            {/* Description (Full Width) */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
+                <FileText size={16} className="text-primary" /> বাসার বিবরণ (বিস্তারিত)
+              </label>
+              <textarea
+                {...register("description")}
+                placeholder="বাসার চমৎকার বর্ণনা বা কোনো বিশেষ শর্ত থাকলে এখানে লিখুন..."
+                rows={3}
+                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all resize-none"
+              />
             </div>
 
             {/* Custom Image Upload Field */}
