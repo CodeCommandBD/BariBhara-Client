@@ -40,30 +40,118 @@ const getMapEmbedUrl = (locationName: string) => {
   return `https://maps.google.com/maps?q=${encodeURIComponent(locationName)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 };
 
+import { useUIStore } from "@/store/useUIStore";
+
 const MarketplaceSection = () => {
   const [selectedProperty, setSelectedProperty] = useState<PublicProperty | null>(null);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+
+  const { searchLocation, searchHouseType, searchBudget, setSearchFilters } = useUIStore();
 
   // ১. তানস্ট্যাক কুয়েরি দিয়ে পাবলিক লিস্টিং ফেচ করা
   const { data: properties, isLoading } = useQuery<PublicProperty[]>({
     queryKey: ["public-properties"],
     queryFn: async () => {
-      const response = await axios.get("http://localhost:4000/api/public/properties");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public/properties`);
       return response.data.data;
     },
     refetchOnWindowFocus: false,
   });
 
+  // ২. অ্যাডভান্সড ক্লায়েন্ট-সাইড ফিল্টারিং লজিক
+  const filteredProperties = properties?.filter((property) => {
+    // ক) লোকেশন ফিল্টার
+    if (searchLocation && !property.location.toLowerCase().includes(searchLocation.toLowerCase())) {
+      return false;
+    }
+
+    // খ) বাসার ধরণ ফিল্টার
+    if (searchHouseType) {
+      const typeLower = searchHouseType.toLowerCase();
+      const matchesDescription = property.description?.toLowerCase().includes(typeLower);
+      const matchesName = property.name?.toLowerCase().includes(typeLower);
+      const matchesUnits = property.units?.some((unit) => 
+        unit.type?.toLowerCase().includes(typeLower)
+      );
+
+      // বাংলা ও ইংরেজি উভয় কি-ওয়ার্ডের জন্য স্মার্ট ম্যাচিং
+      const isFamilyQuery = typeLower === "family";
+      const isBachelorQuery = typeLower === "bachelor";
+      const isSubletQuery = typeLower === "sublet";
+      const isCommercialQuery = typeLower === "commercial";
+
+      let matched = false;
+
+      if (isFamilyQuery) {
+        matched = 
+          property.description?.toLowerCase().includes("family") ||
+          property.description?.toLowerCase().includes("ফ্যামিলি") ||
+          property.name?.toLowerCase().includes("family") ||
+          property.name?.toLowerCase().includes("ফ্যামিলি") ||
+          property.units?.some(u => u.type?.toLowerCase().includes("family") || u.type?.toLowerCase().includes("ফ্যামিলি") || u.type?.includes("পরিবার")) ||
+          false;
+      } else if (isBachelorQuery) {
+        matched = 
+          property.description?.toLowerCase().includes("bachelor") ||
+          property.description?.toLowerCase().includes("ব্যাচেলর") ||
+          property.description?.toLowerCase().includes("মেস") ||
+          property.name?.toLowerCase().includes("bachelor") ||
+          property.name?.toLowerCase().includes("ব্যাচেলর") ||
+          property.units?.some(u => u.type?.toLowerCase().includes("bachelor") || u.type?.toLowerCase().includes("ব্যাচেলর") || u.type?.includes("মেস")) ||
+          false;
+      } else if (isSubletQuery) {
+        matched = 
+          property.description?.toLowerCase().includes("sublet") ||
+          property.description?.toLowerCase().includes("সাবলেট") ||
+          property.name?.toLowerCase().includes("sublet") ||
+          property.name?.toLowerCase().includes("সাবলেট") ||
+          property.units?.some(u => u.type?.toLowerCase().includes("sublet") || u.type?.toLowerCase().includes("সাবলেট")) ||
+          false;
+      } else if (isCommercialQuery) {
+        matched = 
+          property.description?.toLowerCase().includes("commercial") ||
+          property.description?.toLowerCase().includes("কমার্শিয়াল") ||
+          property.description?.toLowerCase().includes("অফিস") ||
+          property.name?.toLowerCase().includes("commercial") ||
+          property.name?.toLowerCase().includes("কমার্শিয়াল") ||
+          property.units?.some(u => u.type?.toLowerCase().includes("commercial") || u.type?.toLowerCase().includes("কমার্শিয়াল") || u.type?.includes("অফিস")) ||
+          false;
+      } else {
+        matched = !!(matchesDescription || matchesName || matchesUnits);
+      }
+
+      if (!matched) return false;
+    }
+
+    // গ) বাজেট ফিল্টার
+    if (searchBudget) {
+      const [min, max] = searchBudget.split("-").map(Number);
+      const propertyRent = property.rent || property.minRent || 0;
+      if (propertyRent < min || propertyRent > max) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   return (
-    <section className="py-24 max-w-screen-2xl mx-auto px-8">
+    <section id="marketplace-listings" className="py-24 max-w-screen-2xl mx-auto px-8 scroll-mt-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
         <div>
           <p className="text-primary font-bold tracking-widest uppercase text-xs mb-4">Marketplace</p>
-          <h2 className="font-headline font-extrabold text-4xl">জনপ্রিয় বাসাগুলো দেখুন</h2>
+          <h2 className="font-headline font-extrabold text-4xl">
+            {searchLocation || searchHouseType || searchBudget ? "খোঁজা বাসার ফলাফল" : "জনপ্রিয় বাসাগুলো দেখুন"}
+          </h2>
         </div>
-        <button className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all">
-          সবগুলো দেখুন <span className="material-symbols-outlined">arrow_forward</span>
-        </button>
+        {(searchLocation || searchHouseType || searchBudget) && (
+          <button 
+            onClick={() => setSearchFilters({ location: "", houseType: "", budget: "" })}
+            className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all bg-primary/5 px-6 py-2.5 rounded-full"
+          >
+            সার্চ ক্লিয়ার করুন <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -89,14 +177,14 @@ const MarketplaceSection = () => {
             </div>
           ))}
         </div>
-      ) : properties && properties.length > 0 ? (
+      ) : filteredProperties && filteredProperties.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {properties.map((property) => {
+          {filteredProperties.map((property) => {
             const imageUrl =
               property.images && property.images.length > 0
                 ? property.images[0].startsWith("http")
                   ? property.images[0]
-                  : `http://localhost:4000/${property.images[0].replace(/\\/g, "/")}`
+                  : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${property.images[0].replace(/\\/g, "/")}`
                 : "https://images.unsplash.com/photo-1564013799919-ab600027ffc6";
 
             // কন্ট্যাক্ট বা হোয়াটসঅ্যাপ লিংক জেনারেট করা
@@ -212,9 +300,22 @@ const MarketplaceSection = () => {
           })}
         </div>
       ) : (
-        // যদি ডাটাবেসে কোনো বাসা পাবলিক না থাকে, তবে আগের স্ট্যাটিক ডেমো চমৎকার কার্ডগুলো দেখাবে
-        <div className="text-center py-16 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-200">
-          <p className="text-slate-500 font-bold text-sm">মার্কেটপ্লেসে বর্তমানে কোনো বাসা খালি নেই!</p>
+        <div className="text-center py-20 bg-slate-50 dark:bg-slate-800/20 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-850 max-w-2xl mx-auto space-y-6">
+          <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-md text-primary animate-bounce-slow">
+            <span className="material-symbols-outlined text-4xl">search_off</span>
+          </div>
+          <div className="space-y-2">
+            <h4 className="font-headline font-bold text-xl text-slate-800 dark:text-slate-100">কোনো বাসা খুঁজে পাওয়া যায়নি</h4>
+            <p className="text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto leading-relaxed">
+              আপনার ফিল্টার করা লোকেশন, বাসার ধরণ বা বাজেটের সাথে মিলছে এমন কোনো লিস্টিং বর্তমানে খালি নেই। অনুগ্রহ করে অন্য ফিল্টার চেষ্টা করুন।
+            </p>
+          </div>
+          <button
+            onClick={() => setSearchFilters({ location: "", houseType: "", budget: "" })}
+            className="px-6 py-3 bg-primary text-white text-xs font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            সব বাসাগুলো একসাথে দেখুন
+          </button>
         </div>
       )}
 
