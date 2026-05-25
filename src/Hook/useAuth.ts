@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '../store/useAuthStore'; // Fixed path from @/ to relative
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const API_URL = "http://localhost:4000/api/auth";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/auth`;
 
 export const useAuth = () => {
   const setAuth = useAuthStore((state) => state.setAuth);

@@ -12,7 +12,7 @@ interface DocumentModalProps {
   tenantName: string;
 }
 
-const BASE_URL = "http://localhost:4000/api/documents";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/documents`;
 
 const DocumentModal = ({ isOpen, onClose, tenantId, tenantName }: DocumentModalProps) => {
   const [docType, setDocType] = useState("nid");

@@ -35,7 +35,7 @@ const TenantPortalAccessModal = ({ isOpen, onClose, tenant }: Props) => {
       };
 
       const res = await axios.patch(
-        `http://localhost:4000/api/tenant-portal/access/${tenant._id}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal/access/${tenant._id}`,
         { enabled, password: password || undefined },
         { headers: authHeader }
       );

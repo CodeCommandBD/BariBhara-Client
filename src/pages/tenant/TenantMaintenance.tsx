@@ -5,7 +5,7 @@ import { Wrench, Plus, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:4000/api/tenant-portal";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
 const TenantMaintenance = () => {
   const { token } = useTenantAuthStore();

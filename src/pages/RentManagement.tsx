@@ -18,7 +18,7 @@ import { RentTableSkeleton } from "@/components/ui/SkeletonLoaders";
 import Pagination from "@/components/ui/Pagination";
 import { getInvoicePdfUrl } from "@/api/rent.api";
 
-const NOTIF_URL = "http://localhost:4000/api/notification";
+const NOTIF_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/notification`;
 const ITEMS_PER_PAGE = 10;
 
 const MONTHS = [
@@ -60,7 +60,7 @@ const RentManagement = () => {
     queryKey: ["properties-for-bulk"],
     queryFn: async () => {
       const authHeader = { Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}` };
-      const res = await axios.get("http://localhost:4000/api/reports/properties", { headers: authHeader });
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/reports/properties`, { headers: authHeader });
       return res.data.properties ?? [];
     },
   });

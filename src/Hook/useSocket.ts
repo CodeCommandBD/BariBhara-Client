@@ -5,8 +5,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import axios from "axios";
 
-const SOCKET_URL = "http://localhost:4000";
-const API_URL = "http://localhost:4000/api/notifications";
+const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/notifications`;
 
 // notification type → বাংলা icon ম্যাপিং
 const typeIcon: Record<string, string> = {

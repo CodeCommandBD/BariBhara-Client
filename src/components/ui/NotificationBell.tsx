@@ -6,7 +6,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:4000/api/notifications";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/notifications`;
 
 // notification type → icon + color
 const typeConfig: Record<string, { icon: string; color: string; bg: string }> = {

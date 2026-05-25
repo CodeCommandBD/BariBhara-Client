@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:4000/api/reports";
+const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/reports`;
 
 const getAuthHeader = (token: string) => ({
   Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,

@@ -143,7 +143,7 @@ const Tenants = () => {
                     <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 to-violet-100 dark:from-primary/30 dark:to-violet-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
                       {tenant.photo ? (
                         <img
-                          src={tenant.photo.startsWith("http") ? tenant.photo : `http://localhost:4000/${tenant.photo}`}
+                          src={tenant.photo.startsWith("http") ? tenant.photo : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${tenant.photo}`}
                           className="w-full h-full object-cover"
                           alt={tenant.name}
                         />

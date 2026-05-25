@@ -8,6 +8,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useTenantAuthStore } from "@/store/useTenantAuthStore";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 const Login = () => {
   const [role, setRole] = useState<"landlord" | "tenant">("landlord");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +56,7 @@ const Login = () => {
         setShow2FA(true);
         setUserId(res.userId);
         toast.info(res.message);
-        await axios.post("http://localhost:4000/api/2fa/send-login-otp", { email: res.email });
+        await axios.post(`${API}/api/2fa/send-login-otp`, { email: res.email });
       }
     } catch (err) {
       // Error is handled by useAuth hook
@@ -64,7 +66,7 @@ const Login = () => {
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:4000/api/2fa/verify-login-otp", { 
+      const res = await axios.post(`${API}/api/2fa/verify-login-otp`, { 
         userId, 
         otp: otpValue,
         deviceId: getDeviceId() // ভেরিফিকেশনের সময় ডিভাইসটিকে ট্রাস্টেড মার্ক করা
@@ -86,7 +88,7 @@ const Login = () => {
     setIsTenantLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:4000/api/tenant-portal/login",
+        `${API}/api/tenant-portal/login`,
         tenantFormData,
       );
       if (res.data.success) {
@@ -410,3 +412,4 @@ const Login = () => {
 };
 
 export default Login;
+

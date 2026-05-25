@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 export const useUnit = () => {
   const queryClient = useQueryClient();
   const { token } = useAuthStore();
@@ -12,7 +14,7 @@ export const useUnit = () => {
     return useQuery({
       queryKey: ["units", propertyId],
       queryFn: async () => {
-        const response = await axios.get(`http://localhost:4000/api/unit/${propertyId}`, {
+        const response = await axios.get(`${API}/api/unit/${propertyId}`, {
           headers: {
             Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
           },
@@ -26,7 +28,7 @@ export const useUnit = () => {
   // --- ২. নতুন ইউনিট যোগ করার মিউটেশন ---
   const createUnitMutation = useMutation({
     mutationFn: async (unitData: any) => {
-      const response = await axios.post("http://localhost:4000/api/unit/add-unit", unitData, {
+      const response = await axios.post(`${API}/api/unit/add-unit`, unitData, {
         headers: {
           Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
         },
@@ -46,7 +48,7 @@ export const useUnit = () => {
   // --- ৩. ইউনিটের তথ্য (ভাড়া/স্ট্যাটাস) আপডেট করার মিউটেশন ---
   const updateUnitMutation = useMutation({
     mutationFn: async ({ unitId, data }: { unitId: string; data: any }) => {
-      const response = await axios.put(`http://localhost:4000/api/unit/${unitId}`, data, {
+      const response = await axios.put(`${API}/api/unit/${unitId}`, data, {
         headers: {
           Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
         },
@@ -62,7 +64,7 @@ export const useUnit = () => {
   // --- ৪. ইউনিট ডিলিট করার মিউটেশন ---
   const deleteUnitMutation = useMutation({
     mutationFn: async (unitId: string) => {
-      const response = await axios.delete(`http://localhost:4000/api/unit/${unitId}`, {
+      const response = await axios.delete(`${API}/api/unit/${unitId}`, {
         headers: {
           Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
         },

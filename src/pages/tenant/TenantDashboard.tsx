@@ -4,7 +4,7 @@ import { CreditCard, FileText, Wrench, AlertTriangle, Building, Home, MapPin, Ch
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { Link } from "react-router-dom";
 
-const API_URL = "http://localhost:4000/api/tenant-portal";
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
 const TenantDashboard = () => {
   const { token } = useTenantAuthStore();

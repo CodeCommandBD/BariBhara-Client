@@ -61,7 +61,7 @@ const PropertyDetails = () => {
           <div className="w-full md:w-64 h-48 rounded-2xl overflow-hidden shadow-lg bg-slate-100 flex-shrink-0">
           {property?.images?.[0] ? (
             <img
-              src={property.images[0].startsWith("http") ? property.images[0] : `http://localhost:4000/${property.images[0].replace(/\\/g, "/")}`}
+              src={property.images[0].startsWith("http") ? property.images[0] : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${property.images[0].replace(/\\/g, "/")}`}
               className="w-full h-full object-cover"
               alt="Building"
             />
