@@ -54,6 +54,10 @@ const Settings = () => {
   const [otpValue, setOtpValue] = useState("");
   const [pending2FAState, setPending2FAState] = useState<boolean | null>(null);
 
+  // 🛡️ ভেরিফিকেশন মডাল স্টেট
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [verifyForm, setVerifyForm] = useState({ nidNumber: "", holdingNumber: "", message: "" });
+
   // 2FA Toggle Mutation
   const toggle2FAMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
@@ -149,6 +153,33 @@ const Settings = () => {
       setPassForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     },
     onError: (err: any) => toast.error(err.response?.data?.message || "পাসওয়ার্ড পরিবর্তন ব্যর্থ!"),
+  });
+
+  // ৫. ভেরিফিকেশন অনুরোধ পাঠানো মিউটেশন
+  const requestVerifyMutation = useMutation({
+    mutationFn: async (payload: { nidNumber: string; holdingNumber: string; message: string }) => {
+      const res = await axios.post(`http://localhost:4000/api/profile/request-verification`, payload, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "অনুরোধ পাঠানো হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      setIsVerifyModalOpen(false);
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "অনুরোধ পাঠানো ব্যর্থ!"),
+  });
+
+  // ৬. ভেরিফিকেশন সিমুলেশন মিউটেশন
+  const simulateVerifyMutation = useMutation({
+    mutationFn: async () => {
+      const res = await axios.post(`http://localhost:4000/api/profile/simulate-toggle-verification`, {}, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "সিমুলেশন ব্যর্থ!"),
   });
 
   const handleProfileSubmit = (e: React.FormEvent) => {
@@ -285,9 +316,26 @@ const Settings = () => {
           <div>
             <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">{profileData?.fullName || user?.fullName}</h2>
             <p className="text-slate-400 text-sm">{profileData?.email || user?.email}</p>
-            <span className="inline-block mt-2 px-3 py-1 bg-primary/10 text-primary text-xs font-black rounded-full capitalize">
-              {profileData?.role || user?.role}
-            </span>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-black rounded-full capitalize">
+                {profileData?.role || user?.role}
+              </span>
+              {profileData?.role === "landlord" && (
+                profileData?.isVerified === "verified" ? (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-450 text-xs font-black rounded-full select-none shadow-sm border border-blue-100 dark:border-blue-900/30">
+                    <ShieldCheck size={12} className="text-blue-500 fill-blue-100" /> ভেরিফাইড বাড়িওয়ালা
+                  </span>
+                ) : profileData?.isVerified === "pending" ? (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-450 text-xs font-black rounded-full select-none">
+                    <RefreshCw size={11} className="animate-spin" /> ভেরিফিকেশন প্রক্রিয়াধীন
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-450 text-xs font-black rounded-full select-none border border-rose-100 dark:border-rose-900/30">
+                    🛡️ আনভেরিফাইড বাড়িওয়ালা
+                  </span>
+                )
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -360,6 +408,64 @@ const Settings = () => {
                 </Link>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🛡️ প্রোফাইল ভেরিফিকেশন প্যানেল */}
+      {profileData?.role === "landlord" && (
+        <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="text-primary" size={24} />
+              <h3 className="text-lg font-black text-slate-800 dark:text-slate-200">🛡️ প্রোফাইল ভেরিফিকেশন স্ট্যাটাস</h3>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm max-w-2xl font-bold">
+              ভাড়াটিয়াদের মনে আস্থা তৈরি করতে এবং ফেক লিস্টিং ফিল্টার করতে আপনার প্রোফাইল ভেরিফাই করুন। ভেরিফাইড বাড়িওয়ালাদের মার্কেটপ্লেসের প্রতিটি লিস্টিং-এ স্পেশাল <span className="text-blue-600 font-extrabold">"ভেরিফাইড বাড়ি"</span> ব্যাজ প্রদর্শন করা হবে যা বুকিংয়ের হার ৩ গুণ বাড়িয়ে দেয়!
+            </p>
+          </div>
+
+          <div className="shrink-0 w-full lg:w-auto flex flex-col gap-2">
+            {profileData?.isVerified === "verified" ? (
+              <div className="flex flex-col items-center lg:items-end gap-1">
+                <span className="px-5 py-3 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-450 font-black rounded-2xl text-sm flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-emerald-500 fill-emerald-100" /> আপনার প্রোফাইল ভেরিফাইড!
+                </span>
+                <button
+                  onClick={() => simulateVerifyMutation.mutate()}
+                  className="text-xs text-red-500 hover:underline mt-1 cursor-pointer font-black"
+                >
+                  (সিমুলেশন: আনভেরিফাই করুন)
+                </button>
+              </div>
+            ) : profileData?.isVerified === "pending" ? (
+              <div className="flex flex-col items-center lg:items-end gap-1">
+                <span className="px-5 py-3 bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-450 font-black rounded-2xl text-sm flex items-center gap-2 animate-pulse">
+                  <RefreshCw size={16} className="animate-spin" /> ভেরিফিকেশন প্রক্রিয়াধীন রয়েছে...
+                </span>
+                <button
+                  onClick={() => simulateVerifyMutation.mutate()}
+                  className="text-xs text-primary hover:underline mt-1 cursor-pointer font-black"
+                >
+                  (সিমুলেশন: সরাসরি অনুমোদন করুন)
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <button
+                  onClick={() => setIsVerifyModalOpen(true)}
+                  className="px-6 py-3.5 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  🛡️ ভেরিফিকেশন অনুরোধ পাঠান
+                </button>
+                <button
+                  onClick={() => simulateVerifyMutation.mutate()}
+                  className="px-6 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black rounded-2xl shadow-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-all text-sm flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
+                >
+                  ⚡ সরাসরি ভেরিফাই করুন (টেস্টিং)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -646,6 +752,106 @@ const Settings = () => {
           </button>
         </div>
       </div>
+
+      {/* 🛡️ ভেরিফিকেশন অনুরোধ ফর্ম মডাল (Verification Form Modal) */}
+      {isVerifyModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4 overflow-y-auto animate-in fade-in-20 duration-200">
+          <div className="bg-white dark:bg-slate-800 rounded-[32px] w-full max-w-lg p-8 shadow-2xl border border-slate-150 dark:border-slate-700 animate-in zoom-in-95 duration-200 relative">
+            <button
+              onClick={() => setIsVerifyModalOpen(false)}
+              className="absolute right-6 top-6 w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-700 text-slate-400 hover:text-slate-655 dark:hover:text-slate-200 flex items-center justify-center font-bold text-lg transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                  <ShieldCheck size={26} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 dark:text-slate-200">প্রোফাইল ভেরিফিকেশন</h3>
+                  <p className="text-xs text-slate-450 dark:text-slate-500 font-bold uppercase tracking-wider mt-0.5">ভেরিফিকেশন সাবমিশন ফর্ম</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10">
+                <p className="text-xs text-slate-650 dark:text-slate-350 leading-relaxed font-bold">
+                  ✓ অনুগ্রহ করে নিচে আপনার সঠিক তথ্যগুলো প্রদান করুন। আপনার আইডি ভেরিফাই করতে প্রশাসন এই তথ্যগুলো পর্যালোচনা করবে।
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!verifyForm.nidNumber.trim() || !verifyForm.holdingNumber.trim()) {
+                    toast.error("এনআইডি এবং হোল্ডিং নম্বর আবশ্যক!");
+                    return;
+                  }
+                  requestVerifyMutation.mutate(verifyForm);
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">জাতীয় পরিচয়পত্র নম্বর (NID Number)</label>
+                  <input
+                    type="text"
+                    required
+                    value={verifyForm.nidNumber}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, nidNumber: e.target.value })}
+                    placeholder="১২৩৪৫৬৭৮৯০"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">হোল্ডিং নম্বর / ট্যাক্স রসিদ নম্বর</label>
+                  <input
+                    type="text"
+                    required
+                    value={verifyForm.holdingNumber}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, holdingNumber: e.target.value })}
+                    placeholder="হোল্ডিং নং বা ট্যাক্স হোল্ডার আইডি"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-400 uppercase ml-1">অতিরিক্ত বিবরণ / বার্তা (ঐচ্ছিক)</label>
+                  <textarea
+                    value={verifyForm.message}
+                    onChange={(e) => setVerifyForm({ ...verifyForm, message: e.target.value })}
+                    rows={3}
+                    placeholder="প্রশাসনের উদ্দেশ্যে কোনো বার্তা বা অতিরিক্ত প্রোপার্টি ডিটেইলস..."
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsVerifyModalOpen(false)}
+                    className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm cursor-pointer"
+                  >
+                    বাতিল করুন
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={requestVerifyMutation.isPending}
+                    className="flex-1 py-3 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {requestVerifyMutation.isPending ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      "জমা দিন 🛡️"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

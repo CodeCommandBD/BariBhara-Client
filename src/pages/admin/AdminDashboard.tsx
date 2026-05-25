@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 import { 
   Users, 
   Building2, 
@@ -56,6 +58,46 @@ interface StatsData {
 
 const AdminDashboard = () => {
   const { token } = useAuthStore();
+  const [payNumbers, setPayNumbers] = useState({ bkashNumber: "", nagadNumber: "", rocketNumber: "" });
+  const [isEditingSettings, setIsEditingSettings] = useState(false);
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public/system-settings`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          setPayNumbers({
+            bkashNumber: data.settings.bkashNumber,
+            nagadNumber: data.settings.nagadNumber,
+            rocketNumber: data.settings.rocketNumber || ""
+          });
+        }
+      })
+      .catch(err => console.error("Error fetching system settings:", err));
+  }, []);
+
+  const handleUpdateSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/admin/system-settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`
+        },
+        body: JSON.stringify(payNumbers)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || "পেমেন্ট নম্বরসমূহ সফলভাবে আপডেট হয়েছে!");
+        setIsEditingSettings(false);
+      } else {
+        toast.error(data.message || "আপডেট ব্যর্থ হয়েছে!");
+      }
+    } catch (err) {
+      toast.error("সার্ভারে সমস্যা হয়েছে, আবার চেষ্টা করুন।");
+    }
+  };
 
   const { data, isLoading } = useQuery<StatsData>({
     queryKey: ["admin-stats"],
@@ -109,6 +151,98 @@ const AdminDashboard = () => {
             প্ল্যাটফর্মের সার্বিক পারফরম্যান্স, মেম্বার অ্যাক্টিভিটি ও পেমেন্ট ভেরিফিকেশন রিয়েল-টাইমে মনিটর করুন।
           </p>
         </div>
+      </div>
+
+      {/* 💳 পেমেন্ট অ্যাকাউন্ট সেটিংস (Payment Account Settings) */}
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 border border-slate-150 dark:border-slate-700/80 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+              <CreditCard size={24} />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-xl text-slate-850 dark:text-slate-100 font-headline">💳 পেমেন্ট অ্যাকাউন্ট সেটিংস</h2>
+              <p className="text-xs text-slate-400 font-bold mt-0.5">বাড়িওয়ালারা সাবস্ক্রিপশন ফি জমা দেওয়ার সময় এই নম্বরগুলো দেখতে পাবেন</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsEditingSettings(!isEditingSettings)}
+            className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-black rounded-xl text-xs transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            {isEditingSettings ? "বাতিল করুন ✕" : "নম্বর পরিবর্তন করুন ⚙️"}
+          </button>
+        </div>
+
+        {isEditingSettings ? (
+          <form onSubmit={handleUpdateSettings} className="space-y-4 animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">বিকাশ (bKash) নম্বর</label>
+                <input
+                  type="text"
+                  required
+                  value={payNumbers.bkashNumber}
+                  onChange={(e) => setPayNumbers({ ...payNumbers, bkashNumber: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">নগদ (Nagad) নম্বর</label>
+                <input
+                  type="text"
+                  required
+                  value={payNumbers.nagadNumber}
+                  onChange={(e) => setPayNumbers({ ...payNumbers, nagadNumber: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">রকেট (Rocket) নম্বর (ঐচ্ছিক)</label>
+                <input
+                  type="text"
+                  value={payNumbers.rocketNumber}
+                  placeholder="না থাকলে ফাঁকা রাখুন"
+                  onChange={(e) => setPayNumbers({ ...payNumbers, rocketNumber: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl text-sm shadow-md shadow-primary/20 transition-all cursor-pointer"
+              >
+                সেভ করুন ✓
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+              <img src="https://download.logo.wine/logo/BKash/BKash-Icon-Logo.wine.png" alt="bKash" className="w-10 h-8 object-contain shrink-0" />
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">বিকাশ পার্সোনাল</p>
+                <p className="font-extrabold text-sm dark:text-slate-200 mt-0.5">{payNumbers.bkashNumber || "সেট করা নেই"}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+              <img src="https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png" alt="Nagad" className="w-10 h-8 object-contain shrink-0" />
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">নগদ পার্সোনাল</p>
+                <p className="font-extrabold text-sm dark:text-slate-200 mt-0.5">{payNumbers.nagadNumber || "সেট করা নেই"}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+              <div className="w-10 h-8 bg-purple-100 dark:bg-purple-950/30 rounded-lg flex items-center justify-center shrink-0">
+                <span className="font-black text-[9px] text-purple-700 dark:text-purple-400 uppercase tracking-widest">Rocket</span>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">রকেট পার্সোনাল</p>
+                <p className="font-extrabold text-sm dark:text-slate-200 mt-0.5">{payNumbers.rocketNumber || "সেট করা নেই"}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Stats Cards Grid */}

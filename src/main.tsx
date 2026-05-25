@@ -28,6 +28,7 @@ import PaymentPage from "./pages/PaymentPage.tsx";
 import AdminSubscriptions from "./pages/AdminSubscriptions.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
+import AdminProtectedRoute from "./components/AdminProtectedRoute.tsx";
 
 
 // Tenant Portal Components
@@ -112,22 +113,6 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
       },
-      {
-        path: "admin",
-        element: <Navigate to="/admin/dashboard" replace />,
-      },
-      {
-        path: "admin/dashboard",
-        element: <AdminDashboard />,
-      },
-      {
-        path: "admin/users",
-        element: <AdminUsers />,
-      },
-      {
-        path: "admin/subscriptions",
-        element: <AdminSubscriptions />,
-      },
     ],
   },
   {
@@ -137,6 +122,34 @@ const router = createBrowserRouter([
         <PaymentPage />
       </ProtectedRoute>
     ),
+  },
+
+  // ৩. অ্যাডমিন রাউট — শুধুমাত্র role=admin হলে অ্যাক্সেস পাবে
+  {
+    path: "/admin",
+    element: (
+      <AdminProtectedRoute>
+        <MainLayout />
+      </AdminProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/admin/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboard />,
+      },
+      {
+        path: "users",
+        element: <AdminUsers />,
+      },
+      {
+        path: "subscriptions",
+        element: <AdminSubscriptions />,
+      },
+    ],
   },
 
   {
