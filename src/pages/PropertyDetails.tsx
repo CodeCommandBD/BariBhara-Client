@@ -9,6 +9,10 @@ import AssignTenantModal from "@/components/modals/AssignTenantModal";
 import TenantDetailModal from "@/components/modals/TenantDetailModal";
 import GenerateBillModal from "@/components/modals/GenerateBillModal";
 
+const getMapEmbedUrl = (locationName: string) => {
+  return `https://maps.google.com/maps?q=${encodeURIComponent(locationName)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+};
+
 const PropertyDetails = () => {
   const { id } = useParams();
   const [isModalOpen, setModalOpen] = useState(false);
@@ -17,6 +21,8 @@ const PropertyDetails = () => {
   const [isTenantDetailOpen, setTenantDetailOpen] = useState(false);
   const [isBillModalOpen, setBillModalOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<any>(null);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [unitToDelete, setUnitToDelete] = useState<any>(null);
   
   // ৪. হুকগুলো থেকে লাইভ ডাটা নিয়ে আসছি
   const { useSingleProperty } = useProperty();
@@ -50,8 +56,9 @@ const PropertyDetails = () => {
       </div>
 
       {/* ৫. বিল্ডিং ইনফো কার্ড (লাইভ ডাটা সহ) */}
-      <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-8 items-center">
-        <div className="w-full md:w-64 h-48 rounded-2xl overflow-hidden shadow-lg bg-slate-100">
+      <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm flex flex-col lg:flex-row gap-8 items-center justify-between">
+        <div className="flex flex-col md:flex-row gap-8 items-center flex-1 w-full">
+          <div className="w-full md:w-64 h-48 rounded-2xl overflow-hidden shadow-lg bg-slate-100 flex-shrink-0">
           {property?.images?.[0] ? (
             <img
               src={property.images[0].startsWith("http") ? property.images[0] : `http://localhost:4000/${property.images[0].replace(/\\/g, "/")}`}
@@ -81,6 +88,19 @@ const PropertyDetails = () => {
               {units?.length || 0}টি ইউনিট
             </span>
           </div>
+        </div>
+        </div>
+
+        {/* 🗺️ লাইভ ম্যাপ উইজেট */}
+        <div className="w-full lg:w-80 h-48 rounded-2xl overflow-hidden border border-slate-100 shadow-sm relative bg-slate-50 flex-shrink-0">
+          <iframe
+            title="Property Location Map"
+            src={getMapEmbedUrl(property?.location || "")}
+            className="w-full h-full border-none"
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
         </div>
       </div>
 
@@ -150,17 +170,17 @@ const PropertyDetails = () => {
                          </div>
                        )}
                         <button 
-                           onClick={() => { if(window.confirm("আপনি কি নিশ্চিত?")) deleteUnitMutation.mutate(unit._id) }}
-                           className="p-1.5 text-red-400 hover:bg-red-50 rounded-xl transition-all" 
-                           title="Delete Unit"
-                        >
-                           <Trash2 size={14} />
-                        </button>
-                     </div>
-                   </td>
-                </tr>
-              ))
-            )}
+                            onClick={() => { setUnitToDelete(unit); setDeleteModalOpen(true); }}
+                            className="p-1.5 text-red-400 hover:bg-red-50 rounded-xl transition-all" 
+                            title="Delete Unit"
+                         >
+                            <Trash2 size={14} />
+                         </button>
+                      </div>
+                    </td>
+                 </tr>
+               ))
+             )}
           </tbody>
         </table>
       </div>
@@ -187,6 +207,45 @@ const PropertyDetails = () => {
         onClose={() => setBillModalOpen(false)}
         tenant={selectedUnit?.currentTenant}
       />
+
+      {/* 🛑 ইউনিট ডিলিট কনফার্মেশন মডাল */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] max-w-sm w-full p-8 shadow-2xl border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-950/30 rounded-full flex items-center justify-center text-red-500 animate-bounce">
+              <Trash2 size={28} />
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">নিশ্চিত ডিলিট করবেন?</h4>
+              <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                আপনি কি নিশ্চিত যে আপনি <span className="font-bold text-slate-700 dark:text-slate-300">"{unitToDelete?.unitName}"</span> ইউনিটটি ডিলিট করতে চান? এই কাজটি আর ফিরিয়ে নেওয়া যাবে না।
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => { setDeleteModalOpen(false); setUnitToDelete(null); }}
+                className="flex-1 py-3 px-5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+              >
+                বাতিল
+              </button>
+              <button
+                onClick={() => {
+                  if (unitToDelete) {
+                    deleteUnitMutation.mutate(unitToDelete._id);
+                  }
+                  setDeleteModalOpen(false);
+                  setUnitToDelete(null);
+                }}
+                className="flex-1 py-3 px-5 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold rounded-2xl hover:shadow-lg hover:shadow-red-500/20 active:scale-95 transition-all"
+              >
+                ডিলিট করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

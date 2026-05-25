@@ -135,13 +135,14 @@ const Properties = () => {
                 <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
                   {property.name}
                 </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2">
+                <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-2 mt-1">
                   <MapPin size={14} /> {property.location}
                 </p>
               </div>
-              <div className="flex justify-between items-center pt-5 border-t border-slate-50 dark:border-slate-700">
+
+              <div className="flex flex-col pt-5 border-t border-slate-50 dark:border-slate-700 gap-4">
                 <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                  <div className="p-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                  <div className="p-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl flex-shrink-0">
                     <Building2 size={18} className="text-slate-500 dark:text-slate-400" />
                   </div>
                   <div>
@@ -149,7 +150,7 @@ const Properties = () => {
                     <p className="text-xs font-bold dark:text-slate-200">{property.totalFloors} তলা বিল্ডিং</p>
                   </div>
                 </div>
-                <Link to={`/properties/${property._id}`} className="px-4 py-2 bg-slate-50 dark:bg-slate-700 text-primary text-xs font-bold rounded-xl hover:bg-primary hover:text-white transition-all">
+                <Link to={`/properties/${property._id}`} className="w-full py-3.5 bg-slate-50 dark:bg-slate-700 text-primary text-xs font-black rounded-2xl hover:bg-primary hover:text-white transition-all text-center block">
                   ডিটেইলস দেখুন
                 </Link>
               </div>
