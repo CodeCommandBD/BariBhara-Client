@@ -68,7 +68,7 @@ const PricingSection = () => {
   const activePlans = plans && plans.length > 0 ? plans : defaultPlans;
 
   return (
-    <section className="bg-surface py-24">
+    <section id="pricing" className="bg-surface py-24">
       <div className="max-w-screen-2xl mx-auto px-8">
         <div className="text-center mb-16">
           <h2 className="font-headline font-extrabold text-4xl mb-4">সাশ্রয়ী সাবস্ক্রিপশন প্ল্যান</h2>
