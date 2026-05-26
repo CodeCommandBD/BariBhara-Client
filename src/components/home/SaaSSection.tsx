@@ -1,6 +1,6 @@
 const SaaSSection = () => {
   return (
-    <section className="bg-surface-container-low py-24">
+    <section id="features" className="bg-surface-container-low py-24">
       <div className="max-w-screen-2xl mx-auto px-8">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <p className="text-secondary font-bold tracking-widest uppercase text-xs mb-4">Smart Management</p>

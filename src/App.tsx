@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import PublicFooter from "./components/layout/PublicFooter"
 import { useSocket } from "./Hook/useSocket"
@@ -7,6 +7,7 @@ import { useEffect } from "react"
 
 const App = () => {
   const { user, token, setAuth } = useAuthStore();
+  const location = useLocation();
   
   useSocket(); // 🔌 public pages এবং Home-এ সকেট কানেকশন সচল রাখা
 
@@ -32,9 +33,11 @@ const App = () => {
     syncProfile();
   }, [token, setAuth]);
 
+  const hideNavbar = location.pathname.startsWith("/property/");
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <main className="flex-1">
         <Outlet />
       </main>
