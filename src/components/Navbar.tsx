@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Building2, Menu, Sun, Moon, ChevronDown, User as UserIcon, LogOut, LayoutDashboard, X } from "lucide-react";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -11,6 +11,24 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleNavClick = (e: React.MouseEvent, targetId: string) => {
+    e.preventDefault();
+    if (location.pathname === "/") {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      navigate(`/#${targetId}`);
+      setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 150);
+    }
+  };
 
   // Fetch the latest subscription request to check for rejection reasons
   const { data: latestSub } = useQuery({
@@ -64,8 +82,8 @@ const Navbar = () => {
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8">
           <Link to="/" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">হোম</Link>
-          <Link to="/features" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">ফিচার</Link>
-          <Link to="/pricing" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">প্রাইসিং</Link>
+          <a href="#features" onClick={(e) => handleNavClick(e, "features")} className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">ফিচার</a>
+          <a href="#pricing" onClick={(e) => handleNavClick(e, "pricing")} className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">প্রাইসিং</a>
         </div>
 
         {/* Right Side Actions */}
@@ -171,8 +189,8 @@ const Navbar = () => {
         <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4 animate-in fade-in slide-in-from-top-4 z-[90]">
           <div className="flex flex-col gap-2">
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">হোম</Link>
-            <Link to="/features" onClick={() => setMobileMenuOpen(false)} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">ফিচার</Link>
-            <Link to="/pricing" onClick={() => setMobileMenuOpen(false)} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">প্রাইসিং</Link>
+            <a href="#features" onClick={(e) => { setMobileMenuOpen(false); handleNavClick(e, "features"); }} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">ফিচার</a>
+            <a href="#pricing" onClick={(e) => { setMobileMenuOpen(false); handleNavClick(e, "pricing"); }} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">প্রাইসিং</a>
             
             {!user ? (
               <div className="flex flex-col gap-3 pt-4">
