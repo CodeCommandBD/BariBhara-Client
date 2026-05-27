@@ -44,53 +44,93 @@ const ActivityTable = () => {
           <p className="text-sm mt-1">পেমেন্ট সংগ্রহ করলে এখানে দেখা যাবে</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-separate border-spacing-y-3">
-            <thead>
-              <tr className="text-on-surface-variant text-xs font-black uppercase font-headline">
-                <th className="pb-3 pl-4">ভাড়াটিয়া</th>
-                <th className="pb-3">তারিখ</th>
-                <th className="pb-3">প্রপার্টি / ইউনিট</th>
-                <th className="pb-3 text-right">পরিমাণ</th>
-                <th className="pb-3 pl-4">মেথড</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentTransactions.map((txn: any) => (
-                <tr
-                  key={txn._id}
-                  className="bg-surface-container/30 dark:bg-slate-800/20 hover:bg-surface-container dark:hover:bg-slate-800/50 transition-colors"
-                >
-                  <td className="py-4 pl-4 rounded-l-2xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
-                        {txn.tenant?.name?.charAt(0) ?? "?"}
+        <div>
+          {/* Mobile view cards */}
+          <div className="md:hidden space-y-4">
+            {recentTransactions.map((txn: any) => (
+              <div
+                key={txn._id}
+                className="bg-surface-container/20 dark:bg-slate-800/10 rounded-3xl p-5 border border-slate-100 dark:border-slate-800/40 flex flex-col gap-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
+                      {txn.tenant?.name?.charAt(0) ?? "?"}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-on-surface">{txn.tenant?.name ?? "অজানা"}</h4>
+                      <div className="flex items-center gap-1 text-[11px] text-on-surface-variant/70 mt-0.5">
+                        <Clock size={10} />
+                        {formatDate(txn.paymentDate)}
                       </div>
-                      <p className="font-bold text-sm text-on-surface">{txn.tenant?.name ?? "অজানা"}</p>
                     </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-1.5 text-on-surface-variant text-sm">
-                      <Clock size={12} />
-                      {formatDate(txn.paymentDate)}
-                    </div>
-                  </td>
-                  <td className="py-4 text-sm text-on-surface-variant font-medium">
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${getMethodColor(txn.paymentMethod)}`}>
+                    {txn.paymentMethod}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                  <span className="text-xs text-on-surface-variant/80 font-medium">
                     {txn.invoice?.property?.name ?? "—"}
                     {txn.invoice?.unit?.unitName ? ` / ${txn.invoice.unit.unitName}` : ""}
-                  </td>
-                  <td className="py-4 text-right font-black text-primary">
+                  </span>
+                  <span className="font-black text-primary text-base">
                     ৳{txn.amount?.toLocaleString()}
-                  </td>
-                  <td className="py-4 pl-4 rounded-r-2xl">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${getMethodColor(txn.paymentMethod)}`}>
-                      {txn.paymentMethod}
-                    </span>
-                  </td>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop view table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-separate border-spacing-y-3">
+              <thead>
+                <tr className="text-on-surface-variant text-xs font-black uppercase font-headline">
+                  <th className="pb-3 pl-4">ভাড়াটিয়া</th>
+                  <th className="pb-3">তারিখ</th>
+                  <th className="pb-3">প্রপার্টি / ইউনিট</th>
+                  <th className="pb-3 text-right">পরিমাণ</th>
+                  <th className="pb-3 pl-4">মেথড</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {recentTransactions.map((txn: any) => (
+                  <tr
+                    key={txn._id}
+                    className="bg-surface-container/30 dark:bg-slate-800/20 hover:bg-surface-container dark:hover:bg-slate-800/50 transition-colors"
+                  >
+                    <td className="py-4 pl-4 rounded-l-2xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
+                          {txn.tenant?.name?.charAt(0) ?? "?"}
+                        </div>
+                        <p className="font-bold text-sm text-on-surface">{txn.tenant?.name ?? "অজানা"}</p>
+                      </div>
+                    </td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-1.5 text-on-surface-variant text-sm">
+                        <Clock size={12} />
+                        {formatDate(txn.paymentDate)}
+                      </div>
+                    </td>
+                    <td className="py-4 text-sm text-on-surface-variant font-medium">
+                      {txn.invoice?.property?.name ?? "—"}
+                      {txn.invoice?.unit?.unitName ? ` / ${txn.invoice.unit.unitName}` : ""}
+                    </td>
+                    <td className="py-4 text-right font-black text-primary">
+                      ৳{txn.amount?.toLocaleString()}
+                    </td>
+                    <td className="py-4 pl-4 rounded-r-2xl">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${getMethodColor(txn.paymentMethod)}`}>
+                        {txn.paymentMethod}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

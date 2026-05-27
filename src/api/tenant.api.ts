@@ -94,3 +94,19 @@ export const deleteAgreementApi = async (id: string, token: string) => {
   });
   return res.data;
 };
+
+// ১০. NID ভেরিফাই করা (অ্যাডমিন)
+export const verifyNidApi = async (id: string, status: string, rejectionReason: string, token: string) => {
+  const res = await axios.patch(`${BASE_URL}/${id}/verify-nid`, { status, rejectionReason }, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};
+
+// ১১. ইউটিলিটি সেটিংস আপডেট করা
+export const updateUtilitiesApi = async (id: string, utilityConfig: any, token: string) => {
+  const res = await axios.patch(`${BASE_URL}/${id}/utilities`, { utilityConfig }, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};

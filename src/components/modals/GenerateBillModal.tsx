@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Calendar, CreditCard, Zap, Droplets, Flame, ShieldAlert, PlusCircle, Save } from "lucide-react";
 import { useRent } from "@/Hook/useRent";
 
@@ -22,13 +22,53 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
   const [formData, setFormData] = useState({
     month: currentMonth,
     year: currentYear,
-    waterBill: "",
-    gasBill: "",
-    electricityBill: "",
-    serviceCharge: "",
+    waterBill: 0,
+    gasBill: 0,
+    electricityBill: 0,
+    serviceCharge: 0,
     otherBill: "",
-    dueDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0], // ৭ দিন পর
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString().split('T')[0],
+    // Metered unit inputs
+    electricityUnits: "",
+    waterUnits: "",
+    gasUnits: "",
   });
+
+  useEffect(() => {
+    if (tenant?.utilityConfig) {
+      const uc = tenant.utilityConfig;
+      setFormData(prev => ({
+        ...prev,
+        electricityBill: uc.electricity?.type === "Fixed" ? Number(uc.electricity.fixedAmount) || 0 : 0,
+        waterBill: uc.water?.type === "Fixed" ? Number(uc.water.fixedAmount) || 0 : 0,
+        gasBill: uc.gas?.type === "Fixed" ? Number(uc.gas.fixedAmount) || 0 : 0,
+        serviceCharge: uc.serviceCharge?.type === "Fixed" ? Number(uc.serviceCharge.fixedAmount) || 0 : 0,
+        // Reset unit inputs when tenant changes
+        electricityUnits: "",
+        waterUnits: "",
+        gasUnits: "",
+      }));
+    }
+  }, [tenant]);
+
+  // Recalculate metered bills when units change
+  useEffect(() => {
+    if (!tenant?.utilityConfig) return;
+    const uc = tenant.utilityConfig;
+
+    setFormData(prev => ({
+      ...prev,
+      electricityBill: uc.electricity?.type === "Metered"
+        ? Math.round((Number(prev.electricityUnits) || 0) * (Number(uc.electricity.perUnitCost) || 0))
+        : prev.electricityBill,
+      waterBill: uc.water?.type === "Metered"
+        ? Math.round((Number(prev.waterUnits) || 0) * (Number(uc.water.perUnitCost) || 0))
+        : prev.waterBill,
+      gasBill: uc.gas?.type === "Metered"
+        ? Math.round((Number(prev.gasUnits) || 0) * (Number(uc.gas.perUnitCost) || 0))
+        : prev.gasBill,
+    }));
+  }, [formData.electricityUnits, formData.waterUnits, formData.gasUnits, tenant]);
 
   if (!isOpen || !tenant) return null;
 
@@ -40,13 +80,71 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
     e.preventDefault();
     generateInvoiceMutation.mutate({
       tenantId: tenant._id,
-      ...formData
+      month: formData.month,
+      year: formData.year,
+      waterBill: formData.waterBill,
+      gasBill: formData.gasBill,
+      electricityBill: formData.electricityBill,
+      serviceCharge: formData.serviceCharge,
+      otherBill: formData.otherBill,
+      dueDate: formData.dueDate,
     }, {
       onSuccess: () => onClose(),
     });
   };
 
+  const renderUtilityField = (title: string, icon: any, key: "electricity" | "water" | "gas") => {
+    const config = tenant?.utilityConfig?.[key];
+    const type = config?.type || "None";
+    
+    if (type === "None") {
+      return (
+        <div className="space-y-1.5 opacity-50">
+          <label className="text-[10px] font-black text-slate-400 uppercase ml-1 flex items-center gap-1">
+            {icon} {title} (নেই)
+          </label>
+          <input disabled value="0" className="w-full px-3 py-2 bg-slate-100 rounded-xl outline-none text-sm font-bold border border-transparent text-slate-400" />
+        </div>
+      );
+    }
+    
+    if (type === "Fixed") {
+      return (
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-black text-slate-400 uppercase ml-1 flex items-center gap-1">
+            {icon} {title} (ফিক্সড)
+          </label>
+          <input disabled value={formData[`${key}Bill` as keyof typeof formData]} className="w-full px-3 py-2 bg-orange-50/50 rounded-xl outline-none text-sm font-bold border border-orange-100 text-orange-700" />
+        </div>
+      );
+    }
 
+    if (type === "Metered") {
+      const perUnitCost = Number(config?.perUnitCost) || 0;
+      const units = Number(formData[`${key}Units` as keyof typeof formData]) || 0;
+      const calculated = Math.round(units * perUnitCost);
+
+      return (
+        <div className="space-y-1.5 bg-blue-50/50 p-2 rounded-xl border border-blue-100">
+          <label className="text-[10px] font-black text-slate-500 uppercase ml-1 flex justify-between items-center w-full">
+            <span className="flex items-center gap-1 text-blue-600">{icon} {title} (ইউনিট)</span>
+            <span className="text-slate-400">প্রতি ইউনিট: ৳{perUnitCost}</span>
+          </label>
+          <div className="flex gap-2">
+            <input 
+              name={`${key}Units`} type="number" 
+              value={formData[`${key}Units` as keyof typeof formData]} onChange={handleChange}
+              placeholder="এই মাসে ব্যবহৃত ইউনিট"
+              className="w-full px-2 py-1.5 bg-white rounded-lg outline-none text-sm font-bold border border-blue-200 focus:border-blue-400"
+            />
+            <div className="w-20 shrink-0 bg-blue-100/50 text-blue-700 px-2 py-1.5 rounded-lg flex items-center justify-center text-sm font-black border border-blue-200/50">
+              ৳ {calculated}
+            </div>
+          </div>
+        </div>
+      );
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -66,7 +164,7 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           {/* মাস ও বছর */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -91,11 +189,26 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
           </div>
 
           {/* ইউটিলিটি বিল গ্রিড */}
-          <div className="grid grid-cols-2 gap-3">
-             <InputField icon={<Zap size={14}/>} label="বিদ্যুৎ বিল" name="electricityBill" value={formData.electricityBill} onChange={handleChange} placeholder="0" />
-             <InputField icon={<Droplets size={14}/>} label="পানির বিল" name="waterBill" value={formData.waterBill} onChange={handleChange} placeholder="0" />
-             <InputField icon={<Flame size={14}/>} label="গ্যাস বিল" name="gasBill" value={formData.gasBill} onChange={handleChange} placeholder="0" />
-             <InputField icon={<ShieldAlert size={14}/>} label="সার্ভিস চার্জ" name="serviceCharge" value={formData.serviceCharge} onChange={handleChange} placeholder="0" />
+          <div className="grid grid-cols-1 gap-3">
+             <div className="grid grid-cols-2 gap-3">
+               {renderUtilityField("বিদ্যুৎ বিল", <Zap size={14}/>, "electricity")}
+               {renderUtilityField("পানির বিল", <Droplets size={14}/>, "water")}
+             </div>
+             <div className="grid grid-cols-2 gap-3">
+               {renderUtilityField("গ্যাস বিল", <Flame size={14}/>, "gas")}
+               
+               <div className="space-y-1.5">
+                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1 flex items-center gap-1">
+                   <ShieldAlert size={14}/> সার্ভিস চার্জ
+                 </label>
+                 <input 
+                   disabled={tenant?.utilityConfig?.serviceCharge?.type === "Fixed"}
+                   name="serviceCharge" type="number" 
+                   value={formData.serviceCharge} onChange={handleChange}
+                   className="w-full px-3 py-2 bg-slate-50 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-orange-200 disabled:opacity-70 disabled:bg-slate-100"
+                 />
+               </div>
+             </div>
           </div>
 
           <div className="space-y-1.5">
@@ -122,14 +235,26 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
 
           {/* ইনফো বক্স */}
           <div className="p-3 bg-blue-50 rounded-2xl flex gap-3 items-center">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-500 shadow-sm">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-500 shadow-sm shrink-0">
               <CreditCard size={20} />
             </div>
             <div>
               <p className="text-[10px] font-black text-blue-400 uppercase">মূল ভাড়া</p>
               <p className="text-sm font-black text-blue-700">৳ {tenant.rentAmount?.toLocaleString()}</p>
             </div>
-            <p className="ml-auto text-[10px] text-blue-400 font-bold max-w-[100px] text-right">মূল ভাড়ার সাথে এই বিলগুলো যোগ হবে</p>
+            <div className="ml-auto text-right">
+              <p className="text-[10px] font-black text-blue-400 uppercase">মোট বিল (আনুমানিক)</p>
+              <p className="text-lg font-black text-blue-700">
+                ৳ {(
+                  (tenant.rentAmount || 0) + 
+                  (Number(formData.electricityBill) || 0) + 
+                  (Number(formData.waterBill) || 0) + 
+                  (Number(formData.gasBill) || 0) + 
+                  (Number(formData.serviceCharge) || 0) + 
+                  (Number(formData.otherBill) || 0)
+                ).toLocaleString()}
+              </p>
+            </div>
           </div>
 
           <button
@@ -148,19 +273,5 @@ const GenerateBillModal = ({ isOpen, onClose, tenant }: GenerateBillModalProps) 
     </div>
   );
 };
-
-const InputField = ({ icon, label, name, value, onChange, placeholder }: any) => (
-  <div className="space-y-1.5">
-    <label className="text-[10px] font-black text-slate-400 uppercase ml-1 flex items-center gap-1">
-      {icon} {label}
-    </label>
-    <input 
-      name={name} type="number" 
-      value={value} onChange={onChange}
-      placeholder={placeholder}
-      className="w-full px-3 py-2 bg-slate-50 rounded-xl outline-none text-sm font-bold border border-transparent focus:border-orange-200"
-    />
-  </div>
-);
 
 export default GenerateBillModal;

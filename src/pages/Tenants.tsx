@@ -7,7 +7,10 @@ import TenantPortalAccessModal from "@/components/modals/TenantPortalAccessModal
 import ManualRenewModal from "@/components/modals/ManualRenewModal";
 import DocumentModal from "@/components/modals/DocumentModal";
 import DeleteAgreementModal from "@/components/modals/DeleteAgreementModal";
-import { ShieldCheck, ShieldOff, FileText } from "lucide-react";
+import ReviewNidModal from "@/components/modals/ReviewNidModal";
+import UtilitySettingsModal from "@/components/modals/UtilitySettingsModal";
+import { ShieldCheck, ShieldOff, FileText, IdCard, Settings2 } from "lucide-react";
+import EmptyState from "@/components/ui/EmptyState";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -18,10 +21,14 @@ const Tenants = () => {
   const [renewingTenant, setRenewingTenant] = useState<any>(null);
   const [documentTenant, setDocumentTenant] = useState<any>(null);
   const [deletingAgreementId, setDeletingAgreementId] = useState<string | null>(null);
+  const [reviewingNidTenant, setReviewingNidTenant] = useState<any>(null);
+  const [utilityTenant, setUtilityTenant] = useState<any>(null);
+
   const { 
     tenants, total, totalPages, isTenantsLoading, 
     toggleAutoRenewMutation, renewLeaseMutation, 
-    generateAgreementMutation, deleteAgreementMutation 
+    generateAgreementMutation, deleteAgreementMutation,
+    verifyNidMutation, updateUtilitiesMutation
   } = useTenant(page, ITEMS_PER_PAGE);
 
   const getLeaseStatus = (leaseEnd: string | undefined) => {
@@ -42,6 +49,28 @@ const Tenants = () => {
 
   const handleManualRenew = (id: string, newEndDate: string) => {
     renewLeaseMutation.mutate({ id, newEndDate });
+  };
+
+  const handleVerifyNid = (id: string, status: string, reason: string) => {
+    verifyNidMutation.mutate(
+      { id, status, rejectionReason: reason },
+      {
+        onSuccess: () => {
+          setReviewingNidTenant(null);
+        },
+      }
+    );
+  };
+
+  const handleSaveUtilities = (id: string, utilityConfig: any) => {
+    updateUtilitiesMutation.mutate(
+      { id, utilityConfig },
+      {
+        onSuccess: () => {
+          setUtilityTenant(null);
+        },
+      }
+    );
   };
 
   const filteredTenants = tenants.filter((t: any) =>
@@ -96,31 +125,19 @@ const Tenants = () => {
 
       {/* খালি স্টেট */}
       {filteredTenants.length === 0 && !isTenantsLoading && (
-        <div className="text-center py-24 bg-slate-50 dark:bg-slate-800/50 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-700">
-          <div className="w-20 h-20 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <Users className="text-slate-300 dark:text-slate-500" size={36} />
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">
-            {search ? `"${search}" এর জন্য কোনো ভাড়াটিয়া পাওয়া যায়নি` : "কোনো ভাড়াটিয়া নেই"}
-          </p>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
-            প্রপার্টির কোনো ইউনিটে ভাড়াটিয়া যোগ করুন
-          </p>
-          {!search && (
-          <Link
-            to="/properties"
-            className="inline-block mt-5 px-6 py-2.5 bg-primary text-white rounded-2xl font-bold text-sm hover:scale-105 transition-all shadow-lg shadow-primary/20"
-          >
-            প্রপার্টি দেখুন
-          </Link>
-          )}
-        </div>
+        <EmptyState
+          title={search ? `"${search}" এর জন্য কেউ পাওয়া যায়নি!` : "কোনো ভাড়াটিয়া যুক্ত নেই!"}
+          description={search ? "অনুগ্রহ করে বানান বা সার্চ কুয়েরি পুনরায় পরীক্ষা করুন।" : "আপনার প্রপার্টির কোনো খালি ফ্ল্যাট বা রুমে ভাড়াটিয়া আমন্ত্রণ জানিয়ে চুক্তি সম্পাদন করুন।"}
+          icon={Users}
+          actionText={search ? undefined : "প্রপার্টি তালিকা দেখুন"}
+          onAction={search ? undefined : () => window.location.href = "/properties"}
+        />
       )}
 
       {/* ভাড়াটিয়া কার্ড গ্রিড */}
       {filteredTenants.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredTenants.map((tenant: any) => (
               <div
                 key={tenant._id}
@@ -128,11 +145,11 @@ const Tenants = () => {
               >
                 {/* কার্ড হেডার — প্রপার্টি তথ্য */}
                 <div className="bg-gradient-to-r from-primary/10 to-violet-50 dark:from-primary/20 dark:to-violet-900/20 px-5 py-3 flex items-center gap-2">
-                  <Building2 size={14} className="text-primary" />
+                  <Building2 size={14} className="text-primary shrink-0" />
                   <p className="text-xs font-black text-primary truncate">
                     {tenant.property?.name}
                   </p>
-                  <span className="ml-auto text-[10px] bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold">
+                  <span className="ml-auto text-[10px] bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 px-2 py-0.5 rounded-full font-bold whitespace-nowrap shrink-0">
                     {tenant.unit?.unitName}
                   </span>
                 </div>
@@ -154,33 +171,33 @@ const Tenants = () => {
                     <div className="min-w-0">
                       <h3 className="font-black text-slate-800 dark:text-slate-100 truncate">{tenant.name}</h3>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <Phone size={11} className="text-slate-400" />
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">{tenant.phone}</span>
+                        <Phone size={11} className="text-slate-400 shrink-0" />
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">{tenant.phone}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* ভাড়া ও লোকেশন */}
                   <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-slate-700">
-                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                      <MapPin size={12} />
-                      <span className="text-xs font-bold truncate max-w-[140px]">{tenant.property?.location}</span>
+                    <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 min-w-0 pr-2">
+                      <MapPin size={12} className="shrink-0" />
+                      <span className="text-xs font-bold truncate">{tenant.property?.location}</span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <p className="text-[9px] text-slate-400 font-black uppercase">মাসিক ভাড়া</p>
-                      <p className="text-base font-black text-primary">৳ {tenant.rentAmount?.toLocaleString()}</p>
+                      <p className="text-base font-black text-primary whitespace-nowrap">৳ {tenant.rentAmount?.toLocaleString()}</p>
                     </div>
                   </div>
 
                   {/* ইউনিট তথ্য */}
-                  <div className="flex gap-2">
-                    <span className="px-2.5 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2.5 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase whitespace-nowrap">
                       {tenant.unit?.floor} তলা
                     </span>
-                    <span className="px-2.5 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase">
+                    <span className="px-2.5 py-1 bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-xl text-[10px] font-black uppercase whitespace-nowrap">
                       {tenant.unit?.type}
                     </span>
-                    <span className="ml-auto px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl text-[10px] font-black uppercase">
+                    <span className="ml-auto px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl text-[10px] font-black uppercase whitespace-nowrap shrink-0">
                       সক্রিয়
                     </span>
                   </div>
@@ -191,18 +208,18 @@ const Tenants = () => {
                     if (lease.status === 'none') return null;
                     return (
                       <div className={`flex items-center justify-between p-3 rounded-xl border ${lease.status === 'expired' ? 'bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30' : lease.status === 'expiring-soon' ? 'bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:border-orange-900/30' : 'bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700'}`}>
-                        <div className="flex items-center gap-2">
-                          {lease.status === 'expired' ? <AlertTriangle size={16} className="text-red-500" /> : <Clock size={16} className={lease.status === 'expiring-soon' ? 'text-orange-500' : 'text-slate-400'} />}
-                          <div>
-                            <p className={`text-xs font-bold ${lease.status === 'expired' ? 'text-red-600 dark:text-red-400' : lease.status === 'expiring-soon' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                        <div className="flex items-center gap-2 min-w-0 pr-2">
+                          {lease.status === 'expired' ? <AlertTriangle size={16} className="text-red-500 shrink-0" /> : <Clock size={16} className={lease.status === 'expiring-soon' ? 'text-orange-500 shrink-0' : 'text-slate-400 shrink-0'} />}
+                          <div className="min-w-0">
+                            <p className={`text-xs font-bold truncate ${lease.status === 'expired' ? 'text-red-600 dark:text-red-400' : lease.status === 'expiring-soon' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-300'}`}>
                               {lease.status === 'expired' ? 'লিজের মেয়াদ শেষ' : lease.status === 'expiring-soon' ? `${lease.days} দিন পর মেয়াদ শেষ` : 'মেয়াদ আছে'}
                             </p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">{new Date(tenant.leaseEnd).toLocaleDateString('bn-BD')} পর্যন্ত</p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{new Date(tenant.leaseEnd).toLocaleDateString('bn-BD')} পর্যন্ত</p>
                           </div>
                         </div>
                         <button
                           onClick={() => setRenewingTenant(tenant)}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-colors ${lease.status === 'expired' ? 'bg-red-500 text-white hover:bg-red-600' : lease.status === 'expiring-soon' ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600'}`}
+                          className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 transition-colors ${lease.status === 'expired' ? 'bg-red-500 text-white hover:bg-red-600' : lease.status === 'expiring-soon' ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600'}`}
                         >
                           <RefreshCcw size={12} /> নবায়ন
                         </button>
@@ -212,11 +229,11 @@ const Tenants = () => {
 
                   {/* Auto Renew Toggle */}
                   <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
-                    <div>
-                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200">অটো-রিনিউয়াল</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">মেয়াদ শেষে স্বয়ংক্রিয়ভাবে বাড়বে</p>
+                    <div className="min-w-0 pr-3">
+                      <p className="text-xs font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">অটো-রিনিউয়াল</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">মেয়াদ শেষে স্বয়ংক্রিয়ভাবে বাড়বে</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
                       <input
                         type="checkbox"
                         className="sr-only peer"
@@ -227,23 +244,65 @@ const Tenants = () => {
                     </label>
                   </div>
 
-                  {/* পোর্টাল ও ডকুমেন্টস */}
-                  <div className="pt-2 border-t border-slate-50 dark:border-slate-700 grid grid-cols-2 gap-2">
+                  {/* NID Verification Status */}
+                  <div className="flex items-center justify-between p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                    <div className="flex items-center gap-2">
+                      <IdCard size={16} className="text-indigo-500 shrink-0" />
+                      <p className="text-xs font-bold text-indigo-700 dark:text-indigo-400">NID স্ট্যাটাস</p>
+                    </div>
+                    {(() => {
+                      const status = tenant.nidVerification?.status || "unsubmitted";
+                      if (status === "pending") {
+                        return (
+                          <button 
+                            onClick={() => setReviewingNidTenant(tenant)}
+                            className="px-2.5 py-1 bg-amber-500 text-white text-[10px] font-black rounded-lg hover:bg-amber-600 transition-colors shadow-sm shadow-amber-500/20 animate-pulse"
+                          >
+                            রিভিউ করুন
+                          </button>
+                        );
+                      }
+                      if (status === "verified") {
+                        return (
+                          <button 
+                            onClick={() => setReviewingNidTenant(tenant)}
+                            className="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
+                          >
+                            ভেরিফাইড
+                          </button>
+                        );
+                      }
+                      if (status === "rejected") {
+                        return <span className="px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black rounded-lg">বাতিলকৃত</span>;
+                      }
+                      return <span className="text-[10px] font-bold text-slate-400">পাওয়া যায়নি</span>;
+                    })()}
+                  </div>
+
+                  {/* পোর্টাল, ডকুমেন্টস ও ইউটিলিটি */}
+                  <div className="pt-2 border-t border-slate-50 dark:border-slate-700 flex gap-2">
                     <button
                       onClick={() => setSelectedTenant(tenant)}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
                     >
                       {tenant.portalEnabled ? (
-                        <><ShieldCheck size={14} className="text-emerald-500" /> পোর্টাল অ্যাক্সেস</>
+                        <ShieldCheck size={16} className="text-emerald-500" />
                       ) : (
-                        <><ShieldOff size={14} className="text-slate-400" /> পোর্টাল</>
+                        <ShieldOff size={16} className="text-slate-400" />
                       )}
+                      পোর্টাল
                     </button>
                     <button
                       onClick={() => setDocumentTenant(tenant)}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-900/20"
+                      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-900/20"
                     >
-                      <FileText size={14} className="text-violet-500" /> ডকুমেন্টস
+                      <FileText size={16} className="text-violet-500" /> ডকুমেন্টস
+                    </button>
+                    <button
+                      onClick={() => setUtilityTenant(tenant)}
+                      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/20"
+                    >
+                      <Settings2 size={16} className="text-blue-500" /> ইউটিলিটি
                     </button>
                   </div>
 
@@ -340,6 +399,20 @@ const Tenants = () => {
             });
           }
         }}
+      />
+      <ReviewNidModal
+        isOpen={!!reviewingNidTenant}
+        onClose={() => setReviewingNidTenant(null)}
+        tenant={reviewingNidTenant}
+        onVerify={handleVerifyNid}
+        isLoading={verifyNidMutation.isPending}
+      />
+      <UtilitySettingsModal
+        isOpen={!!utilityTenant}
+        onClose={() => setUtilityTenant(null)}
+        tenant={utilityTenant}
+        onSave={handleSaveUtilities}
+        isLoading={updateUtilitiesMutation.isPending}
       />
     </div>
   );

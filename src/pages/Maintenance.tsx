@@ -9,6 +9,8 @@ import {
   Receipt, DollarSign, PlusCircle, Tag
 } from "lucide-react";
 
+import EmptyState from "@/components/ui/EmptyState";
+
 // --- Types ---
 type Priority = "Low" | "Medium" | "High";
 type Status = "Pending" | "In Progress" | "Resolved";
@@ -214,13 +216,13 @@ const Maintenance = () => {
             <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="p-16 text-center">
-            <Wrench className="mx-auto mb-3 text-slate-200 dark:text-slate-600" size={48} />
-            <p className="font-bold text-slate-400">কোনো মেইনটেন্যান্স রিকোয়েস্ট নেই</p>
-            <button onClick={() => setFormOpen(true)} className="mt-4 text-blue-500 text-sm font-bold hover:underline">
-              + নতুন রিকোয়েস্ট যোগ করুন
-            </button>
-          </div>
+          <EmptyState
+            title={search ? `"${search}" এর জন্য কোনো রিকোয়েস্ট নেই!` : "কোনো মেইনটেন্যান্স রিকোয়েস্ট নেই!"}
+            description={search ? "অনুগ্রহ করে অনুসন্ধান শব্দ পুনরায় পরীক্ষা করুন।" : "আপনার প্রপার্টির কোনো সক্রিয় রক্ষণাবেক্ষণ অনুরোধ বা সমস্যা এই মুহূর্তে নেই।"}
+            icon={Wrench}
+            actionText={search ? undefined : "নতুন রিকোয়েস্ট তৈরি করুন +"}
+            onAction={search ? undefined : () => setFormOpen(true)}
+          />
         ) : (
           <div className="divide-y divide-slate-50 dark:divide-slate-700">
             {filteredItems.map((item: any) => {
@@ -329,13 +331,13 @@ const Maintenance = () => {
               <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
             </div>
           ) : filteredExpenses.length === 0 ? (
-            <div className="p-16 text-center">
-              <Receipt className="mx-auto mb-3 text-slate-200 dark:text-slate-600" size={48} />
-              <p className="font-bold text-slate-400">কোনো খরচের রেকর্ড নেই</p>
-              <button onClick={() => setExpenseFormOpen(true)} className="mt-4 text-emerald-500 text-sm font-bold hover:underline">
-                + নতুন খরচ যোগ করুন
-              </button>
-            </div>
+            <EmptyState
+              title={expenseSearch ? `"${expenseSearch}" এর জন্য কোনো খরচ পাওয়া যায়নি!` : "কোনো খরচের রেকর্ড নেই!"}
+              description={expenseSearch ? "অনুগ্রহ করে অন্য শব্দ টাইপ করে সার্চ করুন।" : "এই প্রজেক্টের জন্য এখন পর্যন্ত কোনো রক্ষণাবেক্ষণ বা মেরামতের খরচ নথিভুক্ত নেই।"}
+              icon={Receipt}
+              actionText={expenseSearch ? undefined : "নতুন খরচ রেকর্ড করুন +"}
+              onAction={expenseSearch ? undefined : () => setExpenseFormOpen(true)}
+            />
           ) : (
             <div className="divide-y divide-slate-50 dark:divide-slate-700">
               {filteredExpenses.map((exp: any) => (

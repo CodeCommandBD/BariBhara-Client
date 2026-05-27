@@ -17,6 +17,7 @@ import DeleteConfirmModal from "@/components/modals/DeleteConfirmModal";
 import { RentTableSkeleton } from "@/components/ui/SkeletonLoaders";
 import Pagination from "@/components/ui/Pagination";
 import { getInvoicePdfUrl } from "@/api/rent.api";
+import EmptyState from "@/components/ui/EmptyState";
 
 const NOTIF_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/notification`;
 const ITEMS_PER_PAGE = 10;
@@ -202,8 +203,140 @@ const RentManagement = () => {
       {isPendingLoading ? (
         <RentTableSkeleton />
       ) : (
-        <div className="bg-white dark:bg-slate-800 rounded-[32px] border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div>
+          {/* Mobile view cards */}
+          <div className="md:hidden p-4 space-y-4">
+            {filteredInvoices.length === 0 ? (
+              <EmptyState
+                title={searchTerm ? `"${searchTerm}" এর জন্য কোনো বিল পাওয়া যায়নি!` : "কোনো বিল বা ইনভয়েস নেই!"}
+                description={searchTerm ? "অনুগ্রহ করে বানান পুনরায় পরীক্ষা করুন।" : "আপনার কোনো বিল এই মুহূর্তে প্রস্তুত নেই। নতুন ইনভয়েস তৈরি করতে বালক রেন্ট ইনভয়েস জেনারেটর ব্যবহার করুন।"}
+                icon={CreditCard}
+                actionText={searchTerm ? undefined : "বালক ইনভয়েস তৈরি করুন ⚡"}
+                onAction={searchTerm ? undefined : () => setBulkModalOpen(true)}
+              />
+            ) : (
+              filteredInvoices.map((inv: any) => (
+                <div
+                  key={inv._id}
+                  className="bg-slate-50 dark:bg-slate-700/10 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center font-black text-xs">
+                        {inv.tenant?.name?.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-800 dark:text-slate-100">{inv.tenant?.name}</p>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
+                          <Home size={10} /> {inv.property?.name} • {inv.unit?.unitName}
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${
+                      inv.status === "Paid"
+                        ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                        : inv.status === "Partial"
+                          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                          : "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                    }`}>
+                      {inv.status === "Paid" ? "পেইড" : inv.status === "Partial" ? "আংশিক" : "বকেয়া"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 py-3 border-y border-slate-100 dark:border-slate-800/40 text-center">
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">মাস / বছর</p>
+                      <p className="font-black text-xs text-slate-700 dark:text-slate-200 mt-1">{inv.month}, {inv.year}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">মোট বিল</p>
+                      <p className="font-black text-xs text-slate-700 dark:text-slate-200 mt-1">৳ {inv.totalAmount?.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center py-2">
+                    <div>
+                      {inv.status === "Paid" ? (
+                        <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">৳ {inv.paidAmount?.toLocaleString()} পেইড</p>
+                      ) : (
+                        <p className="text-xs font-black text-orange-600 dark:text-orange-400">৳ {inv.dueAmount?.toLocaleString()} বাকি</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      {/* PDF ডাউনলোড */}
+                      <button
+                        onClick={() => handleDownloadPdf(inv._id)}
+                        className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-xl transition-all"
+                        title="PDF ডাউনলোড"
+                      >
+                        <Download size={14} />
+                      </button>
+
+                      {/* ইমেইল রিমাইন্ডার */}
+                      {inv.tenant?.email && inv.status !== "Paid" && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await axios.post(`${NOTIF_URL}/reminder/rent`, {}, { headers: authHeader });
+                              toast.success("রিমাইন্ডার পাঠানো হয়েছে!");
+                            } catch {
+                              toast.error("পাঠানো যায়নি!");
+                            }
+                          }}
+                          className="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-500 rounded-xl transition-all"
+                          title="ইমেইল রিমাইন্ডার"
+                        >
+                          <Mail size={14} />
+                        </button>
+                      )}
+
+                      {/* টাকা গ্রহণ */}
+                      {inv.status !== "Paid" && (
+                        <button
+                          onClick={() => {
+                            setSelectedInvoice(inv);
+                            setCollectModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black hover:scale-105 active:scale-95 transition-all"
+                        >
+                          <Banknote size={12} /> টাকা গ্রহণ
+                        </button>
+                      )}
+
+                      {/* এডিট / ডিলিট */}
+                      {inv.status === "Unpaid" && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditInvoiceTarget(inv);
+                              setEditModalOpen(true);
+                            }}
+                            className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl transition-all"
+                            title="এডিট"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteInvoiceTarget(inv);
+                              setDeleteConfirmOpen(true);
+                            }}
+                            className="p-2 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-xl transition-all"
+                            title="ডিলিট"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop view table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50 dark:bg-slate-700/50">
@@ -218,13 +351,22 @@ const RentManagement = () => {
               <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                 {filteredInvoices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-20 text-center text-slate-400 dark:text-slate-500 font-bold">
-                      {activeTab === "Paid" ? "কোনো পেইড বিল পাওয়া যায়নি" : "কোনো বিল পাওয়া যায়নি"}
+                    <td colSpan={6} className="p-8">
+                      <EmptyState
+                        title={searchTerm ? `"${searchTerm}" এর জন্য কোনো বিল পাওয়া যায়নি!` : "কোনো বিল বা ইনভয়েস নেই!"}
+                        description={searchTerm ? "অনুগ্রহ করে বানান পুনরায় পরীক্ষা করুন।" : "আপনার কোনো বিল এই মুহূর্তে প্রস্তুত নেই। নতুন ইনভয়েস তৈরি করতে বালক রেন্ট ইনভয়েস জেনারেটর ব্যবহার করুন।"}
+                        icon={CreditCard}
+                        actionText={searchTerm ? undefined : "বালক ইনভয়েস তৈরি করুন ⚡"}
+                        onAction={searchTerm ? undefined : () => setBulkModalOpen(true)}
+                      />
                     </td>
                   </tr>
                 ) : (
                   filteredInvoices.map((inv: any) => (
-                    <tr key={inv._id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-all">
+                    <tr
+                      key={inv._id}
+                      className="group hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-all"
+                    >
                       <td className="p-5">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary flex items-center justify-center font-black text-xs">
@@ -276,30 +418,41 @@ const RentManagement = () => {
                       <td className="p-5 text-right">
                         <div className="flex items-center justify-end gap-2 flex-wrap">
                           {/* PDF ডাউনলোড — সব স্ট্যাটাসে */}
-                          <button onClick={() => handleDownloadPdf(inv._id)}
+                          <button
+                            onClick={() => handleDownloadPdf(inv._id)}
                             className="p-2 bg-slate-50 dark:bg-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-xl transition-all"
-                            title="PDF ডাউনলোড">
+                            title="PDF ডাউনলোড"
+                          >
                             <Download size={15} />
                           </button>
 
                           {/* ইমেইল রিমাইন্ডার — Unpaid / Partial */}
                           {inv.tenant?.email && inv.status !== "Paid" && (
-                            <button title="ইমেইল রিমাইন্ডার"
+                            <button
+                              title="ইমেইল রিমাইন্ডার"
                               onClick={async () => {
                                 try {
                                   await axios.post(`${NOTIF_URL}/reminder/rent`, {}, { headers: authHeader });
                                   toast.success("রিমাইন্ডার পাঠানো হয়েছে!");
-                                } catch { toast.error("পাঠানো যায়নি!"); }
+                                } catch {
+                                  toast.error("পাঠানো যায়নি!");
+                                }
                               }}
-                              className="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-xl transition-all">
+                              className="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-xl transition-all"
+                            >
                               <Mail size={15} />
                             </button>
                           )}
 
                           {/* টাকা গ্রহণ — Unpaid / Partial */}
                           {inv.status !== "Paid" && (
-                            <button onClick={() => { setSelectedInvoice(inv); setCollectModalOpen(true); }}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:scale-105 active:scale-95 transition-all">
+                            <button
+                              onClick={() => {
+                                setSelectedInvoice(inv);
+                                setCollectModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-100 dark:shadow-emerald-900/30 hover:scale-105 active:scale-95 transition-all"
+                            >
                               <Banknote size={14} /> টাকা গ্রহণ
                             </button>
                           )}
@@ -314,14 +467,24 @@ const RentManagement = () => {
                           {/* এডিট + ডিলিট — শুধু Unpaid */}
                           {inv.status === "Unpaid" && (
                             <>
-                              <button onClick={() => { setEditInvoiceTarget(inv); setEditModalOpen(true); }}
+                              <button
+                                onClick={() => {
+                                  setEditInvoiceTarget(inv);
+                                  setEditModalOpen(true);
+                                }}
                                 className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-xl transition-all"
-                                title="এডিট করুন">
+                                title="এডিট করুন"
+                              >
                                 <Edit size={15} />
                               </button>
-                              <button onClick={() => { setDeleteInvoiceTarget(inv); setDeleteConfirmOpen(true); }}
+                              <button
+                                onClick={() => {
+                                  setDeleteInvoiceTarget(inv);
+                                  setDeleteConfirmOpen(true);
+                                }}
                                 className="p-2 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-all"
-                                title="ডিলিট করুন">
+                                title="ডিলিট করুন"
+                              >
                                 <Trash2 size={15} />
                               </button>
                             </>
@@ -338,7 +501,13 @@ const RentManagement = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t border-slate-50 dark:border-slate-700">
-              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} total={total} itemsPerPage={ITEMS_PER_PAGE} />
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                total={total}
+                itemsPerPage={ITEMS_PER_PAGE}
+              />
             </div>
           )}
         </div>
