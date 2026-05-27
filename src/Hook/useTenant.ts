@@ -11,6 +11,8 @@ import {
   renewLeaseApi,
   generateAgreementApi,
   deleteAgreementApi,
+  verifyNidApi,
+  updateUtilitiesApi,
 } from "@/api/tenant.api";
 
 export const useTenant = (page = 1, limit = 9) => {
@@ -140,6 +142,30 @@ export const useTenant = (page = 1, limit = 9) => {
     },
   });
 
+  const verifyNidMutation = useMutation({
+    mutationFn: ({ id, status, rejectionReason }: { id: string; status: string; rejectionReason: string }) => 
+      verifyNidApi(id, status, rejectionReason, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "NID স্ট্যাটাস আপডেট হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "স্ট্যাটাস আপডেট করতে সমস্যা হয়েছে!");
+    },
+  });
+
+  const updateUtilitiesMutation = useMutation({
+    mutationFn: ({ id, utilityConfig }: { id: string; utilityConfig: any }) => 
+      updateUtilitiesApi(id, utilityConfig, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "ইউটিলিটি সেটিংস আপডেট হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "আপডেট করতে সমস্যা হয়েছে!");
+    },
+  });
+
   return {
     // ডাটা
     tenants,
@@ -156,5 +182,7 @@ export const useTenant = (page = 1, limit = 9) => {
     renewLeaseMutation,
     generateAgreementMutation,
     deleteAgreementMutation,
+    verifyNidMutation,
+    updateUtilitiesMutation,
   };
 };
