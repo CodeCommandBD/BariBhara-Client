@@ -53,7 +53,7 @@ const AnimatedCounter = ({ targetString, suffix = "+" }: { targetString: string;
 const TrustBar = () => {
   // ১. প্ল্যাটফর্ম লাইভ স্ট্যাটস ফেচ করা
   const { data: stats } = useQuery<PublicStats>({
-    queryKey: ["public-stats"],
+    queryKey: ["public-stats-v2"],
     queryFn: async () => {
       const response = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public/stats`);
       return response.data.data;

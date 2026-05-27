@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useTenantAuthStore } from "@/store/useTenantAuthStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import SignatureCanvas from "react-signature-canvas";
 import { FileText, PenTool, CheckCircle2, Download, Trash2, ShieldCheck } from "lucide-react";
 
 const TenantAgreement = () => {
-  const { user, token } = useAuthStore() as any;
+  const { user, token } = useTenantAuthStore() as any;
   const queryClient = useQueryClient();
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -39,19 +39,39 @@ const TenantAgreement = () => {
   });
 
   const handleSign = () => {
-    if (sigCanvas.current?.isEmpty()) {
-      toast.error("অনুগ্রহ করে স্বাক্ষর করুন!");
-      return;
-    }
-    const signatureData = sigCanvas.current?.getTrimmedCanvas().toDataURL("image/png");
-    if (signatureData) {
-      signMutation.mutate(signatureData);
+    try {
+      if (!sigCanvas.current) {
+        toast.error("সিগনেচার প্যাড লোড হয়নি!");
+        return;
+      }
+      if (sigCanvas.current.isEmpty()) {
+        toast.error("অনুগ্রহ করে স্বাক্ষর করুন!");
+        return;
+      }
+      
+      const canvas = typeof sigCanvas.current.getCanvas === "function" 
+        ? sigCanvas.current.getCanvas() 
+        : (sigCanvas.current as any)._canvas;
+        
+      if (!canvas) {
+        throw new Error("ক্যানভাস পাওয়া যায়নি!");
+      }
+
+      const signatureData = canvas.toDataURL("image/png");
+      if (signatureData) {
+        signMutation.mutate(signatureData);
+      }
+    } catch (error: any) {
+      console.error("Sign error:", error);
+      toast.error("ক্র্যাশ এরর: " + error.message);
     }
   };
 
   const clear = () => {
-    sigCanvas.current?.clear();
-    setIsEmpty(true);
+    try {
+      sigCanvas.current?.clear();
+      setIsEmpty(true);
+    } catch (err) {}
   };
 
   if (isLoading) return <div className="p-10 text-center font-bold">লোড হচ্ছে...</div>;
@@ -155,7 +175,7 @@ const TenantAgreement = () => {
                 
                 <button
                   onClick={handleSign}
-                  disabled={isEmpty || signMutation.isPending}
+                  disabled={signMutation.isPending}
                   className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-2xl font-headline font-black shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                 >
                   {signMutation.isPending ? (

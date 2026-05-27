@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Receipt, Wrench, Menu, X, LogOut, Sun, Moon, Building2, PenTool } from "lucide-react";
+import { LayoutDashboard, Receipt, Wrench, Menu, X, LogOut, Sun, Moon, Building2, PenTool, User } from "lucide-react";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { useThemeStore } from "../../store/useThemeStore";
 import { useSocket } from "../../Hook/useSocket";
-import NotificationBell from "../ui/NotificationBell";
+import TenantNotificationBell from "../ui/TenantNotificationBell";
+import BottomNavigation from "./BottomNavigation";
 
 const TenantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +28,7 @@ const TenantLayout = () => {
     { name: "আমার বিল", path: "/tenant/invoices", icon: Receipt },
     { name: "মেইনটেন্যান্স", path: "/tenant/maintenance", icon: Wrench },
     { name: "ভাড়া চুক্তিপত্র", path: "/tenant/agreement", icon: PenTool },
+    { name: "আমার প্রোফাইল", path: "/tenant/profile", icon: User },
   ];
 
   return (
@@ -40,7 +42,7 @@ const TenantLayout = () => {
            <span className="font-black text-on-surface">Bari Bhara</span>
         </div>
         <div className="flex items-center gap-2">
-          <NotificationBell />
+          <TenantNotificationBell />
           <button onClick={() => setSidebarOpen(true)} className="p-2 text-on-surface-variant">
             <Menu size={24} />
           </button>
@@ -135,11 +137,12 @@ const TenantLayout = () => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="lg:ml-72 min-h-screen pt-16 lg:pt-0">
+      <div className="lg:ml-72 min-h-screen pt-16 lg:pt-0 pb-24 md:pb-0">
         <main className="p-4 lg:p-8 max-w-6xl mx-auto">
           <Outlet />
         </main>
       </div>
+      <BottomNavigation />
     </div>
   );
 };

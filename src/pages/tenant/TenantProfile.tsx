@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
-import { Camera, User, Phone, Mail, Home, Building2, Calendar, Key, Save, Loader2, Shield } from "lucide-react";
+import { Camera, User, Phone, Mail, Home, Building2, Calendar, Key, Save, Loader2, Shield, IdCard, CheckCircle, AlertCircle, Clock, Upload } from "lucide-react";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
@@ -11,11 +11,13 @@ const TenantProfile = () => {
   const { token, tenant, login } = useTenantAuthStore() as any;
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nidInputRef = useRef<HTMLInputElement>(null);
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({ name: "", email: "" });
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [uploading, setUploading] = useState(false);
+  const [nidUploading, setNidUploading] = useState(false);
 
   const authHeader = {
     Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
@@ -69,6 +71,21 @@ const TenantProfile = () => {
     },
   });
 
+  // NID আপলোড মিউটেশন
+  const nidMutation = useMutation({
+    mutationFn: async (payload: { nidBase64: string }) => {
+      const res = await axios.post(`${API_URL}/nid/upload`, payload, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("NID সফলভাবে আপলোড হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenant-profile"] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "NID আপলোড ব্যর্থ হয়েছে!");
+    },
+  });
+
   // ছবি আপলোড (Cloudinary via base64)
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -85,6 +102,28 @@ const TenantProfile = () => {
         await updateMutation.mutateAsync({ photoBase64: reader.result as string });
       } finally {
         setUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // NID আপলোড (Cloudinary via base64)
+  const handleNidChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("ফাইলের সাইজ ৫ MB-এর বেশি হওয়া যাবে না!");
+      return;
+    }
+
+    setNidUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        await nidMutation.mutateAsync({ nidBase64: reader.result as string });
+      } finally {
+        setNidUploading(false);
+        if (nidInputRef.current) nidInputRef.current.value = "";
       }
     };
     reader.readAsDataURL(file);
@@ -255,6 +294,66 @@ const TenantProfile = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* NID Identity Verification Card */}
+      <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+              <IdCard size={18} className="text-indigo-600" />
+            </div>
+            <div>
+              <h3 className="font-black text-on-surface">পরিচয়পত্র ভেরিফিকেশন (NID)</h3>
+              <p className="text-xs text-on-surface-variant">আপনার জাতীয় পরিচয়পত্রের স্ক্যান কপি আপলোড করুন</p>
+            </div>
+          </div>
+          {/* Status Badge */}
+          {(() => {
+            const status = profile?.nidVerification?.status || "unsubmitted";
+            if (status === "verified") return <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-black rounded-full uppercase"><CheckCircle size={14} /> ভেরিফাইড</span>;
+            if (status === "pending") return <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-black rounded-full uppercase"><Clock size={14} /> পেন্ডিং</span>;
+            if (status === "rejected") return <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-black rounded-full uppercase"><AlertCircle size={14} /> বাতিল</span>;
+            return <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-black rounded-full uppercase">আপলোড করা হয়নি</span>;
+          })()}
+        </div>
+
+        {profile?.nidVerification?.status === "rejected" && (
+          <div className="mb-4 p-3 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30">
+            <div className="flex gap-2">
+              <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-black text-red-700 dark:text-red-400">আপনার NID বাতিল করা হয়েছে!</p>
+                <p className="text-[11px] text-red-600/80 dark:text-red-400/80 mt-0.5">{profile?.nidVerification?.rejectionReason || "কোনো কারণ উল্লেখ করা হয়নি।"}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(profile?.nidVerification?.status === "unsubmitted" || profile?.nidVerification?.status === "rejected") && (
+          <div>
+            <input ref={nidInputRef} type="file" accept="image/*,application/pdf" onChange={handleNidChange} className="hidden" />
+            <button
+              onClick={() => nidInputRef.current?.click()}
+              disabled={nidUploading || nidMutation.isPending}
+              className="w-full flex flex-col items-center justify-center gap-3 py-8 px-4 rounded-3xl border-2 border-dashed border-indigo-200 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-900/10 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all group disabled:opacity-50"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                {nidUploading || nidMutation.isPending ? (
+                  <Loader2 size={24} className="text-indigo-500 animate-spin" />
+                ) : (
+                  <Upload size={24} className="text-indigo-500" />
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-black text-indigo-700 dark:text-indigo-400">
+                  {nidUploading || nidMutation.isPending ? "আপলোড হচ্ছে..." : "NID স্ক্যান আপলোড করুন"}
+                </p>
+                <p className="text-[10px] text-indigo-600/70 dark:text-indigo-400/70 mt-1">JPG, PNG, WEBP বা PDF (Max 5MB)</p>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Change Password Card */}

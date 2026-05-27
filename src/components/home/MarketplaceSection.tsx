@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
 
 interface PropertyOwner {
   fullName: string;
@@ -43,6 +45,7 @@ const getMapEmbedUrl = (locationName: string) => {
 import { useUIStore } from "@/store/useUIStore";
 
 const MarketplaceSection = () => {
+  const navigate = useNavigate();
   const [selectedProperty, setSelectedProperty] = useState<PublicProperty | null>(null);
   const [activeImgIndex, setActiveImgIndex] = useState(0);
 
@@ -199,7 +202,7 @@ const MarketplaceSection = () => {
             return (
               <div
                 key={property._id}
-                onClick={() => setSelectedProperty(property)}
+                onClick={() => navigate(`/property/${property._id}`)}
                 className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group border border-slate-200 dark:border-slate-800 flex flex-col justify-between cursor-pointer"
               >
                 <div>

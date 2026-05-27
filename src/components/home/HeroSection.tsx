@@ -3,6 +3,7 @@ import { useUIStore } from "@/store/useUIStore";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Search, MapPin, Home, Banknote, ShieldCheck, ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PublicProperty {
   location: string;
@@ -13,6 +14,7 @@ interface PublicProperty {
 
 const HeroSection = () => {
   const { setSearchFilters } = useUIStore();
+  const navigate = useNavigate();
   const [locationInput, setLocationInput] = useState("");
   const [houseType, setHouseType] = useState("সব ধরণের বাসা");
   const [budgetInput, setBudgetInput] = useState("");
@@ -21,6 +23,16 @@ const HeroSection = () => {
 
   const locationRef = useRef<HTMLDivElement>(null);
   const budgetRef = useRef<HTMLDivElement>(null);
+
+  // প্ল্যাটফর্ম লাইভ স্ট্যাটস ফেচ করা (ব্যানারের ব্যাজ ডায়নামিক করার জন্য)
+  const { data: stats } = useQuery({
+    queryKey: ["public-stats-v2"],
+    queryFn: async () => {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public/stats`);
+      return response.data.data;
+    },
+    refetchOnWindowFocus: false,
+  });
 
   // ১. ডাইনামিক লোকেশন সাজেশনের জন্য ডাটা নিয়ে আসা
   const { data: properties } = useQuery<PublicProperty[]>({
@@ -67,18 +79,18 @@ const HeroSection = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // স্টোরে ফিল্টার সেট করা
-    setSearchFilters({
-      location: locationInput,
-      houseType: houseType === "সব ধরণের বাসা" ? "" : houseType,
-      budget: budgetInput,
-    });
-
-    // মার্কেটপ্লেস সেকশনে স্মুথ স্ক্রোল করা
-    const marketplace = document.getElementById("marketplace-listings");
-    if (marketplace) {
-      marketplace.scrollIntoView({ behavior: "smooth", block: "start" });
+    // কুয়েরি প্যারামস তৈরি
+    const params = new URLSearchParams();
+    if (locationInput) params.append("location", locationInput);
+    if (houseType && houseType !== "সব ধরণের বাসা") params.append("type", houseType);
+    if (budgetInput) {
+      const [min, max] = budgetInput.split("-");
+      if (min) params.append("minRent", min);
+      if (max) params.append("maxRent", max);
     }
+
+    // নতুন সার্চ পেইজে রিডাইরেক্ট করা
+    navigate(`/search?${params.toString()}`);
   };
 
   return (
@@ -94,9 +106,9 @@ const HeroSection = () => {
             সহজ ও স্মার্ট রেন্টাল প্ল্যাটফর্ম
           </div>
 
-          <h1 className="font-headline font-extrabold text-5xl sm:text-6xl leading-[1.1] tracking-tight text-slate-800 dark:text-slate-100">
+          <h1 className="font-headline font-extrabold text-5xl sm:text-6xl leading-[1.35] tracking-normal text-slate-800 dark:text-slate-100">
             বাড়ি ভাড়া হোক <br />
-            <span className="gradient-text bg-gradient-to-r from-primary to-violet-600">সহজ ও ডিজিটাল</span>
+            <span className="gradient-text bg-gradient-to-r from-primary to-violet-600 inline-block mt-2 sm:mt-3 pt-3 pb-2 px-1 ">সহজ ও ডিজিটাল</span>
           </h1>
 
           {/* Target User Info Cards */}
@@ -132,16 +144,16 @@ const HeroSection = () => {
 
             <form
               onSubmit={handleSearch}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-30"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 relative z-30"
             >
               {/* ১. লোকেশন ফিল্টার কার্ড - ১০০% উইডথ */}
               <div 
                 ref={locationRef} 
-                className="relative sm:col-span-2 bg-white dark:bg-slate-950 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-850 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer group flex items-center gap-4 shadow-sm"
+                className="relative sm:col-span-2 bg-white dark:bg-slate-950 px-3.5 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-850 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer group flex items-center gap-2 shadow-sm"
               >
                 {/* আইকন বক্স */}
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                  <MapPin size={22} className="stroke-[2.5]" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <MapPin size={16} className="stroke-[2.5]" />
                 </div>
                 
                 {/* ইনপুট */}
@@ -154,7 +166,7 @@ const HeroSection = () => {
                       setShowLocationSuggestions(true);
                     }}
                     onFocus={() => setShowLocationSuggestions(true)}
-                    className="bg-transparent border-none p-0 focus:ring-0 text-sm sm:text-base font-black w-full outline-none dark:text-white placeholder-slate-400 dark:placeholder-slate-500 mt-0.5"
+                    className="bg-transparent border-none p-0 focus:ring-0 text-sm font-black w-full outline-none dark:text-white placeholder-slate-400 dark:placeholder-slate-500 mt-0.5"
                     placeholder="উদা: উত্তরা, ঢাকা"
                     type="text"
                   />
@@ -182,19 +194,19 @@ const HeroSection = () => {
               </div>
 
               {/* ২. বাসা ধরণ কার্ড - ৫০% উইডথ */}
-              <div className="bg-white dark:bg-slate-950 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-850 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer group flex items-center gap-4 shadow-sm">
+              <div className="bg-white dark:bg-slate-950 px-3.5 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-850 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer group flex items-center gap-2 shadow-sm">
                 {/* আইকন বক্স */}
-                <div className="w-12 h-12 rounded-xl bg-violet-150/10 dark:bg-violet-950/20 flex items-center justify-center text-violet-600 dark:text-violet-400 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                  <Home size={22} className="stroke-[2.5]" />
+                <div className="w-8 h-8 rounded-lg bg-violet-150/10 dark:bg-violet-950/20 flex items-center justify-center text-violet-600 dark:text-violet-400 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <Home size={16} className="stroke-[2.5]" />
                 </div>
 
                 {/* ইনপুট */}
-                <div className="flex-1 min-w-0 relative pr-6">
+                <div className="flex-1 min-w-0 relative pr-5">
                   <label className="block text-[10px] uppercase tracking-wider font-black text-slate-450 dark:text-slate-400 select-none">বাসার ধরণ</label>
                   <select
                     value={houseType}
                     onChange={(e) => setHouseType(e.target.value)}
-                    className="bg-transparent border-none p-0 focus:ring-0 text-sm sm:text-base font-black w-full appearance-none outline-none cursor-pointer dark:text-white dark:bg-slate-950 mt-0.5"
+                    className="bg-transparent border-none p-0 focus:ring-0 text-sm font-black w-full appearance-none outline-none cursor-pointer dark:text-white dark:bg-slate-950 mt-0.5"
                   >
                     <option value="সব ধরণের বাসা">সব ধরণের বাসা</option>
                     <option value="Family">ফ্যামিলি বাসা</option>
@@ -212,16 +224,16 @@ const HeroSection = () => {
               {/* ৩. বাজেট ফিল্টার কার্ড - ৫০% উইডথ */}
               <div 
                 ref={budgetRef} 
-                className="relative bg-white dark:bg-slate-950 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-850 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer group flex items-center gap-4 shadow-sm"
+                className="relative bg-white dark:bg-slate-950 px-3.5 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-850 hover:border-primary/50 dark:hover:border-primary/50 transition-all cursor-pointer group flex items-center gap-2 shadow-sm"
                 onClick={() => setShowBudgetSuggestions(true)}
               >
                 {/* আইকন বক্স */}
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-500 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                  <Banknote size={22} className="stroke-[2.5]" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center text-emerald-500 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <Banknote size={16} className="stroke-[2.5]" />
                 </div>
 
                 {/* ইনপুট */}
-                <div className="flex-1 min-w-0 relative pr-6">
+                <div className="flex-1 min-w-0 relative pr-5">
                   <label className="block text-[10px] uppercase tracking-wider font-black text-slate-450 dark:text-slate-400 select-none">বাজেট সীমানা</label>
                   <input
                     value={
@@ -230,7 +242,7 @@ const HeroSection = () => {
                         : ""
                     }
                     readOnly
-                    className="bg-transparent border-none p-0 focus:ring-0 text-sm sm:text-base font-black w-full outline-none cursor-pointer dark:text-white placeholder-slate-700 mt-0.5"
+                    className="bg-transparent border-none p-0 focus:ring-0 text-sm font-black w-full outline-none cursor-pointer dark:text-white placeholder-slate-700 mt-0.5"
                     placeholder="বাজেট সিলেক্ট"
                     type="text"
                   />
@@ -306,7 +318,11 @@ const HeroSection = () => {
                 <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">১০০% ভেরিফাইড</p>
               </div>
             </div>
-            <p className="text-3xl font-black font-headline text-slate-800 dark:text-white">৫,০০০+</p>
+            <p className="text-3xl font-black font-headline text-slate-800 dark:text-white">
+              {stats?.verifiedLandlords 
+                ? stats.verifiedLandlords.replace(/[0-9]/g, (w: string) => ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'][+w]) 
+                : "০+"}
+            </p>
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold leading-relaxed mt-1">
               সক্রিয় বাড়িওয়ালা আমাদের ডিজিটাল প্ল্যাটফর্মে আছেন
             </p>

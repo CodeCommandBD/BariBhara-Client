@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import EditPropertyModal from "@/components/modals/EditPropertyModal";
 import { Edit3, Trash2, Share2 } from "lucide-react";
 import { PropertiesGridSkeleton } from "@/components/ui/SkeletonLoaders";
+import EmptyState from "@/components/ui/EmptyState";
 
 const Properties = () => {
   // ২. হুক থেকে প্রপার্টি লিস্ট এবং লোডিং স্টেট নিয়ে আসা
@@ -159,11 +160,15 @@ const Properties = () => {
         ))}
       </div>
 
-       {properties?.length === 0 && (
-        <div className="text-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-700">
-           <p className="text-slate-500 font-bold">আপনার কোনো বিল্ডিং এখনো যুক্ত করা হয়নি!</p>
-        </div>
-       )}
+      {properties?.length === 0 && (
+        <EmptyState
+          title="কোনো বিল্ডিং বা বাড়ি তালিকাভুক্ত নেই!"
+          description="ভাড়া ও ভাড়াটিয়া ম্যানেজমেন্টের প্রথম ধাপ হিসেবে আপনার প্রথম প্রজেক্ট বা বিল্ডিংটি যোগ করুন।"
+          icon={Building2}
+          actionText="প্রথম বিল্ডিং যোগ করুন +"
+          onAction={openAddPropertyModal}
+        />
+      )}
 
        <EditPropertyModal 
          isOpen={isEditModalOpen}

@@ -4,6 +4,7 @@ import axios from "axios";
 import { Wrench, Plus, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { toast } from "sonner";
+import EmptyState from "@/components/ui/EmptyState";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
@@ -82,10 +83,14 @@ const TenantMaintenance = () => {
       {/* Requests List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {requests.length === 0 ? (
-          <div className="col-span-full p-12 text-center bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-800">
-            <CheckCircle2 size={48} className="mx-auto text-slate-300 dark:text-slate-700 mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">কোনো অনুরোধ নেই</h3>
-            <p className="text-slate-500 dark:text-slate-400 mt-2">আপনার কোনো মেইনটেন্যান্স অনুরোধ করা হয়নি।</p>
+          <div className="col-span-full">
+            <EmptyState
+              title="কোনো মেইনটেন্যান্স বা মেরামতের অনুরোধ নেই!"
+              description="আপনার ভাড়া নেওয়া ফ্ল্যাট বা রুমে পানির পাম্প, ওয়্যারিং বা যেকোনো নষ্ট জিনিসের দ্রুত মেরামতের জন্য নতুন অনুরোধ তৈরি করুন।"
+              icon={Wrench}
+              actionText="নতুন অনুরোধ তৈরি করুন +"
+              onAction={() => setIsModalOpen(true)}
+            />
           </div>
         ) : (
           requests.map((req: any) => (
