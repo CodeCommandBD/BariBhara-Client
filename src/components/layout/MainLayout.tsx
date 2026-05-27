@@ -3,6 +3,7 @@ import { Outlet, Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import AddPropertyModal from "../modals/AddPropertyModal";
+import BottomNavigation from "./BottomNavigation";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSocket } from "@/Hook/useSocket";
@@ -229,6 +230,7 @@ const MainLayout = () => {
         </main>
       </div>
       <AddPropertyModal />
+      <BottomNavigation />
     </div>
   );
 };

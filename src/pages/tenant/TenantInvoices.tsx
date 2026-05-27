@@ -4,6 +4,7 @@ import { Receipt, Download, FileText, CheckCircle2, Clock } from "lucide-react";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { useState } from "react";
 import { toast } from "sonner";
+import EmptyState from "@/components/ui/EmptyState";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
@@ -76,76 +77,149 @@ const TenantInvoices = () => {
       </div>
 
       {/* Invoice List */}
-      <div className="bg-white dark:bg-slate-900 rounded-[24px] overflow-hidden shadow-sm border border-slate-100 dark:border-slate-800">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">মাস ও বছর</th>
-                <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">মোট বিল</th>
-                <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">পরিশোধিত</th>
-                <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">বকেয়া</th>
-                <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">স্ট্যাটাস</th>
-                <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-              {invoices.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-400 font-bold">
-                    কোনো বিল পাওয়া যায়নি
-                  </td>
-                </tr>
-              ) : (
-                invoices.map((invoice: any) => (
-                  <tr key={invoice._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-xs">
-                          {invoice.month.substring(0, 3)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-800 dark:text-slate-200">{invoice.month} {invoice.year}</p>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold">INV-{invoice._id.toString().substring(0, 6)}</p>
-                        </div>
+        <div>
+          {/* Mobile view cards */}
+          <div className="md:hidden p-4 space-y-4">
+            {invoices.length === 0 ? (
+              <EmptyState
+                title="কোনো ভাড়ার বিল বা ইনভয়েস নেই!"
+                description="এই মুহূর্তে আপনার প্রোফাইলে কোনো পরিশোধিত বা বকেয়া বিলের হিসেব নেই। নতুন বিল তৈরি হলে নোটিফিকেশন পাবেন।"
+                icon={Receipt}
+              />
+            ) : (
+              invoices.map((invoice: any) => (
+                <div
+                  key={invoice._id}
+                  className="bg-slate-50 dark:bg-slate-800/10 p-5 rounded-3xl border border-slate-100 dark:border-slate-800/40 flex flex-col gap-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-xs">
+                        {invoice.month.substring(0, 3)}
                       </div>
-                    </td>
-                    <td className="p-4 font-bold text-slate-700 dark:text-slate-300">৳{invoice.totalAmount}</td>
-                    <td className="p-4 font-bold text-emerald-600 dark:text-emerald-400">৳{invoice.paidAmount}</td>
-                    <td className="p-4 font-bold text-red-500 dark:text-red-400">৳{invoice.dueAmount}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${
-                        invoice.status === "Paid" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" :
-                        invoice.status === "Partial" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" :
-                        "bg-red-100 text-red-600 dark:bg-red-900/30"
-                      }`}>
-                        {invoice.status === "Paid" && <CheckCircle2 size={14} />}
-                        {invoice.status === "Unpaid" && <Clock size={14} />}
-                        {invoice.status === "Partial" && <FileText size={14} />}
-                        {invoice.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <button
-                        onClick={() => handleDownload(invoice._id, invoice._id.toString().substring(0, 6))}
-                        disabled={downloadingId === invoice._id}
-                        className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 rounded-xl transition-all disabled:opacity-50 inline-flex items-center justify-center"
-                        title="রিসিট ডাউনলোড করুন"
-                      >
-                        {downloadingId === invoice._id ? (
-                          <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-                        ) : (
-                          <Download size={18} />
-                        )}
-                      </button>
+                      <div>
+                        <p className="font-bold text-slate-800 dark:text-slate-200">{invoice.month} {invoice.year}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-bold">INV-{invoice._id.toString().substring(0, 6)}</p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${
+                      invoice.status === "Paid" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" :
+                      invoice.status === "Partial" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" :
+                      "bg-red-100 text-red-600 dark:bg-red-900/30"
+                    }`}>
+                      {invoice.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 dark:border-slate-800/40 text-center">
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">মোট বিল</p>
+                      <p className="font-black text-sm text-slate-700 dark:text-slate-300 mt-1">৳{invoice.totalAmount}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">পরিশোধিত</p>
+                      <p className="font-black text-sm text-emerald-600 dark:text-emerald-400 mt-1">৳{invoice.paidAmount}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">বকেয়া</p>
+                      <p className="font-black text-sm text-red-500 dark:text-red-400 mt-1">৳{invoice.dueAmount}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={() => handleDownload(invoice._id, invoice._id.toString().substring(0, 6))}
+                      disabled={downloadingId === invoice._id}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs rounded-2xl transition-all disabled:opacity-50"
+                    >
+                      {downloadingId === invoice._id ? (
+                        <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                      ) : (
+                        <>
+                          <Download size={14} /> রিসিট ডাউনলোড
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop view table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                  <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">মাস ও বছর</th>
+                  <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">মোট বিল</th>
+                  <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">পরিশোধিত</th>
+                  <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">বকেয়া</th>
+                  <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">স্ট্যাটাস</th>
+                  <th className="p-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                {invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8">
+                      <EmptyState
+                        title="কোনো ভাড়ার বিল বা ইনভয়েস নেই!"
+                        description="এই মুহূর্তে আপনার প্রোফাইলে কোনো পরিশোধিত বা বকেয়া বিলের হিসেব নেই। নতুন বিল তৈরি হলে নোটিফিকেশন পাবেন।"
+                        icon={Receipt}
+                      />
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  invoices.map((invoice: any) => (
+                    <tr key={invoice._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black text-xs">
+                            {invoice.month.substring(0, 3)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 dark:text-slate-200">{invoice.month} {invoice.year}</p>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold">INV-{invoice._id.toString().substring(0, 6)}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 font-bold text-slate-700 dark:text-slate-300">৳{invoice.totalAmount}</td>
+                      <td className="p-4 font-bold text-emerald-600 dark:text-emerald-400">৳{invoice.paidAmount}</td>
+                      <td className="p-4 font-bold text-red-500 dark:text-red-400">৳{invoice.dueAmount}</td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${
+                          invoice.status === "Paid" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" :
+                          invoice.status === "Partial" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" :
+                          "bg-red-100 text-red-600 dark:bg-red-900/30"
+                        }`}>
+                          {invoice.status === "Paid" && <CheckCircle2 size={14} />}
+                          {invoice.status === "Unpaid" && <Clock size={14} />}
+                          {invoice.status === "Partial" && <FileText size={14} />}
+                          {invoice.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDownload(invoice._id, invoice._id.toString().substring(0, 6))}
+                          disabled={downloadingId === invoice._id}
+                          className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 rounded-xl transition-all disabled:opacity-50 inline-flex items-center justify-center"
+                          title="রিসিট ডাউনলোড করুন"
+                        >
+                          {downloadingId === invoice._id ? (
+                            <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                          ) : (
+                            <Download size={18} />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
     </div>
   );
 };

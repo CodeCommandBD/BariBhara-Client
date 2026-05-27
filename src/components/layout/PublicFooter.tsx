@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const PublicFooter = () => {
   return (
     <footer className="bg-slate-900 text-white w-full pt-20 pb-10">
@@ -28,8 +30,8 @@ const PublicFooter = () => {
           <ul className="space-y-4">
             <li><a className="text-slate-400 hover:text-violet-300 transition-colors text-sm" href="#">FAQ</a></li>
             <li><a className="text-slate-400 hover:text-violet-300 transition-colors text-sm" href="#">Support Center</a></li>
-            <li><a className="text-slate-400 hover:text-violet-300 transition-colors text-sm" href="#">Terms of Service</a></li>
-            <li><a className="text-slate-400 hover:text-violet-300 transition-colors text-sm" href="#">Privacy Policy</a></li>
+            <li><Link className="text-slate-400 hover:text-violet-300 transition-colors text-sm" to="/terms-privacy">Terms of Service</Link></li>
+            <li><Link className="text-slate-400 hover:text-violet-300 transition-colors text-sm" to="/terms-privacy">Privacy Policy</Link></li>
           </ul>
         </div>
         <div>
@@ -50,8 +52,8 @@ const PublicFooter = () => {
       <div className="max-w-7xl mx-auto px-8 pt-20 mt-20 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-slate-400 text-xs">© 2024 Bari Bhara. Digital Estate Management.</p>
         <div className="flex gap-8">
-          <a className="text-slate-400 hover:text-white text-xs transition-colors" href="#">প্রাইভেসি পলিসি</a>
-          <a className="text-slate-400 hover:text-white text-xs transition-colors" href="#">শর্তাবলী</a>
+          <Link className="text-slate-400 hover:text-white text-xs transition-colors" to="/terms-privacy">প্রাইভেসি পলিসি</Link>
+          <Link className="text-slate-400 hover:text-white text-xs transition-colors" to="/terms-privacy">শর্তাবলী</Link>
         </div>
       </div>
     </footer>
