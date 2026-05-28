@@ -4,6 +4,7 @@ import { useThemeStore } from "@/store/useThemeStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSavedPropertiesStore } from "@/store/useSavedPropertiesStore";
 
 const Navbar = () => {
   const { isDark, toggleTheme } = useThemeStore();
@@ -13,6 +14,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { savedProperties } = useSavedPropertiesStore();
 
   const handleNavClick = (e: React.MouseEvent, targetId: string) => {
     e.preventDefault();
@@ -82,8 +84,18 @@ const Navbar = () => {
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8">
           <Link to="/" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">হোম</Link>
+          <Link to="/search" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">বাসা খুঁজুন</Link>
           <a href="#features" onClick={(e) => handleNavClick(e, "features")} className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">ফিচার</a>
           <a href="#pricing" onClick={(e) => handleNavClick(e, "pricing")} className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors">প্রাইসিং</a>
+          <Link to="/saved-properties" className="text-sm font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5 relative">
+            সেভড
+            <span className={`material-symbols-outlined text-[16px] ${savedProperties.length > 0 ? "text-rose-500 fill-rose-500" : "text-slate-400"}`} style={{ fontVariationSettings: savedProperties.length > 0 ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+            {savedProperties.length > 0 && (
+              <span className="absolute -top-2 -right-3 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white dark:border-slate-900 shadow-sm">
+                {savedProperties.length}
+              </span>
+            )}
+          </Link>
         </div>
 
         {/* Right Side Actions */}
@@ -189,8 +201,16 @@ const Navbar = () => {
         <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4 animate-in fade-in slide-in-from-top-4 z-[90]">
           <div className="flex flex-col gap-2">
             <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">হোম</Link>
+            <Link to="/search" onClick={() => setMobileMenuOpen(false)} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">বাসা খুঁজুন</Link>
             <a href="#features" onClick={(e) => { setMobileMenuOpen(false); handleNavClick(e, "features"); }} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">ফিচার</a>
             <a href="#pricing" onClick={(e) => { setMobileMenuOpen(false); handleNavClick(e, "pricing"); }} className="text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">প্রাইসিং</a>
+            <Link to="/saved-properties" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between text-base font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors py-2.5 border-b border-slate-100 dark:border-slate-900">
+              সেভড প্রপার্টিস
+              <div className="flex items-center gap-1.5">
+                {savedProperties.length > 0 && <span className="bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 text-xs px-2 py-0.5 rounded-full font-black">{savedProperties.length}</span>}
+                <span className={`material-symbols-outlined text-[18px] ${savedProperties.length > 0 ? "text-rose-500 fill-rose-500" : "text-slate-400"}`} style={{ fontVariationSettings: savedProperties.length > 0 ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+              </div>
+            </Link>
             
             {!user ? (
               <div className="flex flex-col gap-3 pt-4">

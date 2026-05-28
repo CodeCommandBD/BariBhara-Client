@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Search, MapPin, Home, Banknote, ShieldCheck, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { trackEvent } from "@/services/analytics";
 
 interface PublicProperty {
   location: string;
@@ -90,6 +91,7 @@ const HeroSection = () => {
     }
 
     // নতুন সার্চ পেইজে রিডাইরেক্ট করা
+    trackEvent("search", { metadata: { query: locationInput, type: houseType, budget: budgetInput } });
     navigate(`/search?${params.toString()}`);
   };
 

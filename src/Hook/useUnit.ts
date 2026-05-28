@@ -59,6 +59,10 @@ export const useUnit = () => {
       toast.success(data.message || "ইউনিট আপডেট করা হয়েছে!");
       queryClient.invalidateQueries({ queryKey: ["units"] });
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "ইউনিট আপডেট করতে সমস্যা হয়েছে!");
+      console.error("Update Unit Error:", error.response?.data || error.message);
+    },
   });
 
   // --- ৪. ইউনিট ডিলিট করার মিউটেশন ---

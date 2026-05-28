@@ -117,6 +117,7 @@ export const useProperty = () => {
       toast.success(data.message || "প্রপার্টি আপডেট করা হয়েছে!");
       queryClient.invalidateQueries({ queryKey: ["property"] }); // নির্দিষ্ট প্রপার্টির ডাটা রিফ্রেশ করবে
       queryClient.invalidateQueries({ queryKey: ["my-properties"] }); // লিস্ট রিফ্রেশ করবে
+      queryClient.invalidateQueries({ queryKey: ["public-properties"] }); // মার্কেটপ্লেস রিফ্রেশ করবে
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "প্রপার্টি আপডেট করা সম্ভব হয়নি!");

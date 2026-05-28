@@ -22,6 +22,7 @@ import RentManagement from "./pages/RentManagement";
 import Maintenance from "./pages/Maintenance";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Reviews from "./pages/Reviews.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import PaymentPage from "./pages/PaymentPage.tsx";
@@ -29,8 +30,12 @@ import AdminSubscriptions from "./pages/AdminSubscriptions.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
 import AdminProtectedRoute from "./components/AdminProtectedRoute.tsx";
-
-
+import SearchResults from "./pages/SearchResults";
+import PublicPropertyDetail from "./pages/PublicPropertyDetail";
+import AdminRevenue from "./pages/admin/AdminRevenue.tsx";
+import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
+import TermsPrivacy from "./pages/TermsPrivacy";
+import SavedProperties from "./pages/SavedProperties";
 // Tenant Portal Components
 import TenantProtectedRoute from "./components/TenantProtectedRoute";
 import TenantLogin from "./pages/tenant/TenantLogin";
@@ -39,6 +44,7 @@ import TenantDashboard from "./pages/tenant/TenantDashboard";
 import TenantInvoices from "./pages/tenant/TenantInvoices";
 import TenantMaintenance from "./pages/tenant/TenantMaintenance";
 import TenantAgreement from "./pages/tenant/TenantAgreement";
+import TenantProfile from "./pages/tenant/TenantProfile";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +58,22 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+      },
+      {
+        path: "search",
+        element: <SearchResults />,
+      },
+      {
+        path: "property/:id",
+        element: <PublicPropertyDetail />,
+      },
+      {
+        path: "saved-properties",
+        element: <SavedProperties />,
+      },
+      {
+        path: "terms-privacy",
+        element: <TermsPrivacy />,
       },
     ],
   },
@@ -102,16 +124,20 @@ const router = createBrowserRouter([
         element: <RentManagement />,
       },
       {
+        path: "settings",
+        element: <Settings />,
+      },
+      {
+        path: "reviews",
+        element: <Reviews />,
+      },
+      {
         path: "maintenance",
         element: <Maintenance />,
       },
       {
         path: "reports",
         element: <Reports />,
-      },
-      {
-        path: "settings",
-        element: <Settings />,
       },
     ],
   },
@@ -149,6 +175,14 @@ const router = createBrowserRouter([
         path: "subscriptions",
         element: <AdminSubscriptions />,
       },
+      {
+        path: "revenue",
+        element: <AdminRevenue />,
+      },
+      {
+        path: "analytics",
+        element: <AdminAnalytics />,
+      },
     ],
   },
 
@@ -179,6 +213,10 @@ const router = createBrowserRouter([
       {
         path: "agreement",
         element: <TenantAgreement />,
+      },
+      {
+        path: "profile",
+        element: <TenantProfile />,
       },
     ],
   },

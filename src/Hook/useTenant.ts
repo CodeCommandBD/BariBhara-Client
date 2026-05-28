@@ -13,6 +13,7 @@ import {
   deleteAgreementApi,
   verifyNidApi,
   updateUtilitiesApi,
+  rateTenantApi,
 } from "@/api/tenant.api";
 
 export const useTenant = (page = 1, limit = 9) => {
@@ -166,6 +167,18 @@ export const useTenant = (page = 1, limit = 9) => {
     },
   });
 
+  const rateTenantMutation = useMutation({
+    mutationFn: ({ id, ratingData }: { id: string; ratingData: any }) => 
+      rateTenantApi(id, ratingData, token!),
+    onSuccess: (data) => {
+      toast.success(data.message || "ভাড়াটিয়াকে সফলভাবে রেটিং দেওয়া হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "রেটিং দিতে সমস্যা হয়েছে!");
+    },
+  });
+
   return {
     // ডাটা
     tenants,
@@ -184,5 +197,6 @@ export const useTenant = (page = 1, limit = 9) => {
     deleteAgreementMutation,
     verifyNidMutation,
     updateUtilitiesMutation,
+    rateTenantMutation,
   };
 };

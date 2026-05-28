@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +43,8 @@ const getMapEmbedUrl = (locationName: string) => {
 };
 
 import { useUIStore } from "@/store/useUIStore";
+import { useSavedPropertiesStore } from "@/store/useSavedPropertiesStore";
+import { trackEvent } from "@/services/analytics";
 
 const MarketplaceSection = () => {
   const navigate = useNavigate();
@@ -50,6 +52,12 @@ const MarketplaceSection = () => {
   const [activeImgIndex, setActiveImgIndex] = useState(0);
 
   const { searchLocation, searchHouseType, searchBudget, setSearchFilters } = useUIStore();
+  const { isSaved, toggleSave } = useSavedPropertiesStore();
+
+  // Track marketplace pageView on mount
+  useEffect(() => {
+    trackEvent("pageView", { metadata: { page: "marketplace" } });
+  }, []);
 
   // ১. তানস্ট্যাক কুয়েরি দিয়ে পাবলিক লিস্টিং ফেচ করা
   const { data: properties, isLoading } = useQuery<PublicProperty[]>({
@@ -61,82 +69,8 @@ const MarketplaceSection = () => {
     refetchOnWindowFocus: false,
   });
 
-  // ২. অ্যাডভান্সড ক্লায়েন্ট-সাইড ফিল্টারিং লজিক
-  const filteredProperties = properties?.filter((property) => {
-    // ক) লোকেশন ফিল্টার
-    if (searchLocation && !property.location.toLowerCase().includes(searchLocation.toLowerCase())) {
-      return false;
-    }
-
-    // খ) বাসার ধরণ ফিল্টার
-    if (searchHouseType) {
-      const typeLower = searchHouseType.toLowerCase();
-      const matchesDescription = property.description?.toLowerCase().includes(typeLower);
-      const matchesName = property.name?.toLowerCase().includes(typeLower);
-      const matchesUnits = property.units?.some((unit) => 
-        unit.type?.toLowerCase().includes(typeLower)
-      );
-
-      // বাংলা ও ইংরেজি উভয় কি-ওয়ার্ডের জন্য স্মার্ট ম্যাচিং
-      const isFamilyQuery = typeLower === "family";
-      const isBachelorQuery = typeLower === "bachelor";
-      const isSubletQuery = typeLower === "sublet";
-      const isCommercialQuery = typeLower === "commercial";
-
-      let matched = false;
-
-      if (isFamilyQuery) {
-        matched = 
-          property.description?.toLowerCase().includes("family") ||
-          property.description?.toLowerCase().includes("ফ্যামিলি") ||
-          property.name?.toLowerCase().includes("family") ||
-          property.name?.toLowerCase().includes("ফ্যামিলি") ||
-          property.units?.some(u => u.type?.toLowerCase().includes("family") || u.type?.toLowerCase().includes("ফ্যামিলি") || u.type?.includes("পরিবার")) ||
-          false;
-      } else if (isBachelorQuery) {
-        matched = 
-          property.description?.toLowerCase().includes("bachelor") ||
-          property.description?.toLowerCase().includes("ব্যাচেলর") ||
-          property.description?.toLowerCase().includes("মেস") ||
-          property.name?.toLowerCase().includes("bachelor") ||
-          property.name?.toLowerCase().includes("ব্যাচেলর") ||
-          property.units?.some(u => u.type?.toLowerCase().includes("bachelor") || u.type?.toLowerCase().includes("ব্যাচেলর") || u.type?.includes("মেস")) ||
-          false;
-      } else if (isSubletQuery) {
-        matched = 
-          property.description?.toLowerCase().includes("sublet") ||
-          property.description?.toLowerCase().includes("সাবলেট") ||
-          property.name?.toLowerCase().includes("sublet") ||
-          property.name?.toLowerCase().includes("সাবলেট") ||
-          property.units?.some(u => u.type?.toLowerCase().includes("sublet") || u.type?.toLowerCase().includes("সাবলেট")) ||
-          false;
-      } else if (isCommercialQuery) {
-        matched = 
-          property.description?.toLowerCase().includes("commercial") ||
-          property.description?.toLowerCase().includes("কমার্শিয়াল") ||
-          property.description?.toLowerCase().includes("অফিস") ||
-          property.name?.toLowerCase().includes("commercial") ||
-          property.name?.toLowerCase().includes("কমার্শিয়াল") ||
-          property.units?.some(u => u.type?.toLowerCase().includes("commercial") || u.type?.toLowerCase().includes("কমার্শিয়াল") || u.type?.includes("অফিস")) ||
-          false;
-      } else {
-        matched = !!(matchesDescription || matchesName || matchesUnits);
-      }
-
-      if (!matched) return false;
-    }
-
-    // গ) বাজেট ফিল্টার
-    if (searchBudget) {
-      const [min, max] = searchBudget.split("-").map(Number);
-      const propertyRent = property.rent || property.minRent || 0;
-      if (propertyRent < min || propertyRent > max) {
-        return false;
-      }
-    }
-
-    return true;
-  });
+  // ২. সর্বশেষ ৬টি রেন্ডার করা
+  const filteredProperties = properties?.slice(0, 6) || [];
 
   return (
     <section id="marketplace-listings" className="py-24 max-w-screen-2xl mx-auto px-8 scroll-mt-20">
@@ -144,17 +78,9 @@ const MarketplaceSection = () => {
         <div>
           <p className="text-primary font-bold tracking-widest uppercase text-xs mb-4">Marketplace</p>
           <h2 className="font-headline font-extrabold text-4xl">
-            {searchLocation || searchHouseType || searchBudget ? "খোঁজা বাসার ফলাফল" : "জনপ্রিয় বাসাগুলো দেখুন"}
+            জনপ্রিয় বাসাগুলো দেখুন
           </h2>
         </div>
-        {(searchLocation || searchHouseType || searchBudget) && (
-          <button 
-            onClick={() => setSearchFilters({ location: "", houseType: "", budget: "" })}
-            className="text-primary font-bold flex items-center gap-2 hover:gap-4 transition-all bg-primary/5 px-6 py-2.5 rounded-full"
-          >
-            সার্চ ক্লিয়ার করুন <span className="material-symbols-outlined text-sm">close</span>
-          </button>
-        )}
       </div>
 
       {isLoading ? (
@@ -182,37 +108,34 @@ const MarketplaceSection = () => {
         </div>
       ) : filteredProperties && filteredProperties.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProperties.map((property) => {
+          {filteredProperties.map((unit: any) => {
             const imageUrl =
-              property.images && property.images.length > 0
-                ? property.images[0].startsWith("http")
-                  ? property.images[0]
-                  : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${property.images[0].replace(/\\/g, "/")}`
+              unit.images && unit.images.length > 0
+                ? unit.images[0].startsWith("http")
+                  ? unit.images[0]
+                  : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${unit.images[0].replace(/\\/g, "/")}`
                 : "https://images.unsplash.com/photo-1564013799919-ab600027ffc6";
 
             // কন্ট্যাক্ট বা হোয়াটসঅ্যাপ লিংক জেনারেট করা
-            const contactPhone = property.contactNumber || property.owner?.phoneNumber || "01700000000";
-            const whatsappText = encodeURIComponent(`আসসালামু আলাইকুম, আমি বাড়িভাড়া প্ল্যাটফর্মে আপনার "${property.name}" বাসাটি সম্পর্কে জানতে আগ্রহী।`);
+            const contactPhone = unit.contactNumber || unit.owner?.phoneNumber || "01700000000";
+            const whatsappText = encodeURIComponent(`আসসালামু আলাইকুম, আমি বাড়িভাড়া প্ল্যাটফর্মে আপনার "${unit.propertyName}"-এর "${unit.unitName}" বাসাটি সম্পর্কে জানতে আগ্রহী।`);
             const whatsappUrl = `https://wa.me/${contactPhone.replace(/[^0-9]/g, "")}?text=${whatsappText}`;
             const callUrl = `tel:${contactPhone}`;
 
-            const hasRentRange = property.minRent && property.maxRent && property.minRent !== property.maxRent;
-            const hasUnits = property.minRent && property.minRent > 0;
-
             return (
               <div
-                key={property._id}
-                onClick={() => navigate(`/property/${property._id}`)}
+                key={unit._id}
+                onClick={() => navigate(`/property/${unit.propertyId}`)}
                 className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group border border-slate-200 dark:border-slate-800 flex flex-col justify-between cursor-pointer"
               >
                 <div>
                   <div className="relative h-64 overflow-hidden">
                     <img
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      alt={property.name}
+                      alt={unit.unitName}
                       src={imageUrl}
                     />
-                    {property.owner?.isVerified === "verified" ? (
+                    {unit.isVerified ? (
                       <div className="absolute top-4 left-4 bg-emerald-500 text-white px-3 py-1 rounded-full flex items-center gap-1 shadow-md font-bold text-[10px] select-none z-10 border border-emerald-400/20">
                         <span className="material-symbols-outlined text-[12px] fill-white" style={{ fontVariationSettings: "'FILL' 1" }}>
                           verified
@@ -227,55 +150,63 @@ const MarketplaceSection = () => {
                         <span>আনভেরিফাইড</span>
                       </div>
                     )}
+                    
+                    {/* ❤️ Save Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // @ts-ignore
+                        toggleSave({ _id: unit.propertyId, ...unit }); // Save by propertyId for compatibility with details page
+                      }}
+                      className="absolute top-4 right-4 w-9 h-9 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 rounded-full flex items-center justify-center shadow-md z-20 border border-white/40 dark:border-slate-700 transition-all hover:scale-110 active:scale-95"
+                    >
+                      <span className={`material-symbols-outlined text-[18px] ${isSaved(unit.propertyId) ? "text-rose-500 fill-rose-500" : "text-slate-600 dark:text-slate-300"}`} style={{ fontVariationSettings: isSaved(unit.propertyId) ? "'FILL' 1" : "'FILL' 0" }}>
+                        favorite
+                      </span>
+                    </button>
                   </div>
                   <div className="p-8 space-y-4">
                     <div className="space-y-2">
-                      <h3 className="font-headline font-bold text-xl text-on-surface line-clamp-1">
-                        {property.name}
-                      </h3>
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-headline font-bold text-xl text-on-surface line-clamp-1">
+                          {unit.unitName}
+                        </h3>
+                        <span className="bg-primary/10 text-primary text-[10px] font-black px-2 py-1 rounded-md ml-2 flex-shrink-0">
+                          {unit.type || "ফ্ল্যাট"}
+                        </span>
+                      </div>
+                      <p className="text-on-surface-variant text-sm flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-primary">apartment</span>
+                        <span className="line-clamp-1 font-bold">{unit.propertyName}</span>
+                      </p>
                       <p className="text-on-surface-variant text-sm flex items-center gap-1">
                         <span className="material-symbols-outlined text-xs text-primary">location_on</span>
-                        <span className="line-clamp-1">{property.location}</span>
+                        <span className="line-clamp-1">{unit.location}</span>
                       </p>
                     </div>
 
                     <div className="flex flex-col gap-1.5 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 rounded-2xl">
                       <p className="font-headline font-black text-base text-primary whitespace-nowrap">
-                        {hasRentRange ? (
-                          `৳${property.minRent?.toLocaleString("bn-BD")} - ৳${property.maxRent?.toLocaleString("bn-BD")}`
-                        ) : hasUnits ? (
-                          `৳${property.minRent?.toLocaleString("bn-BD")}`
-                        ) : (
-                          "আলোচনা সাপেক্ষ"
-                        )}
+                        {unit.rent ? `৳${unit.rent?.toLocaleString("bn-BD")}` : "আলোচনা সাপেক্ষ"}
                       </p>
-                      {hasRentRange ? (
-                        <span className="self-start px-2 py-0.5 bg-violet-100 text-violet-750 dark:bg-violet-900/40 dark:text-violet-300 text-[9px] font-black rounded-md whitespace-nowrap">
-                          ফ্লোরভেদে ভিন্ন ভাড়া
-                        </span>
-                      ) : !hasUnits ? (
-                        <span className="self-start px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-[9px] font-black rounded-md whitespace-nowrap">
-                          খালি নেই
-                        </span>
-                      ) : null}
                     </div>
                     <div className="grid grid-cols-3 gap-1 text-[11px] font-black text-on-surface-variant border-y border-slate-100 dark:border-slate-800 py-3.5 justify-items-center">
                       <span className="flex items-center gap-1.5 whitespace-nowrap">
                         <span className="material-symbols-outlined text-sm text-primary">bed</span>
-                        {property.bedrooms} রুম
+                        {unit.bedrooms} রুম
                       </span>
                       <span className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
                         <span className="material-symbols-outlined text-sm text-primary">bathtub</span>
-                        {property.bathrooms} বাথ
+                        {unit.bathrooms} বাথ
                       </span>
                       <span className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
                         <span className="material-symbols-outlined text-sm text-primary">square_foot</span>
-                        {property.area} স্কয়ার ফিট
+                        {unit.area} স্ক.ফিট
                       </span>
                     </div>
-                    {property.description && (
+                    {unit.description && (
                       <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                        {property.description}
+                        {unit.description}
                       </p>
                     )}
                   </div>
@@ -283,7 +214,10 @@ const MarketplaceSection = () => {
                 <div className="px-8 pb-8 flex gap-3">
                   <a
                     href={whatsappUrl}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      trackEvent("whatsappClick", { propertyId: unit.propertyId, metadata: { name: unit.propertyName } });
+                    }}
                     target="_blank"
                     rel="noreferrer"
                     className="flex-1 bg-green-500 text-white py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-green-600 transition-colors text-center text-sm"
@@ -292,7 +226,10 @@ const MarketplaceSection = () => {
                   </a>
                   <a
                     href={callUrl}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      trackEvent("callClick", { propertyId: unit.propertyId, metadata: { name: unit.propertyName } });
+                    }}
                     className="flex-1 border-2 border-primary text-primary py-3 rounded-full font-bold flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-all text-center text-sm"
                   >
                     <span className="material-symbols-outlined text-sm">call</span> Call Now
@@ -310,14 +247,20 @@ const MarketplaceSection = () => {
           <div className="space-y-2">
             <h4 className="font-headline font-bold text-xl text-slate-800 dark:text-slate-100">কোনো বাসা খুঁজে পাওয়া যায়নি</h4>
             <p className="text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto leading-relaxed">
-              আপনার ফিল্টার করা লোকেশন, বাসার ধরণ বা বাজেটের সাথে মিলছে এমন কোনো লিস্টিং বর্তমানে খালি নেই। অনুগ্রহ করে অন্য ফিল্টার চেষ্টা করুন।
+              বর্তমানে কোনো প্রপার্টি লিস্টেড নেই।
             </p>
           </div>
+        </div>
+      )}
+
+      {filteredProperties && filteredProperties.length > 0 && (
+        <div className="mt-12 flex justify-center">
           <button
-            onClick={() => setSearchFilters({ location: "", houseType: "", budget: "" })}
-            className="px-6 py-3 bg-primary text-white text-xs font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+            onClick={() => navigate("/search")}
+            className="bg-primary text-white font-black text-sm px-8 py-4 rounded-full shadow-xl shadow-primary/25 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 flex items-center gap-2 group"
           >
-            সব বাসাগুলো একসাথে দেখুন
+            সবগুলো প্রপার্টি দেখুন
+            <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
           </button>
         </div>
       )}

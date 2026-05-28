@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Home, CreditCard, Layers, Layout, Plus } from "lucide-react";
+import { useState, useRef } from "react";
+import { X, Home, CreditCard, Layers, Layout, Plus, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useUnit } from "@/Hook/useUnit";
 
 const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
@@ -14,17 +14,53 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
     type: "ফ্ল্যাট", // ডাটাবেস মডেল অনুযায়ী বাংলা ভ্যালু
     rent: "",
     status: "খালি", // শুরুতে রুমটি খালি থাকবে
+    bedrooms: "1",
+    bathrooms: "1",
+    area: "",
   });
+  
+  const [images, setImages] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null; // মডাল ওপেন না থাকলে কিছু দেখাবে না
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      if (images.length + newFiles.length > 5) {
+        alert("সর্বোচ্চ ৫টি ছবি আপলোড করা যাবে।");
+        return;
+      }
+      setImages((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // ৩. ফর্ম সাবমিট করার লজিক
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    createUnitMutation.mutate(formData, {
+
+    const submitData = new FormData();
+    submitData.append("property", formData.property);
+    submitData.append("unitName", formData.unitName);
+    submitData.append("floor", formData.floor);
+    submitData.append("type", formData.type);
+    submitData.append("rent", formData.rent);
+    submitData.append("status", formData.status);
+    submitData.append("bedrooms", formData.bedrooms);
+    submitData.append("bathrooms", formData.bathrooms);
+    submitData.append("area", formData.area);
+    
+    images.forEach((img) => submitData.append("images", img));
+
+    createUnitMutation.mutate(submitData, {
       onSuccess: () => {
         onClose(); // সফলভাবে সেভ হলে মডাল বন্ধ হয়ে যাবে
         setFormData({ ...formData, unitName: "", floor: "", rent: "" }); // ফর্ম রিসেট
+        setImages([]);
       },
     });
   };
@@ -101,6 +137,94 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
                 <option value="দোকান">দোকান (Commercial Shop)</option>
               </select>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">বেডরুমের সংখ্যা</label>
+                <div className="relative">
+                  <select 
+                    value={formData.bedrooms}
+                    onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="1">১ রুম</option>
+                    <option value="2">২ রুম</option>
+                    <option value="3">৩ রুম</option>
+                    <option value="4">৪ রুম</option>
+                    <option value="5">৫+ রুম</option>
+                  </select>
+                </div>
+             </div>
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">বাথরুমের সংখ্যা</label>
+                <div className="relative">
+                  <select 
+                    value={formData.bathrooms}
+                    onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="1">১ বাথ</option>
+                    <option value="2">২ বাথ</option>
+                    <option value="3">৩ বাথ</option>
+                    <option value="4">৪+ বাথ</option>
+                  </select>
+                </div>
+             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-400 uppercase ml-1">আয়তন (স্কয়ার ফিট)</label>
+            <div className="relative">
+              <input 
+                type="number"
+                value={formData.area}
+                onChange={(e) => setFormData({...formData, area: e.target.value})}
+                placeholder="উদা: ১২০০"
+                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+              />
+            </div>
+          </div>
+
+          {/* Photo Upload Section */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-400 uppercase ml-1">ছবির গ্যালারি (সর্বোচ্চ ৫টি)</label>
+            <div 
+              className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:border-primary/50 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                <ImageIcon size={24} className="text-primary" />
+              </div>
+              <p className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-1">ক্লিক করে ছবি আপলোড করুন</p>
+              <p className="text-xs text-slate-500">JPG, PNG, WEBP গ্রহণযোগ্য</p>
+            </div>
+
+            {/* Image Previews */}
+            {images.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-4">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative group w-20 h-20 rounded-xl overflow-hidden shadow-sm border border-slate-200">
+                    <img src={URL.createObjectURL(img)} alt="preview" className="w-full h-full object-cover" />
+                    <button 
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); removeImage(idx); }}
+                      className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all"
+                    >
+                      <Trash2 size={16} className="text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ৬. সাবমিট বাটন */}
