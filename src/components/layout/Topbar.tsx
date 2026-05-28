@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages, CreditCard, Home } from "lucide-react";
+import { Search, Sun, Moon, ChevronRight, Building2, Users, Settings, LogOut, Languages, CreditCard, Home, Star } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -237,6 +237,15 @@ const Topbar = () => {
                 >
                   <Settings size={16} /> প্রোফাইল সেটিংস
                 </Link>
+                {user?.role === "landlord" && (
+                  <Link
+                    to="/reviews"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container transition-all text-sm font-bold"
+                  >
+                    <Star size={16} /> মতামত ও রেটিং
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-sm font-bold"

@@ -3,52 +3,50 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import { useTenantAuthStore } from "@/store/useTenantAuthStore";
+import { useTenantNotificationStore } from "@/store/useTenantNotificationStore";
 import axios from "axios";
 
 const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/notifications`;
+const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api`;
 
-// notification type → বাংলা icon ম্যাপিং
-const typeIcon: Record<string, string> = {
-  payment_received: "💰",
-  invoice_generated: "🧾",
-  maintenance_update: "🔧",
-  lease_expiry: "⏰",
-  tenant_added: "👤",
-  tenant_vacated: "🏠",
-  reminder_sent: "📧",
+const notificationIcons: Record<string, string> = {
+  payment: "💰",
+  invoice: "🧾",
+  maintenance: "🛠️",
+  system: "🔔",
+  reminder: "⏰",
 };
 
 export const useSocket = () => {
-  const { token, user } = useAuthStore() as any;
+  // ল্যান্ডলর্ড অথ স্টোর
+  const { token: landlordToken, user } = useAuthStore() as any;
+  // ভাড়াটিয়া অথ স্টোর
+  const { token: tenantToken, tenant } = useTenantAuthStore() as any;
+
   const socketRef = useRef<Socket | null>(null);
   const { addNotification, setNotifications } = useNotificationStore();
+  const { addNotification: addTenantNotif, setNotifications: setTenantNotifs } =
+    useTenantNotificationStore();
 
-  // ============================================
-  // ১. Server থেকে পুরনো notifications লোড
-  // ============================================
-  const loadNotifications = async () => {
-    if (!token) return;
-    try {
-      const authHeader = {
-        Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
-      };
-      const res = await axios.get(API_URL, { headers: authHeader });
-      if (res.data.success) {
-        setNotifications(res.data.notifications);
-      }
-    } catch (err) {
-      // Silent fail — not critical
-    }
-  };
-
-  // ============================================
-  // ২. Socket Connect + Event Listeners
-  // ============================================
+  // =====================================================
+  // ল্যান্ডলর্ড সকেট কানেকশন (landlord dashboard)
+  // =====================================================
   useEffect(() => {
-    if (!token || !user?._id) return;
+    if (!landlordToken || !user?._id) return;
 
-    // Socket তৈরি করা (userId কুয়েরি হিসেবে পাঠানো হচ্ছে)
+    const authHeader = {
+      Authorization: landlordToken?.startsWith("Bearer ")
+        ? landlordToken
+        : `Bearer ${landlordToken}`,
+    };
+
+    // পুরনো নোটিফিকেশন লোড
+    axios
+      .get(`${API_URL}/notifications`, { headers: authHeader })
+      .then((res) => { if (res.data.success) setNotifications(res.data.notifications); })
+      .catch(() => {});
+
     const socket = io(SOCKET_URL, {
       query: { userId: user._id },
       transports: ["websocket", "polling"],
@@ -59,65 +57,88 @@ export const useSocket = () => {
 
     socketRef.current = socket;
 
-    socket.on("connect", () => {
-      console.log("🔌 Socket connected:", socket.id);
-      // পুরনো notifications লোড
-      loadNotifications();
-    });
+    socket.on("connect", () => console.log("🔌 Landlord Socket connected:", socket.id));
 
-    // নতুন notification আসলে
     socket.on("new_notification", (notification) => {
       addNotification(notification);
-
-      // Toast দেখানো
-      const icons: any = {
-        payment: "💰",
-        maintenance: "🛠️",
-        invoice: "🧾",
-        system: "🔔"
-      };
-      const icon = icons[notification.type] ?? "🔔";
-
+      const icon = notificationIcons[notification.type] ?? "🔔";
       toast(notification.title, {
         description: notification.message,
         icon,
         duration: 5000,
         action: notification.link
-          ? {
-              label: "দেখুন",
-              onClick: () => window.location.href = notification.link,
-            }
+          ? { label: "দেখুন", onClick: () => (window.location.href = notification.link) }
           : undefined,
       });
     });
 
-    // রিয়েল-টাইম সাবস্ক্রিপশন স্ট্যাটাস আপডেট লিসেনার
     socket.on("subscription_status_updated", ({ status, plan }) => {
       const currentUser = useAuthStore.getState().user;
       if (currentUser) {
-        const updatedUser = { 
-          ...currentUser, 
-          subscriptionStatus: status, 
-          subscriptionPlan: plan 
-        };
-        useAuthStore.getState().setAuth(updatedUser, token);
-        console.log("🔒 Subscription updated in real-time:", status, plan);
+        useAuthStore.getState().setAuth(
+          { ...currentUser, subscriptionStatus: status, subscriptionPlan: plan },
+          landlordToken
+        );
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("❌ Socket disconnected");
-    });
-
-    socket.on("connect_error", (err) => {
-      console.warn("Socket error:", err.message);
-    });
+    socket.on("disconnect", () => console.log("❌ Landlord socket disconnected"));
+    socket.on("connect_error", (err) => console.warn("Socket error:", err.message));
 
     return () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [token, user?._id]);
+  }, [landlordToken, user?._id]);
+
+  // =====================================================
+  // ভাড়াটিয়া সকেট কানেকশন (tenant portal)
+  // =====================================================
+  useEffect(() => {
+    if (!tenantToken || !tenant?._id) return;
+
+    const authHeader = {
+      Authorization: tenantToken?.startsWith("Bearer ")
+        ? tenantToken
+        : `Bearer ${tenantToken}`,
+    };
+
+    // পুরনো টেন্যান্ট নোটিফিকেশন লোড
+    axios
+      .get(`${API_URL}/tenant-portal/notifications`, { headers: authHeader })
+      .then((res) => { if (res.data.success) setTenantNotifs(res.data.notifications); })
+      .catch(() => {});
+
+    const socket = io(SOCKET_URL, {
+      query: { tenantId: tenant._id },
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+    });
+
+    socket.on("connect", () => console.log("🔌 Tenant Socket connected:", socket.id));
+
+    socket.on("new_tenant_notification", (notification) => {
+      addTenantNotif(notification);
+      const icon = notificationIcons[notification.type] ?? "🔔";
+      toast(notification.title, {
+        description: notification.message,
+        icon,
+        duration: 6000,
+        action: notification.link
+          ? { label: "দেখুন", onClick: () => (window.location.href = notification.link) }
+          : undefined,
+      });
+    });
+
+    socket.on("disconnect", () => console.log("❌ Tenant socket disconnected"));
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [tenantToken, tenant?._id]);
 
   return { socket: socketRef.current };
 };
+

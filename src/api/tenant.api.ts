@@ -110,3 +110,11 @@ export const updateUtilitiesApi = async (id: string, utilityConfig: any, token: 
   });
   return res.data;
 };
+
+// ১২. রেটিং আপডেট করা
+export const rateTenantApi = async (id: string, ratingData: any, token: string) => {
+  const res = await axios.patch(`${BASE_URL}/${id}/rating`, ratingData, {
+    headers: getAuthHeader(token),
+  });
+  return res.data;
+};

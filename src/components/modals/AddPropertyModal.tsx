@@ -175,51 +175,6 @@ const AddPropertyModal = () => {
 
 
 
-            {/* Area Sqft */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
-                <Maximize2 size={16} className="text-primary" /> আয়তন (স্কয়ার ফিট)
-              </label>
-              <input
-                type="number"
-                {...register("area")}
-                placeholder="উদা: ১২০০"
-                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all"
-              />
-            </div>
-
-            {/* Bedrooms count */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
-                <Bed size={16} className="text-primary" /> বেডরুমের সংখ্যা
-              </label>
-              <select
-                {...register("bedrooms")}
-                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all appearance-none cursor-pointer"
-              >
-                <option value="1">১ রুম</option>
-                <option value="2">২ রুম</option>
-                <option value="3">৩ রুম</option>
-                <option value="4">৪ রুম</option>
-                <option value="5">৫+ রুম</option>
-              </select>
-            </div>
-
-            {/* Bathrooms count */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold flex items-center gap-2 font-headline ml-1 text-slate-700">
-                <Bath size={16} className="text-primary" /> বাথরুমের সংখ্যা
-              </label>
-              <select
-                {...register("bathrooms")}
-                className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary font-body text-sm transition-all appearance-none cursor-pointer"
-              >
-                <option value="1">১ বাথ</option>
-                <option value="2">২ বাথ</option>
-                <option value="3">৩ বাথ</option>
-                <option value="4">৪+ বাথ</option>
-              </select>
-            </div>
 
             {/* Contact Number */}
             <div className="space-y-2">

@@ -4,11 +4,15 @@ import PublicFooter from "./components/layout/PublicFooter"
 import { useSocket } from "./Hook/useSocket"
 import { useAuthStore } from "./store/useAuthStore"
 import { useEffect } from "react"
+import { usePushNotifications } from "./Hook/usePushNotifications"
 
 const App = () => {
   const { user, token, setAuth } = useAuthStore();
   const location = useLocation();
   
+  // Register Service Worker for PWA
+  usePushNotifications();
+
   useSocket(); // 🔌 public pages এবং Home-এ সকেট কানেকশন সচল রাখা
 
   // Sync user profile state from server on app load to prevent stale LocalStorage states

@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   Home,
+  Star,
 } from "lucide-react";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
