@@ -9,7 +9,8 @@ import DocumentModal from "@/components/modals/DocumentModal";
 import DeleteAgreementModal from "@/components/modals/DeleteAgreementModal";
 import ReviewNidModal from "@/components/modals/ReviewNidModal";
 import UtilitySettingsModal from "@/components/modals/UtilitySettingsModal";
-import { ShieldCheck, ShieldOff, FileText, IdCard, Settings2 } from "lucide-react";
+import RateTenantModal from "@/components/modals/RateTenantModal";
+import { ShieldCheck, ShieldOff, FileText, IdCard, Settings2, Star } from "lucide-react";
 import EmptyState from "@/components/ui/EmptyState";
 
 const ITEMS_PER_PAGE = 9;
@@ -23,12 +24,13 @@ const Tenants = () => {
   const [deletingAgreementId, setDeletingAgreementId] = useState<string | null>(null);
   const [reviewingNidTenant, setReviewingNidTenant] = useState<any>(null);
   const [utilityTenant, setUtilityTenant] = useState<any>(null);
+  const [ratingTenant, setRatingTenant] = useState<any>(null);
 
   const { 
     tenants, total, totalPages, isTenantsLoading, 
     toggleAutoRenewMutation, renewLeaseMutation, 
     generateAgreementMutation, deleteAgreementMutation,
-    verifyNidMutation, updateUtilitiesMutation
+    verifyNidMutation, updateUtilitiesMutation, rateTenantMutation
   } = useTenant(page, ITEMS_PER_PAGE);
 
   const getLeaseStatus = (leaseEnd: string | undefined) => {
@@ -68,6 +70,17 @@ const Tenants = () => {
       {
         onSuccess: () => {
           setUtilityTenant(null);
+        },
+      }
+    );
+  };
+
+  const handleRateTenant = (id: string, ratingData: any) => {
+    rateTenantMutation.mutate(
+      { id, ratingData },
+      {
+        onSuccess: () => {
+          setRatingTenant(null);
         },
       }
     );
@@ -169,7 +182,15 @@ const Tenants = () => {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-black text-slate-800 dark:text-slate-100 truncate">{tenant.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-slate-800 dark:text-slate-100 truncate">{tenant.name}</h3>
+                        {tenant.rating?.overall > 0 && (
+                          <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-md border border-amber-100 dark:border-amber-900/50">
+                            <Star size={10} fill="currentColor" />
+                            <span className="text-[10px] font-black">{tenant.rating.overall.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Phone size={11} className="text-slate-400 shrink-0" />
                         <span className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">{tenant.phone}</span>
@@ -279,11 +300,11 @@ const Tenants = () => {
                     })()}
                   </div>
 
-                  {/* পোর্টাল, ডকুমেন্টস ও ইউটিলিটি */}
+                  {/* পোর্টাল, ডকুমেন্টস, ইউটিলিটি, রেটিং */}
                   <div className="pt-2 border-t border-slate-50 dark:border-slate-700 flex gap-2">
                     <button
                       onClick={() => setSelectedTenant(tenant)}
-                      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-emerald-100 hover:text-emerald-600 dark:hover:bg-emerald-900/20"
                     >
                       {tenant.portalEnabled ? (
                         <ShieldCheck size={16} className="text-emerald-500" />
@@ -303,6 +324,12 @@ const Tenants = () => {
                       className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/20"
                     >
                       <Settings2 size={16} className="text-blue-500" /> ইউটিলিটি
+                    </button>
+                    <button
+                      onClick={() => setRatingTenant(tenant)}
+                      className="flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl font-bold text-[10px] transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-100 hover:text-amber-600 dark:hover:bg-amber-900/20"
+                    >
+                      <Star size={16} className="text-amber-500" /> রেটিং দিন
                     </button>
                   </div>
 
@@ -413,6 +440,13 @@ const Tenants = () => {
         tenant={utilityTenant}
         onSave={handleSaveUtilities}
         isLoading={updateUtilitiesMutation.isPending}
+      />
+      <RateTenantModal
+        isOpen={!!ratingTenant}
+        onClose={() => setRatingTenant(null)}
+        tenant={ratingTenant}
+        onSave={handleRateTenant}
+        isLoading={rateTenantMutation.isPending}
       />
     </div>
   );

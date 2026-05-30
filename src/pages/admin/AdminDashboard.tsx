@@ -14,7 +14,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   UserCheck,
-  UserX
+  UserX,
+  BarChart2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -127,13 +128,14 @@ const AdminDashboard = () => {
   const recentSubscriptions = data?.recentSubscriptions || [];
 
   const cards = [
-    { title: "মোট বাড়িওয়ালা", value: stats?.totalLandlords || 0, icon: Users, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10", border: "hover:border-blue-500/30" },
-    { title: "মোট ভাড়াটিয়া", value: stats?.totalTenants || 0, icon: Users, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "hover:border-emerald-500/30" },
+    { title: "মোট বাড়িওয়ালা", value: stats?.totalLandlords || 0, icon: Users, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10", border: "hover:border-blue-500/30", link: "/admin/users" },
+    { title: "মোট ভাড়াটিয়া", value: stats?.totalTenants || 0, icon: Users, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "hover:border-emerald-500/30", link: "/admin/users" },
     { title: "মোট প্রপার্টি", value: stats?.totalProperties || 0, icon: Building2, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-500/10", border: "hover:border-purple-500/30" },
     { title: "মোট ইনভয়েস", value: stats?.totalInvoices || 0, icon: FileText, color: "text-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-500/10", border: "hover:border-indigo-500/30" },
     { title: "মেনটেইনেন্স রিকোয়েস্ট", value: stats?.totalMaintenanceRequests || 0, icon: Wrench, color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-500/10", border: "hover:border-orange-500/30" },
-    { title: "পেন্ডিং পেমেন্ট", value: stats?.pendingSubscriptions || 0, icon: Clock, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10", border: "hover:border-amber-500/30" },
-    { title: "মোট আয়", value: `৳ ${stats?.totalRevenue || 0}`, icon: CreditCard, color: "text-green-500", bg: "bg-green-50 dark:bg-green-500/10", border: "hover:border-green-500/30" },
+    { title: "পেন্ডিং পেমেন্ট", value: stats?.pendingSubscriptions || 0, icon: Clock, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10", border: "hover:border-amber-500/30", link: "/admin/subscriptions" },
+    { title: "মোট আয় (রেভিনিউ)", value: `৳ ${stats?.totalRevenue || 0}`, icon: CreditCard, color: "text-green-500", bg: "bg-green-50 dark:bg-green-500/10", border: "hover:border-green-500/30", link: "/admin/revenue" },
+    { title: "অ্যানালিটিক্স", value: "ভিউ করুন", icon: BarChart2, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-500/10", border: "hover:border-rose-500/30", link: "/admin/analytics" },
   ];
 
   return (
@@ -249,18 +251,36 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {cards.map((card, index) => {
           const Icon = card.icon;
+          const CardContent = (
+            <>
+              <div className={`p-4 rounded-xl ${card.bg} ${card.color} shrink-0`}>
+                <Icon size={24} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs md:text-sm font-semibold text-on-surface-variant truncate">{card.title}</p>
+                <p className="text-2xl font-black font-headline mt-1 truncate">{card.value}</p>
+              </div>
+            </>
+          );
+
+          if (card.link) {
+            return (
+              <Link
+                key={index}
+                to={card.link}
+                className={`bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800/80 transition-all duration-300 hover:shadow-md hover:-translate-y-1 ${card.border} flex items-center gap-4 cursor-pointer`}
+              >
+                {CardContent}
+              </Link>
+            );
+          }
+
           return (
             <div 
               key={index} 
               className={`bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800/80 transition-all duration-300 hover:shadow-md hover:-translate-y-1 ${card.border} flex items-center gap-4`}
             >
-              <div className={`p-4 rounded-xl ${card.bg} ${card.color} shrink-0`}>
-                <Icon size={24} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs md:text-sm font-semibold text-on-surface-variant truncate">{card.title}</p>
-                <p className="text-2xl font-black font-headline mt-1 truncate">{card.value}</p>
-              </div>
+              {CardContent}
             </div>
           );
         })}

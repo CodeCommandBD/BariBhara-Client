@@ -4,8 +4,9 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import axios from "axios";
 import {
   Search, SlidersHorizontal, X, MapPin, Home, Building2,
-  ChevronLeft, ChevronRight, Loader2, BedDouble, ArrowUpDown
+  ChevronLeft, ChevronRight, Loader2, BedDouble, ArrowUpDown, Star
 } from "lucide-react";
+import { useSavedPropertiesStore } from "@/store/useSavedPropertiesStore";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public`;
 
@@ -17,21 +18,23 @@ const SORT_OPTIONS = [
   { value: "rent_desc", label: "ভাড়া বেশি থেকে কম" },
 ];
 
-const PropertyCard = ({ property }: { property: any }) => {
+const UnitCard = ({ unit }: { unit: any }) => {
   const navigate = useNavigate();
-  const photos = property.photos || property.images || [];
+  const photos = unit.images || [];
   const thumb = photos[0] || null;
-  const availBadge = property.availableUnits > 0;
+  const availBadge = unit.status === "খালি" || unit.status === "available";
+  
+  const { isSaved, toggleSave } = useSavedPropertiesStore();
 
   return (
     <div
-      onClick={() => navigate(`/property/${property._id}`)}
+      onClick={() => navigate(`/property/${unit.propertyId}`)}
       className="group bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       {/* Photo */}
       <div className="relative h-48 bg-gradient-to-br from-primary/10 to-violet-100 dark:from-primary/20 dark:to-slate-700 overflow-hidden">
         {thumb ? (
-          <img src={thumb} alt={property.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img src={thumb.startsWith("http") ? thumb : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${thumb.replace(/\\/g, "/")}`} alt={unit.unitName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Building2 size={48} className="text-primary/30" />
@@ -39,32 +42,50 @@ const PropertyCard = ({ property }: { property: any }) => {
         )}
         <div className="absolute top-3 left-3 flex gap-2">
           <span className="bg-white/90 dark:bg-slate-800/90 text-primary font-black text-xs px-3 py-1 rounded-full shadow">
-            {property.type || "Residential"}
+            {unit.type || "ফ্ল্যাট"}
           </span>
           {availBadge && (
             <span className="bg-emerald-500 text-white font-black text-xs px-3 py-1 rounded-full shadow">
               ✓ খালি আছে
             </span>
           )}
+          {unit.owner?.landlordRating?.average?.overall >= 4.5 && unit.owner?.landlordRating?.totalRatings >= 2 && (
+            <span className="bg-amber-500 text-white font-black text-xs px-2 py-1 rounded-full shadow flex items-center gap-1" title="Top Rated Landlord">
+              <Star size={12} fill="currentColor" /> Top Rated
+            </span>
+          )}
         </div>
+
+        {/* ❤️ Save Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            // @ts-ignore
+            toggleSave({ _id: unit.propertyId, ...unit }); // compatible with save store which needs an _id as property ID
+          }}
+          className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 rounded-full flex items-center justify-center shadow-md z-20 border border-white/40 dark:border-slate-700 transition-all hover:scale-110 active:scale-95"
+        >
+          <span className={`material-symbols-outlined text-[16px] ${isSaved(unit.propertyId) ? "text-rose-500 fill-rose-500" : "text-slate-600 dark:text-slate-300"}`} style={{ fontVariationSettings: isSaved(unit.propertyId) ? "'FILL' 1" : "'FILL' 0" }}>
+            favorite
+          </span>
+        </button>
       </div>
 
       {/* Info */}
       <div className="p-5">
-        <h3 className="font-black text-on-surface text-base line-clamp-1 mb-1">{property.name}</h3>
+        <h3 className="font-black text-on-surface text-base line-clamp-1 mb-1">{unit.unitName} - {unit.propertyName}</h3>
         <div className="flex items-center gap-1.5 text-on-surface-variant text-sm mb-3">
           <MapPin size={13} className="text-primary shrink-0" />
-          <span className="truncate">{property.address || property.location || "ঠিকানা নেই"}</span>
+          <span className="truncate">{unit.address || unit.location || "ঠিকানা নেই"}</span>
         </div>
 
         <div className="flex items-center justify-between">
           <div>
-            {property.minRent > 0 ? (
+            {unit.rent > 0 ? (
               <div>
                 <p className="text-xs text-on-surface-variant font-bold">ভাড়া (মাসিক)</p>
                 <p className="text-lg font-black text-primary">
-                  ৳{property.minRent.toLocaleString()}
-                  {property.maxRent > property.minRent && `–${property.maxRent.toLocaleString()}`}
+                  ৳{unit.rent.toLocaleString()}
                 </p>
               </div>
             ) : (
@@ -72,8 +93,8 @@ const PropertyCard = ({ property }: { property: any }) => {
             )}
           </div>
           <div className="text-right">
-            <p className="text-xs text-on-surface-variant">{property.unitCount || 0}টি ইউনিট</p>
-            <p className="text-xs font-bold text-emerald-600">{property.availableUnits || 0}টি খালি</p>
+            <p className="text-xs text-on-surface-variant">{unit.bedrooms || 1} রুম</p>
+            <p className="text-xs font-bold text-emerald-600">{unit.bathrooms || 1} বাথ</p>
           </div>
         </div>
       </div>
@@ -140,13 +161,11 @@ const SearchResults = () => {
   const hasActiveFilters = location || type !== "all" || minRent || maxRent;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-6 pb-16">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-16">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-on-surface-variant hover:text-primary font-bold mb-4 transition-colors">
-            <ChevronLeft size={16} /> হোমপেজে ফিরুন
-          </Link>
+
           <h1 className="text-3xl font-black text-on-surface">বাসা খুঁজুন</h1>
           <p className="text-on-surface-variant mt-1">
             {isLoading ? "লোড হচ্ছে..." : `${total}টি বাসা পাওয়া গেছে`}
@@ -273,7 +292,7 @@ const SearchResults = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {properties.map((p: any) => <PropertyCard key={p._id} property={p} />)}
+            {properties.map((p: any) => <UnitCard key={p._id} unit={p} />)}
           </div>
         )}
 

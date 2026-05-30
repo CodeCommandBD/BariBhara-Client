@@ -328,7 +328,70 @@ const Reports = () => {
                 <p className="font-bold">এই সময়ের মধ্যে কোনো ট্রানজেকশন নেই</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+            <div>
+              {/* Mobile view cards */}
+              <div className="md:hidden p-4 space-y-4">
+                {report.transactions.map((txn: any) => (
+                  <div
+                    key={txn._id}
+                    className="bg-slate-50 dark:bg-slate-700/10 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary/10 text-primary rounded-xl flex items-center justify-center text-xs font-black">
+                          {txn.tenant?.name?.charAt(0) ?? "?"}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-on-surface">{txn.tenant?.name}</p>
+                          {txn.tenant?.phone && (
+                            <p className="text-[10px] text-on-surface-variant">{txn.tenant?.phone}</p>
+                          )}
+                        </div>
+                      </div>
+                      {txn.invoice ? (
+                        <span className="px-2.5 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-[10px] font-black">
+                          {txn.invoice?.month} {txn.invoice?.year}
+                        </span>
+                      ) : (
+                        <span className="text-on-surface-variant">—</span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 py-3 border-y border-slate-100 dark:border-slate-800/40 text-center">
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase">পেমেন্ট তারিখ</p>
+                        <p className="font-black text-xs text-slate-700 dark:text-slate-200 mt-1">{new Date(txn.paymentDate).toLocaleDateString("en-GB")}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase">প্রপার্টি / ইউনিট</p>
+                        <p className="font-black text-xs text-slate-700 dark:text-slate-200 mt-1 truncate max-w-[120px] mx-auto">{txn.invoice?.property?.name ?? "—"} / {txn.invoice?.unit?.unitName ?? "—"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-on-surface-variant rounded-full text-[10px] font-black">
+                          {txn.paymentMethod}
+                        </span>
+                        {txn.transactionId && (
+                          <p className="text-[9px] text-on-surface-variant/80 font-bold">TxID: {txn.transactionId}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-emerald-600 dark:text-emerald-500 text-base">৳ {txn.amount?.toLocaleString()}</p>
+                        {txn.invoice?.dueAmount > 0 ? (
+                          <p className="font-bold text-orange-500 dark:text-orange-400 text-[10px]">বকেয়া: ৳ {txn.invoice?.dueAmount?.toLocaleString()}</p>
+                        ) : (
+                          <span className="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">পরিশোধিত</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop view table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-surface-container dark:bg-slate-800/50">
@@ -343,7 +406,10 @@ const Reports = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {report.transactions.map((txn: any) => (
-                      <tr key={txn._id} className="hover:bg-surface-container/30 transition-all">
+                      <tr
+                        key={txn._id}
+                        className="hover:bg-surface-container/30 transition-all"
+                      >
                         <td className="p-5">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-primary/10 text-primary rounded-xl flex items-center justify-center text-xs font-black">
@@ -368,7 +434,9 @@ const Reports = () => {
                             <span className="px-2.5 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-full text-[11px] font-black">
                               {txn.invoice?.month} {txn.invoice?.year}
                             </span>
-                          ) : <span className="text-on-surface-variant">—</span>}
+                          ) : (
+                            <span className="text-on-surface-variant">—</span>
+                          )}
                         </td>
                         <td className="p-5">
                           <div className="flex items-center gap-1.5 text-sm text-on-surface-variant">
@@ -401,6 +469,7 @@ const Reports = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
             )}
           </div>
         </>

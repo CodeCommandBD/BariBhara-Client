@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Plus, ArrowLeft, Trash2, Edit3, UserPlus, Users, PlusCircle } from "lucide-react";
+import { MapPin, Plus, ArrowLeft, Trash2, Edit3, UserPlus, Users, PlusCircle, Grid } from "lucide-react";
 import { useProperty } from "@/Hook/useProperty"; // ১. বাড়ির তথ্য আনার হুক
 import { useUnit } from "@/Hook/useUnit";         // ২. ইউনিটের তথ্য এবং ডিলিট হুক
 import AddUnitModal from "@/components/modals/AddUnitModal"; // ৩. নতুন ইউনিট যোগ করার মডাল
 import EditPropertyModal from "@/components/modals/EditPropertyModal";
+import EditUnitModal from "@/components/modals/EditUnitModal";
 import AssignTenantModal from "@/components/modals/AssignTenantModal";
 import TenantDetailModal from "@/components/modals/TenantDetailModal";
 import GenerateBillModal from "@/components/modals/GenerateBillModal";
+import EmptyState from "@/components/ui/EmptyState";
 
 const getMapEmbedUrl = (locationName: string) => {
   return `https://maps.google.com/maps?q=${encodeURIComponent(locationName)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
@@ -17,6 +19,7 @@ const PropertyDetails = () => {
   const { id } = useParams();
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditUnitModalOpen, setIsEditUnitModalOpen] = useState(false);
   const [isAssignModalOpen, setAssignModalOpen] = useState(false);
   const [isTenantDetailOpen, setTenantDetailOpen] = useState(false);
   const [isBillModalOpen, setBillModalOpen] = useState(false);
@@ -116,26 +119,47 @@ const PropertyDetails = () => {
       </div>
 
       {/* ৭. লাইভ ইউনিট টেবিল */}
-      <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
-              <th className="p-5 text-xs font-black text-slate-400 uppercase">ইউনিট</th>
-              <th className="p-5 text-xs font-black text-slate-400 uppercase">তলা</th>
-              <th className="p-5 text-xs font-black text-slate-400 uppercase">ভাড়া</th>
-              <th className="p-5 text-xs font-black text-slate-400 uppercase">অবস্থা</th>
-              <th className="p-5 text-xs font-black text-slate-400 uppercase text-right">অ্যাকশন</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isUnitsLoading ? (
-              <tr><td colSpan={5} className="p-10 text-center">লোড হচ্ছে...</td></tr>
-            ) : units?.length === 0 ? (
-              <tr><td colSpan={5} className="p-10 text-center text-slate-400">কোনো ইউনিট পাওয়া যায়নি</td></tr>
-            ) : (
-              units?.map((unit: any) => (
+      {isUnitsLoading ? (
+        <div className="p-10 text-center font-bold">লোড হচ্ছে...</div>
+      ) : units?.length === 0 ? (
+        <EmptyState
+          title="কোনো রুম বা ফ্ল্যাট (Unit) নেই!"
+          description="ভাড়াটিয়া আমন্ত্রণ করার আগে এই বিল্ডিংয়ের জন্য অন্তত একটি ফ্লোর প্ল্যান বা রুম যোগ করুন।"
+          icon={Grid}
+          actionText="নতুন ইউনিট যোগ করুন +"
+          onAction={() => setModalOpen(true)}
+        />
+      ) : (
+        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="p-5 text-xs font-black text-slate-400 uppercase">ইউনিট</th>
+                <th className="p-5 text-xs font-black text-slate-400 uppercase">তলা</th>
+                <th className="p-5 text-xs font-black text-slate-400 uppercase">ভাড়া</th>
+                <th className="p-5 text-xs font-black text-slate-400 uppercase">অবস্থা</th>
+                <th className="p-5 text-xs font-black text-slate-400 uppercase text-right">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {units?.map((unit: any) => (
                 <tr key={unit._id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-all group">
-                  <td className="p-5 font-bold text-slate-700">{unit.unitName}</td>
+                  <td className="p-5">
+                    <div className="flex items-center gap-3">
+                      {unit.images && unit.images.length > 0 ? (
+                        <img 
+                          src={unit.images[0].startsWith("http") ? unit.images[0] : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${unit.images[0].replace(/\\/g, "/")}`} 
+                          alt="unit" 
+                          className="w-10 h-10 rounded-lg object-cover bg-slate-100"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">
+                          <Grid size={16} />
+                        </div>
+                      )}
+                      <span className="font-bold text-slate-700">{unit.unitName}</span>
+                    </div>
+                  </td>
                   <td className="p-5 text-sm text-slate-500 tracking-tighter">{unit.floor} তলা</td>
                   <td className="p-5 font-bold text-slate-800">৳ {unit.rent?.toLocaleString()}</td>
                   <td className="p-5">
@@ -169,23 +193,32 @@ const PropertyDetails = () => {
                            </button>
                          </div>
                        )}
-                        <button 
-                            onClick={() => { setUnitToDelete(unit); setDeleteModalOpen(true); }}
-                            className="p-1.5 text-red-400 hover:bg-red-50 rounded-xl transition-all" 
-                            title="Delete Unit"
-                         >
-                            <Trash2 size={14} />
-                         </button>
-                      </div>
-                    </td>
-                 </tr>
-               ))
-             )}
-          </tbody>
-        </table>
-      </div>
+                       <button 
+                           onClick={() => { setSelectedUnit(unit); setIsEditUnitModalOpen(true); }}
+                           className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-all" 
+                           title="Edit Unit"
+                        >
+                           <Edit3 size={14} />
+                        </button>
+                       <button 
+                           onClick={() => { setUnitToDelete(unit); setDeleteModalOpen(true); }}
+                           className="p-1.5 text-red-400 hover:bg-red-50 rounded-xl transition-all" 
+                           title="Delete Unit"
+                        >
+                           <Trash2 size={14} />
+                        </button>
+                     </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AddUnitModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} propertyId={id} />
+
+      <EditUnitModal isOpen={isEditUnitModalOpen} onClose={() => setIsEditUnitModalOpen(false)} unit={selectedUnit} />
 
       <EditPropertyModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} property={property} />
 
