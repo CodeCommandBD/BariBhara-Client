@@ -8,9 +8,11 @@ import { toast } from "sonner";
 import {
   User, Camera, Lock, Moon, Sun, Save, Eye, EyeOff,
   Shield, Phone, Mail, FileText, CheckCircle2, ShieldAlert, ShieldOff, ShieldCheck,
-  MessageSquare, QrCode, LogOut as LogOutIcon, RefreshCw, PenTool, CreditCard
+  MessageSquare, QrCode, LogOut as LogOutIcon, RefreshCw, PenTool, CreditCard, Star, StarHalf
 } from "lucide-react";
 import { io } from "socket.io-client";
+import { usePWA } from "@/Hook/usePWA";
+import { usePushNotifications } from "@/Hook/usePushNotifications";
 
 const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/profile`;
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -22,6 +24,9 @@ const Settings = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   // লোকাল প্রিভিউ — আপলোড হওয়ার আগেই দেখানোর জন্য
   const [localPhotoPreview, setLocalPhotoPreview] = useState<string | null>(null);
+
+  const { isInstallable, installPWA } = usePWA();
+  const { isSubscribed, subscribeToPush, isSupported } = usePushNotifications();
 
   const authHeader = {
     Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
@@ -384,11 +389,25 @@ const Settings = () => {
                 ) : (
                   <p>✓ লিমিট: আনলিমিটেড বিল্ডিং ও আনলিমিটেড ভাড়াটিয়া ম্যানেজমেন্ট সহ সম্পূর্ণ ড্যাশবোর্ড অ্যাক্সেস।</p>
                 )}
-                {profileData?.subscriptionExpiresAt && profileData?.subscriptionPlan === "pro" && (
-                  <p className="text-violet-200 font-bold mt-2">
-                    ⏳ মেয়াদ শেষ হওয়ার তারিখ: {new Date(profileData.subscriptionExpiresAt).toLocaleDateString("bn-BD", { year: "numeric", month: "long", day: "numeric" })}
-                  </p>
-                )}
+                {profileData?.subscriptionExpiresAt && profileData?.subscriptionPlan === "pro" && (() => {
+                  const daysLeft = Math.ceil((new Date(profileData.subscriptionExpiresAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                  return (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+                      <p className="text-violet-200 font-bold">
+                        ⏳ মেয়াদ শেষ হওয়ার তারিখ: {new Date(profileData.subscriptionExpiresAt).toLocaleDateString("bn-BD", { year: "numeric", month: "long", day: "numeric" })}
+                      </p>
+                      {daysLeft > 0 ? (
+                        <span className="inline-block px-2.5 py-0.5 bg-violet-500/50 border border-violet-400 text-white font-extrabold text-[10px] rounded-full shadow-sm">
+                          আর মাত্র {daysLeft.toLocaleString("bn-BD")} দিন বাকি
+                        </span>
+                      ) : (
+                        <span className="inline-block px-2.5 py-0.5 bg-rose-500 border border-rose-400 text-white font-extrabold text-[10px] rounded-full shadow-sm">
+                          মেয়াদ শেষ
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -751,6 +770,73 @@ const Settings = () => {
               style={{ transform: isDark ? "translateX(28px)" : "translateX(0)" }}
             />
           </button>
+        </div>
+      </div>
+
+      {/* 🚀 App Settings & PWA */}
+      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm mt-8">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+          <ShieldAlert className="text-primary" size={20} />
+          অ্যাপ সেটিংস ও নোটিফিকেশন
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* PWA Install */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Phone size={16} />
+                </span>
+                <h4 className="font-bold text-slate-800 dark:text-slate-200">অ্যাপ ইনস্টল (PWA)</h4>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 font-bold">
+                হোমস্ক্রিনে এই ওয়েবসাইটটি নেটিভ অ্যাপের মতো ইনস্টল করুন। এতে দ্রুত অ্যাক্সেস এবং ফুল-স্ক্রিন ভিউ পাবেন।
+              </p>
+            </div>
+            <button
+              onClick={installPWA}
+              disabled={!isInstallable}
+              className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
+                isInstallable
+                  ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg"
+                  : "bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed"
+              }`}
+            >
+              {isInstallable ? "📱 অ্যাপ ইনস্টল করুন" : "✅ অ্যাপটি ইতিমধ্যেই ইনস্টল করা আছে"}
+            </button>
+          </div>
+
+          {/* Web Push */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                  <MessageSquare size={16} />
+                </span>
+                <h4 className="font-bold text-slate-800 dark:text-slate-200">ব্যাকগ্রাউন্ড নোটিফিকেশন</h4>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 font-bold">
+                অ্যাপ বন্ধ থাকলেও পিসি বা মোবাইলে রিয়েল-টাইম নোটিফিকেশন (ভাড়া বকেয়া, মেইনটেন্যান্স ইত্যাদি) পেতে এটি চালু করুন।
+              </p>
+            </div>
+            {!isSupported ? (
+              <div className="text-sm text-red-500 font-bold bg-red-50 dark:bg-red-900/20 p-3 rounded-xl text-center">
+                আপনার ব্রাউজার পুশ নোটিফিকেশন সাপোর্ট করে না
+              </div>
+            ) : (
+              <button
+                onClick={subscribeToPush}
+                disabled={isSubscribed || Notification.permission === "granted"}
+                className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
+                  isSubscribed || Notification.permission === "granted"
+                    ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 cursor-not-allowed border border-emerald-200 dark:border-emerald-800"
+                    : "bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg"
+                }`}
+              >
+                {isSubscribed || Notification.permission === "granted" ? "🔔 নোটিফিকেশন চালু আছে" : "🔔 নোটিফিকেশন চালু করুন"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

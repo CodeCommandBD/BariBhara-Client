@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
@@ -43,22 +46,13 @@ export default defineConfig({
           {
             name: 'পেমেন্ট',
             url: '/payments',
-            icons: [{ src: '/icon-192.png', sizes: '192x192' }],
+            icons: [{ src: '/favicon.svg', sizes: '192x192' }],
           },
         ],
       },
-      workbox: {
-        // Network first — সবসময় সার্ভার থেকে ডেটা আনবে, offline হলে cache থেকে
-        runtimeCaching: [
-          {
-            urlPattern: /^http:\/\/localhost:4000\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 },
-            },
-          },
-        ],
+      devOptions: {
+        enabled: true,
+        type: 'module',
       },
     }),
   ],

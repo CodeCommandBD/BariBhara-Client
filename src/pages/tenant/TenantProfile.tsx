@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
-import { Camera, User, Phone, Mail, Home, Building2, Calendar, Key, Save, Loader2, Shield, IdCard, CheckCircle, AlertCircle, Clock, Upload } from "lucide-react";
+import { Camera, User, Phone, Mail, Home, Building2, Calendar, Key, Save, Loader2, Shield, IdCard, CheckCircle, AlertCircle, Clock, Upload, Star } from "lucide-react";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
+import RateLandlordModal from "../../components/modals/RateLandlordModal";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
@@ -18,6 +19,7 @@ const TenantProfile = () => {
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [uploading, setUploading] = useState(false);
   const [nidUploading, setNidUploading] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   const authHeader = {
     Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
@@ -83,6 +85,21 @@ const TenantProfile = () => {
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || "NID আপলোড ব্যর্থ হয়েছে!");
+    },
+  });
+
+  // Rate Landlord Mutation
+  const rateLandlordMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await axios.patch(`${API_URL}/rate-landlord`, payload, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("আপনার রেটিং সফলভাবে সাবমিট হয়েছে!");
+      setIsRatingModalOpen(false);
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "রেটিং সাবমিট ব্যর্থ হয়েছে!");
     },
   });
 
@@ -206,7 +223,22 @@ const TenantProfile = () => {
                 <span className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-black px-3 py-1 rounded-full">
                   <Shield size={11} /> সক্রিয় ভাড়াটিয়া
                 </span>
+                {profile?.rating?.overall > 0 && (
+                  <span className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-black px-3 py-1 rounded-full shadow-sm">
+                    <Star size={11} fill="currentColor" /> {profile.rating.overall.toFixed(1)}
+                  </span>
+                )}
               </div>
+            </div>
+            
+            {/* Rate Landlord Button */}
+            <div className="mt-4 sm:mt-0 sm:ml-auto">
+              <button
+                onClick={() => setIsRatingModalOpen(true)}
+                className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Star size={14} fill="currentColor" /> বাড়িওয়ালাকে রেটিং দিন
+              </button>
             </div>
           </div>
 
@@ -394,6 +426,13 @@ const TenantProfile = () => {
           </button>
         </div>
       </div>
+
+      <RateLandlordModal
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        onSave={(data) => rateLandlordMutation.mutate(data)}
+        isLoading={rateLandlordMutation.isPending}
+      />
     </div>
   );
 };
