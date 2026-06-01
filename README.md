@@ -1,73 +1,108 @@
-# React + TypeScript + Vite
+<div align="center">
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_3-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge&logo=react&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
 
-Currently, two official plugins are available:
+# 🏢 BariBhara - Frontend (Client App)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### The User Interface for Smart Rental Management
 
-## React Compiler
+<div align="center">
+  <a href="https://baribhara.vercel.app/">
+    <img src="https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Deployed on Vercel" />
+  </a>
+</div>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+<p align="center">
+  A highly responsive, animated, and installable Progressive Web App (PWA) built for Landlords, Tenants, and Admins to manage properties effortlessly.
+</p>
 
-## Expanding the ESLint configuration
+</div>
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 📖 Introduction
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Welcome to the **BariBhara Frontend Repository**. This client-side application is built using **React 18** and **Vite** to ensure blazing-fast performance. It connects to the BariBhara Node.js backend to deliver a seamless real estate management experience.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## ✨ Key Features
+
+- 🏠 **Interactive Marketplace:** Infinite scrolling, dynamic search, and filtering for rental units.
+- 📱 **Progressive Web App (PWA):** Installable on mobile and desktop with offline caching support.
+- 🔔 **Real-Time Notifications:** Live updates via WebSockets (Socket.io) for maintenance, rent, and chats.
+- 📊 **Dynamic Dashboards:** Dedicated dashboards for Admins, Landlords, and Tenants with interactive charts.
+- 🌙 **Modern UI/UX:** Styled with Tailwind CSS and animated using Framer Motion.
+- 📄 **PDF Viewing & Downloads:** Seamless viewing and downloading of digital rental invoices.
+
+## ⚙️ Tech Stack
+
+- **Core:** React.js, Vite
+- **Styling:** Tailwind CSS, Radix UI, Framer Motion
+- **State Management:** Zustand, React Query (TanStack)
+- **Routing:** React Router DOM v6
+- **Real-Time:** Socket.io-client
+- **Icons & Assets:** Lucide React, React Icons
+
+## 📁 Project Structure
+
+```bash
+client/
+├── public/                 # Static assets (PWA icons, etc.)
+├── src/
+│   ├── api/                # Axios instances and API service calls
+│   ├── assets/             # Images and local styles
+│   ├── components/         # Reusable UI components (Modals, Cards, Navbars)
+│   ├── Hook/               # Custom React hooks (usePWA, useAuth, usePushNotifications)
+│   ├── pages/              # Role-based pages (Admin, Landlord, Tenant, Public)
+│   ├── store/              # Zustand global state (useAuthStore, useSavedPropertiesStore)
+│   ├── App.tsx             # Main Router and Layout configuration
+│   ├── main.tsx            # React root and Provider wrapping
+│   └── sw.ts               # Service Worker logic for PWA
+├── .env                    # Environment variables
+├── vite.config.ts          # Vite & PWA configuration
+└── tailwind.config.js      # Tailwind theme configuration
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
+- Node.js 18.x or higher
+- The BariBhara Server (Backend) running locally or remotely.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+
+1. **Clone the repository and enter the client folder:**
+   ```bash
+   git clone https://github.com/CodeCommandBD/BariBhara-Client.git
+   cd BariBhara-Client
+   ```
+
+2. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup:**
+   Create a `.env` file in the root of the client directory:
+   ```env
+   # Development
+   VITE_API_URL=http://localhost:4000
+   
+   # Production (Uncomment when deploying)
+   # VITE_API_URL=https://your-backend-api.com
+   ```
+
+4. **Run Development Server:**
+   ```bash
+   npm run dev
+   ```
+   *The app will be available at `http://localhost:5173`*
+
+## 🛠️ Build for Production
+To build the app and generate the PWA service workers:
+```bash
+npm run build
 ```
