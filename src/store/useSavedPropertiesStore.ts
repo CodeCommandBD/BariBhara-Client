@@ -9,12 +9,16 @@ export interface PublicProperty {
   rent?: number;
   minRent?: number;
   maxRent?: number;
-  bedrooms: number;
-  bathrooms: number;
-  area: number;
-  description: string;
-  contactNumber: string;
-  images: string[];
+  bedrooms?: number;
+  bathrooms?: number;
+  area?: number;
+  description?: string;
+  contactNumber?: string;
+  images?: string[];
+  // Unit-specific fields (when saving a unit instead of a property)
+  propertyId?: string;
+  unitName?: string;
+  type?: string;
   owner?: {
     fullName: string;
     phoneNumber: string;
@@ -22,6 +26,7 @@ export interface PublicProperty {
     isVerified?: string;
   };
   units?: any[];
+  availableUnits?: number;
 }
 
 interface SavedPropertiesState {
