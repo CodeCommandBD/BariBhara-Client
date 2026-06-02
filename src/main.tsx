@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
+import { HelmetProvider } from "react-helmet-async";
 
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import Home from "./components/Home.tsx";
@@ -224,10 +225,12 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Toaster position="top-right" richColors />
-      <RouterProvider router={router} />
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <Toaster position="top-right" richColors />
+        <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </HelmetProvider>
   </StrictMode>
 );
