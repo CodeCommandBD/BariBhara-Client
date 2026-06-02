@@ -3,18 +3,20 @@ import { useSavedPropertiesStore } from "@/store/useSavedPropertiesStore";
 import {
   MapPin, Building2, ChevronLeft, BedDouble, Bath, Square, Star, Heart
 } from "lucide-react";
+import SEOHead from "@/components/common/SEOHead";
+import { PAGE_SEO } from "@/lib/seo";
 
 const PropertyCard = ({ property }: { property: any }) => {
   const navigate = useNavigate();
+  const isUnit = !!property.propertyId; // unit হলে propertyId থাকবে
   const photos = property.photos || property.images || [];
   const thumb = photos[0] || null;
-  const availBadge = property.availableUnits > 0;
-  
+
   const { isSaved, toggleSave } = useSavedPropertiesStore();
 
   return (
     <div
-      onClick={() => navigate(`/property/${property._id}`)}
+      onClick={() => navigate(`/property/${isUnit ? `${property.propertyId}?unit=${property._id}` : property._id}`)}
       className="group bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative"
     >
       {/* Photo */}
@@ -28,11 +30,11 @@ const PropertyCard = ({ property }: { property: any }) => {
         )}
         <div className="absolute top-3 left-3 flex gap-2">
           <span className="bg-white/90 dark:bg-slate-800/90 text-primary font-black text-xs px-3 py-1 rounded-full shadow">
-            {property.type || "Residential"}
+            {property.type || (isUnit ? "ফ্ল্যাট" : "Residential")}
           </span>
-          {availBadge && (
-            <span className="bg-emerald-500 text-white font-black text-xs px-3 py-1 rounded-full shadow">
-              ✓ খালি আছে
+          {isUnit && (
+            <span className="bg-primary text-white font-black text-xs px-3 py-1 rounded-full shadow">
+              ইউনিট
             </span>
           )}
         </div>
@@ -54,7 +56,12 @@ const PropertyCard = ({ property }: { property: any }) => {
 
       {/* Info */}
       <div className="p-5">
-        <h3 className="font-black text-on-surface text-base line-clamp-1 mb-1">{property.name}</h3>
+        <h3 className="font-black text-on-surface text-base line-clamp-1 mb-1">
+          {isUnit ? property.name : property.name}
+        </h3>
+        {isUnit && property.unitName && (
+          <p className="text-xs font-bold text-primary mb-1">{property.unitName}</p>
+        )}
         <div className="flex items-center gap-1.5 text-on-surface-variant text-sm mb-3">
           <MapPin size={13} className="text-primary shrink-0" />
           <span className="truncate">{property.address || property.location || "ঠিকানা নেই"}</span>
@@ -75,12 +82,16 @@ const PropertyCard = ({ property }: { property: any }) => {
             )}
           </div>
           <div className="text-right flex items-center gap-2 text-on-surface-variant">
-             <span className="flex items-center gap-1 text-[10px] font-black bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md">
-               <BedDouble size={10} /> {property.bedrooms}
-             </span>
-             <span className="flex items-center gap-1 text-[10px] font-black bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md">
-               <Bath size={10} /> {property.bathrooms}
-             </span>
+            {property.bedrooms > 0 && (
+              <span className="flex items-center gap-1 text-[10px] font-black bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md">
+                <BedDouble size={10} /> {property.bedrooms}
+              </span>
+            )}
+            {property.bathrooms > 0 && (
+              <span className="flex items-center gap-1 text-[10px] font-black bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-md">
+                <Bath size={10} /> {property.bathrooms}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -93,6 +104,7 @@ const SavedProperties = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-16">
+      <SEOHead {...PAGE_SEO.savedProperties} />
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
