@@ -7,6 +7,8 @@ import {
   ChevronLeft, ChevronRight, Loader2, BedDouble, ArrowUpDown, Star
 } from "lucide-react";
 import { useSavedPropertiesStore } from "@/store/useSavedPropertiesStore";
+import SEOHead from "@/components/common/SEOHead";
+import { PAGE_SEO, generateBreadcrumbSchema, SITE_URL } from "@/lib/seo";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public`;
 
@@ -28,7 +30,7 @@ const UnitCard = ({ unit }: { unit: any }) => {
 
   return (
     <div
-      onClick={() => navigate(`/property/${unit.propertyId}`)}
+      onClick={() => navigate(`/property/${unit.propertyId}?unit=${unit._id}`)}
       className="group bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
     >
       {/* Photo */}
@@ -61,11 +63,21 @@ const UnitCard = ({ unit }: { unit: any }) => {
           onClick={(e) => {
             e.stopPropagation();
             // @ts-ignore
-            toggleSave({ _id: unit.propertyId, ...unit }); // compatible with save store which needs an _id as property ID
+            toggleSave({ 
+              _id: unit._id, 
+              propertyId: unit.propertyId, 
+              name: `${unit.propertyName} - ${unit.unitName}`, 
+              location: unit.location || "", 
+              rent: unit.rent, 
+              images: unit.images && unit.images.length > 0 ? unit.images : (unit.propertyImages || []), 
+              bedrooms: unit.bedrooms, 
+              bathrooms: unit.bathrooms,
+              type: unit.type 
+            });
           }}
           className="absolute top-3 right-3 w-8 h-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 rounded-full flex items-center justify-center shadow-md z-20 border border-white/40 dark:border-slate-700 transition-all hover:scale-110 active:scale-95"
         >
-          <span className={`material-symbols-outlined text-[16px] ${isSaved(unit.propertyId) ? "text-rose-500 fill-rose-500" : "text-slate-600 dark:text-slate-300"}`} style={{ fontVariationSettings: isSaved(unit.propertyId) ? "'FILL' 1" : "'FILL' 0" }}>
+          <span className={`material-symbols-outlined text-[16px] ${isSaved(unit._id) ? "text-rose-500 fill-rose-500" : "text-slate-600 dark:text-slate-300"}`} style={{ fontVariationSettings: isSaved(unit._id) ? "'FILL' 1" : "'FILL' 0" }}>
             favorite
           </span>
         </button>
@@ -160,8 +172,25 @@ const SearchResults = () => {
   const total = data?.total || 0;
   const hasActiveFilters = location || type !== "all" || minRent || maxRent;
 
+  const searchTitle = location
+    ? `"${location}" এলাকায় বাসা ভাড়া${type && type !== "all" ? ` — ${type}` : ""} | BariBhara`
+    : `বাসা ভাড়া খুঁজুন${type && type !== "all" ? ` — ${type}` : ""} | BariBhara`;
+  const searchDesc = location
+    ? `${location} এলাকায় ${total}টি বাসা/ফ্ল্যাট পাওয়া গেছে। ভাড়া, বেডরুম ও সুবিধা অনুযায়ী ফিল্টার করুন।`
+    : `BariBhara-তে ${total}টি বাসা/ফ্ল্যাট উপলব্ধ। আপনার বাজেট ও পছন্দ অনুযায়ী খুঁজুন।`;
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-32 pb-16">
+      <SEOHead
+        title={location ? `"${location}" এলাকায় বাসা খুঁজুন` : "বাসা খুঁজুন"}
+        description={searchDesc}
+        keywords={`বাসা ভাড়া ${location || "বাংলাদেশ"}, ফ্ল্যাট ভাড়া, ${location || ""} বাসা`}
+        structuredData={generateBreadcrumbSchema([
+          { name: "হোম", url: SITE_URL },
+          { name: "বাসা খুঁজুন", url: `${SITE_URL}/search` },
+          ...(location ? [{ name: location, url: `${SITE_URL}/search?location=${encodeURIComponent(location)}` }] : []),
+        ])}
+      />
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
