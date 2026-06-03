@@ -4,6 +4,8 @@ import {
   ChevronRight, ArrowLeft, Bookmark
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEOHead from "@/components/common/SEOHead";
+import { PAGE_SEO } from "@/lib/seo";
 
 const TermsPrivacy = () => {
   const [activeTab, setActiveTab] = useState<"terms" | "privacy" | "refund">("terms");
@@ -74,6 +76,7 @@ const TermsPrivacy = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-on-surface pt-28 pb-16 px-4 md:px-8 transition-colors duration-300">
+      <SEOHead {...PAGE_SEO.termsPrivacy} />
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Breadcrumbs and Action Header */}
