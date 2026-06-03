@@ -125,7 +125,7 @@ const MarketplaceSection = () => {
             return (
               <div
                 key={unit._id}
-                onClick={() => navigate(`/property/${unit.propertyId}`)}
+                onClick={() => navigate(`/property/${unit.propertyId}?unit=${unit._id}`)}
                 className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group border border-slate-200 dark:border-slate-800 flex flex-col justify-between cursor-pointer"
               >
                 <div>
@@ -156,11 +156,21 @@ const MarketplaceSection = () => {
                       onClick={(e) => {
                         e.stopPropagation();
                         // @ts-ignore
-                        toggleSave({ _id: unit.propertyId, ...unit }); // Save by propertyId for compatibility with details page
+                        toggleSave({ 
+                          _id: unit._id, 
+                          propertyId: unit.propertyId, 
+                          name: `${unit.propertyName} - ${unit.unitName}`, 
+                          location: unit.location || "", 
+                          rent: unit.rent, 
+                          images: [imageUrl], 
+                          bedrooms: unit.bedrooms, 
+                          bathrooms: unit.bathrooms,
+                          type: unit.type 
+                        });
                       }}
                       className="absolute top-4 right-4 w-9 h-9 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md hover:bg-white dark:hover:bg-slate-800 rounded-full flex items-center justify-center shadow-md z-20 border border-white/40 dark:border-slate-700 transition-all hover:scale-110 active:scale-95"
                     >
-                      <span className={`material-symbols-outlined text-[18px] ${isSaved(unit.propertyId) ? "text-rose-500 fill-rose-500" : "text-slate-600 dark:text-slate-300"}`} style={{ fontVariationSettings: isSaved(unit.propertyId) ? "'FILL' 1" : "'FILL' 0" }}>
+                      <span className={`material-symbols-outlined text-[18px] ${isSaved(unit._id) ? "text-rose-500 fill-rose-500" : "text-slate-600 dark:text-slate-300"}`} style={{ fontVariationSettings: isSaved(unit._id) ? "'FILL' 1" : "'FILL' 0" }}>
                         favorite
                       </span>
                     </button>
