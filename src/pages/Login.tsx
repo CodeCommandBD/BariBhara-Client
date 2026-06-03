@@ -7,6 +7,8 @@ import { loginSchema, type LoginFormData } from "@/schemas/authSchema";
 import axios from "axios";
 import { toast } from "sonner";
 import { useTenantAuthStore } from "@/store/useTenantAuthStore";
+import SEOHead from "@/components/common/SEOHead";
+import { PAGE_SEO } from "@/lib/seo";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -104,6 +106,7 @@ const Login = () => {
   };
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
+      <SEOHead {...PAGE_SEO.login} />
       <main className="flex-grow flex h-screen overflow-hidden">
         {/* Left Side: Visual/Branding (Sync with Register) */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-surface-container overflow-hidden items-center justify-center p-12">
