@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Home, CreditCard, Layers, Layout, Edit3, Image as ImageIcon, Trash2 } from "lucide-react";
+import { X, Home, CreditCard, Layers, Layout, Edit3, Image as ImageIcon, Trash2, View } from "lucide-react";
 import { useUnit } from "@/Hook/useUnit";
 import { toast } from "sonner";
 
@@ -18,6 +18,7 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
     kitchen: "0",
     gas: "নেই",
     area: "",
+    virtualTourUrl: "",
   });
   
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -37,7 +38,8 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
         balcony: unit.balcony?.toString() || "0",
         kitchen: unit.kitchen?.toString() || "0",
         gas: unit.gas || "নেই",
-        area: unit.area || "",
+        area: unit.area?.toString() || "",
+        virtualTourUrl: unit.virtualTourUrl || "",
       });
       setExistingImages(unit.images || []);
       setImages([]);
@@ -82,6 +84,7 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
     submitData.append("kitchen", formData.kitchen);
     submitData.append("gas", formData.gas);
     submitData.append("area", formData.area);
+    if (formData.virtualTourUrl) submitData.append("virtualTourUrl", formData.virtualTourUrl);
     
     existingImages.forEach((img) => submitData.append("existingImages", img));
     images.forEach((img) => submitData.append("images", img));
@@ -261,6 +264,20 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
                 onChange={(e) => setFormData({...formData, area: e.target.value})}
                 placeholder="উদা: ১২০০"
                 className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-400 uppercase ml-1">360° ভার্চুয়াল ট্যুর লিঙ্ক (ঐচ্ছিক)</label>
+            <div className="relative">
+              <View className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="url"
+                value={formData.virtualTourUrl}
+                onChange={(e) => setFormData({...formData, virtualTourUrl: e.target.value})}
+                placeholder="https://..."
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
               />
             </div>
           </div>
