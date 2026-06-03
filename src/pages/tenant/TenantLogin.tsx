@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { useThemeStore } from "../../store/useThemeStore";
+import SEOHead from "../../components/common/SEOHead";
 
 const TenantLogin = () => {
   const [formData, setFormData] = useState({ identifier: "", password: "" });
@@ -37,6 +38,7 @@ const TenantLogin = () => {
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-300 ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
+      <SEOHead title="ভাড়াটিয়া লগইন" description="BariBhara ভাড়াটিয়া পোর্টালে লগইন করুন।" noIndex />
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl p-8 border border-slate-100 dark:border-slate-800">
         
         {/* Logo/Brand */}
