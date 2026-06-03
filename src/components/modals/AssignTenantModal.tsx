@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, User, Phone, CreditCard, Calendar, Upload, IdCard, BadgeCheck } from "lucide-react";
 import { useTenant } from "@/Hook/useTenant";
+import NIDScanner from "@/components/common/NIDScanner";
 
 interface AssignTenantModalProps {
   isOpen: boolean;
@@ -26,6 +27,14 @@ const AssignTenantModal = ({ isOpen, onClose, unit, propertyId }: AssignTenantMo
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleScanSuccess = (data: { name?: string; nid?: string }) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: data.name || prev.name,
+      nid: data.nid || prev.nid,
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,6 +97,11 @@ const AssignTenantModal = ({ isOpen, onClose, unit, propertyId }: AssignTenantMo
               </div>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
             </label>
+          </div>
+
+          {/* AI NID Scanner (OCR) */}
+          <div className="mb-4">
+            <NIDScanner onScanSuccess={handleScanSuccess} />
           </div>
 
           {/* নাম ও ফোন */}

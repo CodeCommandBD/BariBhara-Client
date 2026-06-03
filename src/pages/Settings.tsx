@@ -11,6 +11,7 @@ import {
   MessageSquare, QrCode, LogOut as LogOutIcon, RefreshCw, PenTool, CreditCard, Star, StarHalf
 } from "lucide-react";
 import { io } from "socket.io-client";
+import { startRegistration } from "@simplewebauthn/browser";
 import { usePWA } from "@/Hook/usePWA";
 import { usePushNotifications } from "@/Hook/usePushNotifications";
 
@@ -269,7 +270,30 @@ const Settings = () => {
     onError: (err: any) => toast.error(err.response?.data?.message || "ডিসকানেক্ট ব্যর্থ!"),
   });
 
-  // Avatar initials
+  // Biometric setup
+  const setupBiometricMutation = useMutation({
+    mutationFn: async () => {
+      // 1. Get options from server
+      const optionsRes = await axios.get(`${API}/api/auth/webauthn/generate-registration-options`, { headers: authHeader });
+      const options = optionsRes.data.options;
+
+      // 2. Start registration with browser
+      const attResp = await startRegistration(options);
+
+      // 3. Send back to server for verification
+      const verifyRes = await axios.post(`${API}/api/auth/webauthn/verify-registration`, attResp, { headers: authHeader });
+      return verifyRes.data;
+    },
+    onSuccess: () => {
+      toast.success("বায়োমেট্রিক লগইন সফলভাবে সেটআপ হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (err: any) => {
+      console.error(err);
+      toast.error(err.response?.data?.message || "বায়োমেট্রিক সেটআপ ব্যর্থ!");
+    }
+  });
+
   const initials = (profileData?.fullName || user?.fullName || "B")
     .split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
@@ -836,6 +860,31 @@ const Settings = () => {
                 {isSubscribed || Notification.permission === "granted" ? "🔔 নোটিফিকেশন চালু আছে" : "🔔 নোটিফিকেশন চালু করুন"}
               </button>
             )}
+          </div>
+          
+          {/* WebAuthn / Biometrics */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <Shield size={16} />
+                </span>
+                <h4 className="font-bold text-slate-800 dark:text-slate-200">বায়োমেট্রিক লগইন</h4>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 font-bold">
+                ফিঙ্গারপ্রিন্ট বা ফেস-আইডি দিয়ে পাসওয়ার্ড ছাড়াই দ্রুত এবং সুরক্ষিতভাবে লগইন করুন।
+              </p>
+            </div>
+            
+            <button
+              onClick={() => setupBiometricMutation.mutate()}
+              disabled={setupBiometricMutation.isPending}
+              className={`w-full py-3 rounded-xl font-bold text-sm transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center`}
+            >
+              {setupBiometricMutation.isPending ? (
+                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : "👆 ফিঙ্গারপ্রিন্ট সেটআপ করুন"}
+            </button>
           </div>
         </div>
       </div>
