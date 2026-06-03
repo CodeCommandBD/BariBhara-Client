@@ -12,7 +12,8 @@ import {
   ResponsiveContainer, Legend, Area, AreaChart
 } from "recharts";
 import * as XLSX from "xlsx";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import axios from "axios";
 
 const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/reports`;
@@ -97,6 +98,22 @@ const Reports = () => {
     XLSX.writeFile(wb, `BariBhara-Report-${appliedFilters.startDate}.xlsx`);
   };
 
+  // Tax Report PDF Generation
+  const taxReportMutation = useMutation({
+    mutationFn: async () => {
+      const year = new Date().getFullYear();
+      const res = await axios.get(`${BASE_URL}/export/tax-report?year=${year}`, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      if (data.pdfUrl) {
+        window.open(data.pdfUrl, "_blank");
+        toast.success("ট্যাক্স রিপোর্ট সফলভাবে তৈরি হয়েছে!");
+      }
+    },
+    onError: () => toast.error("ট্যাক্স রিপোর্ট তৈরি করতে সমস্যা হয়েছে!"),
+  });
+
   // Pie chart data
   const pieData = report?.propertyRevenue?.map((p: any) => ({
     name: p.property?.name?.slice(0, 14) ?? "—",
@@ -138,7 +155,12 @@ const Reports = () => {
           </button>
           <button onClick={downloadExcel}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 text-white font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-violet-200 text-sm">
-            <FileSpreadsheet size={14} /> Excel ডাউনলোড
+            <FileSpreadsheet size={14} /> Excel
+          </button>
+          <button onClick={() => taxReportMutation.mutate()} disabled={taxReportMutation.isPending}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:scale-105 transition-all shadow-lg shadow-indigo-200 text-sm disabled:opacity-50">
+            {taxReportMutation.isPending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Download size={14} />} 
+            Tax Report PDF
           </button>
         </div>
       </div>
