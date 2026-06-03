@@ -60,7 +60,6 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
     submitData.append("kitchen", formData.kitchen);
     submitData.append("gas", formData.gas);
     submitData.append("area", formData.area);
-    if (formData.virtualTourUrl) submitData.append("virtualTourUrl", formData.virtualTourUrl);
     
     images.forEach((img) => submitData.append("images", img));
 
@@ -236,20 +235,6 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
                 onChange={(e) => setFormData({...formData, area: e.target.value})}
                 placeholder="উদা: ১২০০"
                 className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-black text-slate-400 uppercase ml-1">360° ভার্চুয়াল ট্যুর লিঙ্ক (ঐচ্ছিক)</label>
-            <div className="relative">
-              <View className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="url"
-                value={formData.virtualTourUrl}
-                onChange={(e) => setFormData({...formData, virtualTourUrl: e.target.value})}
-                placeholder="https://..."
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
               />
             </div>
           </div>
