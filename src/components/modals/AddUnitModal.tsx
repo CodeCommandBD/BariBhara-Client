@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { X, Home, CreditCard, Layers, Layout, Plus, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useUnit } from "@/Hook/useUnit";
+import { toast } from "sonner";
 
 const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
   // ১. হুক থেকে মিউটেশনটি নিয়ে আসছি
@@ -16,6 +17,9 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
     status: "খালি", // শুরুতে রুমটি খালি থাকবে
     bedrooms: "1",
     bathrooms: "1",
+    balcony: "0",
+    kitchen: "1",
+    gas: "নেই",
     area: "",
   });
   
@@ -28,7 +32,7 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       if (images.length + newFiles.length > 5) {
-        alert("সর্বোচ্চ ৫টি ছবি আপলোড করা যাবে।");
+        toast.warning("সর্বোচ্চ ৫টি ছবি আপলোড করা যাবে।");
         return;
       }
       setImages((prev) => [...prev, ...newFiles]);
@@ -52,6 +56,9 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
     submitData.append("status", formData.status);
     submitData.append("bedrooms", formData.bedrooms);
     submitData.append("bathrooms", formData.bathrooms);
+    submitData.append("balcony", formData.balcony);
+    submitData.append("kitchen", formData.kitchen);
+    submitData.append("gas", formData.gas);
     submitData.append("area", formData.area);
     
     images.forEach((img) => submitData.append("images", img));
@@ -67,10 +74,10 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+      <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         
         {/* ৪. হেডার সেকশন */}
-        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50 flex-shrink-0">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Plus className="text-primary" /> নতুন ইউনিট যোগ করুন
           </h2>
@@ -80,7 +87,7 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
         </div>
 
         {/* ৫. ফর্ম সেকশন */}
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">ইউনিটের নাম</label>
@@ -168,6 +175,52 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
                     <option value="2">২ বাথ</option>
                     <option value="3">৩ বাথ</option>
                     <option value="4">৪+ বাথ</option>
+                  </select>
+                </div>
+             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">বারান্দা</label>
+                <div className="relative">
+                  <select 
+                    value={formData.balcony}
+                    onChange={(e) => setFormData({...formData, balcony: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="0">নেই</option>
+                    <option value="1">১ বারান্দা</option>
+                    <option value="2">২ বারান্দা</option>
+                    <option value="3">৩+ বারান্দা</option>
+                  </select>
+                </div>
+             </div>
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">কিচেন</label>
+                <div className="relative">
+                  <select 
+                    value={formData.kitchen}
+                    onChange={(e) => setFormData({...formData, kitchen: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="0">নেই</option>
+                    <option value="1">১ কিচেন</option>
+                    <option value="2">২+ কিচেন</option>
+                  </select>
+                </div>
+             </div>
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">গ্যাসের সুবিধা</label>
+                <div className="relative">
+                  <select 
+                    value={formData.gas}
+                    onChange={(e) => setFormData({...formData, gas: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="নেই">নেই</option>
+                    <option value="লাইনের গ্যাস">লাইনের গ্যাস</option>
+                    <option value="সিলিন্ডার">সিলিন্ডার</option>
                   </select>
                 </div>
              </div>
