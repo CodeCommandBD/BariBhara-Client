@@ -145,19 +145,27 @@ const PropertyDetails = () => {
               {units?.map((unit: any) => (
                 <tr key={unit._id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-all group">
                   <td className="p-5">
-                    <div className="flex items-center gap-3">
-                      {unit.images && unit.images.length > 0 ? (
-                        <img 
-                          src={unit.images[0].startsWith("http") ? unit.images[0] : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${unit.images[0].replace(/\\/g, "/")}`} 
-                          alt="unit" 
-                          className="w-10 h-10 rounded-lg object-cover bg-slate-100"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">
-                          <Grid size={16} />
-                        </div>
-                      )}
-                      <span className="font-bold text-slate-700">{unit.unitName}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-3">
+                        {unit.images && unit.images.length > 0 ? (
+                          <img 
+                            src={unit.images[0].startsWith("http") ? unit.images[0] : `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/${unit.images[0].replace(/\\/g, "/")}`} 
+                            alt="unit" 
+                            className="w-10 h-10 rounded-lg object-cover bg-slate-100"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-300">
+                            <Grid size={16} />
+                          </div>
+                        )}
+                        <span className="font-bold text-slate-700">{unit.unitName}</span>
+                      </div>
+                      <div className="flex gap-2 ml-13 pl-13 mt-1">
+                        {unit.bedrooms > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">{unit.bedrooms} বেড</span>}
+                        {unit.bathrooms > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">{unit.bathrooms} বাথ</span>}
+                        {unit.balcony > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">{unit.balcony} বারান্দা</span>}
+                        {unit.kitchen > 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">{unit.kitchen} কিচেন</span>}
+                      </div>
                     </div>
                   </td>
                   <td className="p-5 text-sm text-slate-500 tracking-tighter">{unit.floor} তলা</td>
