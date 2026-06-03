@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 
 interface VirtualTourViewerProps {
   imageUrl: string;
@@ -9,7 +10,6 @@ interface VirtualTourViewerProps {
 const VirtualTourViewer = ({ imageUrl, title, onClose }: VirtualTourViewerProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -22,14 +22,10 @@ const VirtualTourViewer = ({ imageUrl, title, onClose }: VirtualTourViewerProps)
     };
   }, [onClose]);
 
-  // Build pannellum viewer URL via CDN
-  const pannellumUrl = `https://cdn.pannellum.org/2.5/pannellum.htm#panorama=${encodeURIComponent(imageUrl)}&autoLoad=true&showFullscreenCtrl=true&showZoomCtrl=true&compass=true`;
-
   return (
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[9999] flex flex-col bg-black"
-      onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3 bg-black/80 backdrop-blur-sm border-b border-white/10 shrink-0">
@@ -49,16 +45,22 @@ const VirtualTourViewer = ({ imageUrl, title, onClose }: VirtualTourViewerProps)
         </button>
       </div>
 
-      {/* Pannellum via CDN iframe */}
-      <iframe
-        src={pannellumUrl}
-        className="flex-1 w-full border-0"
-        allowFullScreen
-        title={title || "360° Virtual Tour"}
-        allow="fullscreen; gyroscope; accelerometer"
-      />
+      {/* Photo Sphere Viewer */}
+      <div className="flex-1 w-full overflow-hidden">
+        <ReactPhotoSphereViewer
+          src={imageUrl}
+          height="100%"
+          width="100%"
+          defaultZoomLvl={0}
+          navbar={["zoom", "fullscreen"]}
+          loadingImg=""
+          touchmoveTwoFingers={false}
+          mousewheelCtrlKey={false}
+          container=""
+        />
+      </div>
 
-      {/* Footer hint */}
+      {/* Footer */}
       <div className="flex items-center justify-center py-2 bg-black/70 border-t border-white/10 shrink-0">
         <p className="text-white/40 text-xs">
           🖱️ Click & drag to look around &nbsp;|&nbsp; 🔍 Scroll to zoom
