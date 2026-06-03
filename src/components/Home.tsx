@@ -5,6 +5,8 @@ import MarketplaceSection from "./home/MarketplaceSection";
 import SaaSSection from "./home/SaaSSection";
 import HowItWorksSection from "./home/HowItWorksSection";
 import PricingSection from "./home/PricingSection";
+import SEOHead from "./common/SEOHead";
+import { PAGE_SEO, generateWebsiteSchema, generateOrganizationSchema } from "@/lib/seo";
 
 const Home = () => {
   useEffect(() => {
@@ -20,6 +22,10 @@ const Home = () => {
 
   return (
     <div className="w-full">
+      <SEOHead
+        {...PAGE_SEO.home}
+        structuredData={[generateWebsiteSchema(), generateOrganizationSchema()]}
+      />
       <HeroSection />
       <TrustBar />
       <MarketplaceSection />

@@ -110,6 +110,7 @@ const PublicPropertyDetail = () => {
     ? `${data.name}-এ ${selectedUnit.type} ভাড়া। ${selectedUnit.bedrooms} বেডরুম, ${selectedUnit.bathrooms} বাথরুম। মাসিক ভাড়া: ${selectedUnit.rent} টাকা।`
     : `${data.location} এলাকায় ${data.name}-এ বাসা/ফ্ল্যাট ভাড়া। বিস্তারিত জানতে ক্লিক করুন।`;
 
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 pt-6">
       <SEOHead

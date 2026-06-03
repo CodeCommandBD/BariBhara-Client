@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Home, CreditCard, Layers, Layout, Edit3, Image as ImageIcon, Trash2 } from "lucide-react";
+import { X, Home, CreditCard, Layers, Layout, Edit3, Image as ImageIcon, Trash2, View } from "lucide-react";
 import { useUnit } from "@/Hook/useUnit";
+import { toast } from "sonner";
 
 const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
   const { updateUnitMutation } = useUnit();
@@ -13,7 +14,11 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
     status: "খালি",
     bedrooms: "1",
     bathrooms: "1",
+    balcony: "0",
+    kitchen: "0",
+    gas: "নেই",
     area: "",
+    virtualTourUrl: "",
   });
   
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -30,7 +35,11 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
         status: unit.status || "খালি",
         bedrooms: unit.bedrooms?.toString() || "1",
         bathrooms: unit.bathrooms?.toString() || "1",
-        area: unit.area || "",
+        balcony: unit.balcony?.toString() || "0",
+        kitchen: unit.kitchen?.toString() || "0",
+        gas: unit.gas || "নেই",
+        area: unit.area?.toString() || "",
+        virtualTourUrl: unit.virtualTourUrl || "",
       });
       setExistingImages(unit.images || []);
       setImages([]);
@@ -43,7 +52,7 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       if (existingImages.length + images.length + newFiles.length > 5) {
-        alert("সর্বোচ্চ ৫টি ছবি আপলোড করা যাবে।");
+        toast.warning("সর্বোচ্চ ৫টি ছবি আপলোড করা যাবে।");
         return;
       }
       setImages((prev) => [...prev, ...newFiles]);
@@ -71,7 +80,11 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
     submitData.append("status", formData.status);
     submitData.append("bedrooms", formData.bedrooms);
     submitData.append("bathrooms", formData.bathrooms);
+    submitData.append("balcony", formData.balcony);
+    submitData.append("kitchen", formData.kitchen);
+    submitData.append("gas", formData.gas);
     submitData.append("area", formData.area);
+    if (formData.virtualTourUrl) submitData.append("virtualTourUrl", formData.virtualTourUrl);
     
     existingImages.forEach((img) => submitData.append("existingImages", img));
     images.forEach((img) => submitData.append("images", img));
@@ -86,10 +99,10 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+      <div className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
         
         {/* ৪. হেডার সেকশন */}
-        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50 flex-shrink-0">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Edit3 className="text-primary" /> ইউনিট এডিট করুন
           </h2>
@@ -99,7 +112,7 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
         </div>
 
         {/* ৫. ফর্ম সেকশন */}
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="p-8 space-y-5 overflow-y-auto custom-scrollbar">
           <div className="grid grid-cols-2 gap-4">
              <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">ইউনিটের নাম</label>
@@ -196,6 +209,52 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
              </div>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">বারান্দা</label>
+                <div className="relative">
+                  <select 
+                    value={formData.balcony}
+                    onChange={(e) => setFormData({...formData, balcony: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="0">নেই</option>
+                    <option value="1">১ বারান্দা</option>
+                    <option value="2">২ বারান্দা</option>
+                    <option value="3">৩+ বারান্দা</option>
+                  </select>
+                </div>
+             </div>
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">কিচেন</label>
+                <div className="relative">
+                  <select 
+                    value={formData.kitchen}
+                    onChange={(e) => setFormData({...formData, kitchen: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="0">নেই</option>
+                    <option value="1">১ কিচেন</option>
+                    <option value="2">২+ কিচেন</option>
+                  </select>
+                </div>
+             </div>
+             <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase ml-1">গ্যাসের সুবিধা</label>
+                <div className="relative">
+                  <select 
+                    value={formData.gas}
+                    onChange={(e) => setFormData({...formData, gas: e.target.value})}
+                    className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold appearance-none cursor-pointer"
+                  >
+                    <option value="নেই">নেই</option>
+                    <option value="লাইনের গ্যাস">লাইনের গ্যাস</option>
+                    <option value="সিলিন্ডার">সিলিন্ডার</option>
+                  </select>
+                </div>
+             </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-xs font-black text-slate-400 uppercase ml-1">আয়তন (স্কয়ার ফিট)</label>
             <div className="relative">
@@ -205,6 +264,20 @@ const EditUnitModal = ({ isOpen, onClose, unit }: any) => {
                 onChange={(e) => setFormData({...formData, area: e.target.value})}
                 placeholder="উদা: ১২০০"
                 className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-black text-slate-400 uppercase ml-1">360° ভার্চুয়াল ট্যুর লিঙ্ক (ঐচ্ছিক)</label>
+            <div className="relative">
+              <View className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="url"
+                value={formData.virtualTourUrl}
+                onChange={(e) => setFormData({...formData, virtualTourUrl: e.target.value})}
+                placeholder="https://..."
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl outline-none text-sm font-bold"
               />
             </div>
           </div>

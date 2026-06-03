@@ -4,6 +4,8 @@ import {useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {registerSchema, type RegisterFormData} from "@/schemas/authSchema"
 import { useState } from "react";
+import SEOHead from "@/components/common/SEOHead";
+import { PAGE_SEO } from "@/lib/seo";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -23,6 +25,7 @@ const Register = () => {
   }
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
+      <SEOHead {...PAGE_SEO.register} />
       <main className="flex-grow flex h-screen overflow-hidden">
         {/* Left Side: Visual/Branding */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-surface-container overflow-hidden items-center justify-center p-12">

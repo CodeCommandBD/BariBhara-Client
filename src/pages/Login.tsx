@@ -7,6 +7,9 @@ import { loginSchema, type LoginFormData } from "@/schemas/authSchema";
 import axios from "axios";
 import { toast } from "sonner";
 import { useTenantAuthStore } from "@/store/useTenantAuthStore";
+import SEOHead from "@/components/common/SEOHead";
+import { PAGE_SEO } from "@/lib/seo";
+import { startAuthentication } from "@simplewebauthn/browser";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -63,6 +66,40 @@ const Login = () => {
     }
   };
 
+  const handleBiometricLogin = async () => {
+    const email = register("email").name ? (document.querySelector('input[name="email"]') as HTMLInputElement)?.value : "";
+    if (!email) {
+      toast.error("বায়োমেট্রিক লগইনের জন্য আগে আপনার ইমেইলটি লিখুন!");
+      return;
+    }
+
+    try {
+      // 1. Get options from server
+      const optionsRes = await axios.post(`${API}/api/auth/webauthn/generate-authentication-options`, { email });
+      const options = optionsRes.data.options;
+
+      // 2. Start authentication with browser
+      const asseResp = await startAuthentication(options);
+
+      // 3. Send back to server for verification
+      const verifyRes = await axios.post(`${API}/api/auth/webauthn/verify-authentication`, {
+        email,
+        response: asseResp,
+      });
+
+      if (verifyRes.data.success) {
+        const { useAuthStore } = await import("@/store/useAuthStore");
+        useAuthStore.getState().setAuth(verifyRes.data.user, verifyRes.data.accessToken);
+        toast.success("বায়োমেট্রিক লগইন সফল!");
+        const from = (location.state as any)?.from?.pathname || (verifyRes.data.user.role === 'admin' ? "/admin/dashboard" : "/dashboard");
+        navigate(from, { replace: true });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "বায়োমেট্রিক লগইন ব্যর্থ!");
+    }
+  };
+
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -104,6 +141,7 @@ const Login = () => {
   };
   return (
     <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
+      <SEOHead {...PAGE_SEO.login} />
       <main className="flex-grow flex h-screen overflow-hidden">
         {/* Left Side: Visual/Branding (Sync with Register) */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-surface-container overflow-hidden items-center justify-center p-12">
@@ -306,13 +344,23 @@ const Login = () => {
                   </label>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isLandlordLoading}
-                  className="w-full py-5 btn-brand rounded-xl font-bold text-lg"
-                >
-                  {isLandlordLoading ? "লগইন হচ্ছে..." : "লগইন করুন"}
-                </button>
+                <div className="flex gap-2 w-full mt-4">
+                  <button
+                    type="submit"
+                    disabled={isLandlordLoading}
+                    className="flex-1 py-4 bg-primary text-on-primary rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    {isLandlordLoading ? "অপেক্ষা করুন..." : "লগইন"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBiometricLogin}
+                    title="Fingerprint / FaceID Login"
+                    className="px-6 py-4 bg-emerald-600 text-white rounded-xl font-bold text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center hover:bg-emerald-700"
+                  >
+                    <span className="material-symbols-outlined">fingerprint</span>
+                  </button>
+                </div>
               </form>
               )
             ) : (

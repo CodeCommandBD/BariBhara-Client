@@ -5,6 +5,7 @@ import { useSocket } from "./Hook/useSocket"
 import { useAuthStore } from "./store/useAuthStore"
 import { useEffect } from "react"
 import { usePushNotifications } from "./Hook/usePushNotifications"
+import { InstallPWA } from "./components/common/InstallPWA"
 
 const App = () => {
   const { user, token, setAuth } = useAuthStore();
@@ -46,6 +47,7 @@ const App = () => {
         <Outlet />
       </main>
       <PublicFooter />
+      <InstallPWA />
     </div>
   )
 }
