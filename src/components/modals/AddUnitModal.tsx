@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { X, Home, CreditCard, Layers, Layout, Plus, Image as ImageIcon, Trash2, View } from "lucide-react";
+import { X, Home, CreditCard, Layers, Layout, Plus, Image as ImageIcon, Trash2 } from "lucide-react";
 import { useUnit } from "@/Hook/useUnit";
 import { toast } from "sonner";
 
@@ -21,7 +21,6 @@ const AddUnitModal = ({ isOpen, onClose, propertyId }: any) => {
     kitchen: "1",
     gas: "নেই",
     area: "",
-    virtualTourUrl: "",
   });
   
   const [images, setImages] = useState<File[]>([]);

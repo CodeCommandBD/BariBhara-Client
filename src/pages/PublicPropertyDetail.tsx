@@ -5,13 +5,12 @@ import axios from "axios";
 import {
   MapPin, Phone, Mail, Building2, CheckCircle2, ChevronLeft,
   Loader2, Home, BedDouble, Layers, ArrowRight, Shield, Star, Heart, ImageOff,
-  LayoutGrid, Utensils, Flame, View
+  LayoutGrid, Utensils, Flame
 } from "lucide-react";
 import { useSavedPropertiesStore } from "@/store/useSavedPropertiesStore";
 import { trackEvent } from "@/services/analytics";
 import SEOHead from "@/components/common/SEOHead";
 import { generatePropertySchema, generateBreadcrumbSchema, SITE_URL } from "@/lib/seo";
-import VirtualTourViewer from "@/components/common/VirtualTourViewer";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/public`;
 
@@ -32,7 +31,6 @@ const PublicPropertyDetail = () => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [expandedUnitId, setExpandedUnitId] = useState<string | null>(null);
   const { isSaved, toggleSave } = useSavedPropertiesStore();
-  const [isTourOpen, setIsTourOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["public-property", id],
@@ -112,7 +110,6 @@ const PublicPropertyDetail = () => {
     ? `${data.name}-এ ${selectedUnit.type} ভাড়া। ${selectedUnit.bedrooms} বেডরুম, ${selectedUnit.bathrooms} বাথরুম। মাসিক ভাড়া: ${selectedUnit.rent} টাকা।`
     : `${data.location} এলাকায় ${data.name}-এ বাসা/ফ্ল্যাট ভাড়া। বিস্তারিত জানতে ক্লিক করুন।`;
 
-  const tourUrl = selectedUnit?.virtualTourUrl || data.virtualTourUrl;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 pt-6">
@@ -177,14 +174,6 @@ const PublicPropertyDetail = () => {
                 <ImageOff size={64} className="text-slate-300 dark:text-slate-600 mb-3" />
                 <p className="text-slate-400 font-bold">এই ইউনিটের কোনো ছবি আপলোড করা নেই</p>
               </div>
-            )}
-            {tourUrl && (
-              <button 
-                onClick={() => setIsTourOpen(true)}
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/80 hover:bg-primary backdrop-blur-md text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 transition-all shadow-lg shadow-black/20 hover:scale-105 border border-white/10"
-              >
-                <View size={18} /> 360° ভার্চুয়াল ট্যুর
-              </button>
             )}
           </div>
 
@@ -414,14 +403,6 @@ const PublicPropertyDetail = () => {
         </div>
         </div>
       </div>
-      
-      {isTourOpen && tourUrl && (
-        <VirtualTourViewer 
-          imageUrl={tourUrl} 
-          title={selectedUnit ? `${selectedUnit.unitName} - 360° View` : `${data.name} - 360° View`}
-          onClose={() => setIsTourOpen(false)} 
-        />
-      )}
     </div>
   );
 };
