@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import Home from "./components/Home.tsx";
 import { Toaster } from "sonner";
+import ConfirmModal from "./components/modals/ConfirmModal";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Login from "./pages/Login.tsx";
@@ -35,6 +36,7 @@ import SearchResults from "./pages/SearchResults";
 import PublicPropertyDetail from "./pages/PublicPropertyDetail";
 import AdminRevenue from "./pages/admin/AdminRevenue.tsx";
 import AdminAnalytics from "./pages/admin/AdminAnalytics.tsx";
+import AdminPlans from "./pages/admin/AdminPlans.tsx";
 import TermsPrivacy from "./pages/TermsPrivacy";
 import SavedProperties from "./pages/SavedProperties";
 // Tenant Portal Components
@@ -184,6 +186,10 @@ const router = createBrowserRouter([
         path: "analytics",
         element: <AdminAnalytics />,
       },
+      {
+        path: "plans",
+        element: <AdminPlans />,
+      },
     ],
   },
 
@@ -228,6 +234,7 @@ createRoot(document.getElementById("root")!).render(
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <Toaster position="top-right" richColors />
+        <ConfirmModal />
         <RouterProvider router={router} />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
