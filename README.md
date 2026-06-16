@@ -100,7 +100,12 @@ client/
 3. **Environment Setup:**
    Create a `.env` file in the root directory:
    ```env
-   VITE_API_URL=http://localhost:4000
+
+   # Development
+   VITE_API_URL=
+   
+   # Production (Uncomment when deploying)
+   # VITE_API_URL=https://your-backend-api.com
    ```
 
 4. **Run Development Server:**
