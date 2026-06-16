@@ -11,6 +11,7 @@ import {
   LogOut,
   Home,
   Star,
+  Package,
 } from "lucide-react";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -50,6 +51,7 @@ const Sidebar = () => {
     { icon: LayoutDashboard, label: "Overview", path: "/admin/dashboard" },
     { icon: Users, label: "User Management", path: "/admin/users" },
     { icon: CreditCard, label: "Subscriptions", path: "/admin/subscriptions" },
+    { icon: Package, label: "Plans", path: "/admin/plans" },
   ];
 
   const navItems = user?.role === "admin" ? adminNavItems : baseNavItems;

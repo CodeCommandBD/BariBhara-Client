@@ -1,6 +1,7 @@
 import { Building2, MapPin, MoreVertical, Plus } from "lucide-react";
 import { useProperty } from "../Hook/useProperty"; // আমাদের বানানো প্রপার্টি হুক
 import { useUIStore } from "../store/useUIStore"; // মডাল ওপেন করার জন্য স্টোর
+import { useConfirmStore } from "../store/useConfirmStore";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,10 +29,14 @@ const Properties = () => {
   };
 
   // ৫. ডিলিট ফাংশন
+  const { openConfirm } = useConfirmStore();
   const handleDelete = (id: string) => {
-    if (window.confirm("আপনি কি নিশ্চিত যে এই প্রপার্টিটি ডিলিট করতে চান? এটি ডিলিট করলে এর সব রুম এবং ডাটাও মুছে যাবে!")) {
-      deletePropertyMutation.mutate(id);
-    }
+    openConfirm({
+      title: "প্রপার্টি ডিলিট",
+      message: "আপনি কি নিশ্চিত যে এই প্রপার্টিটি ডিলিট করতে চান? এটি ডিলিট করলে এর সব রুম এবং ডাটাও মুছে যাবে!",
+      confirmText: "ডিলিট করুন",
+      onConfirm: () => deletePropertyMutation.mutate(id),
+    });
     setOpenMenuId(null);
   };
 
@@ -59,7 +64,7 @@ const Properties = () => {
       </div>
 
       {/* ৫. গ্রিড লেআউট */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
         {properties?.map((property: any) => (
           <div
             key={property._id}

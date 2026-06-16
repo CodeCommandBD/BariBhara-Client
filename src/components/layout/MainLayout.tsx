@@ -206,7 +206,7 @@ const MainLayout = () => {
               </div>
             </div>
           ) : (
-            <>
+            <div className="max-w-7xl mx-auto w-full">
               {isExpiringSoon && (
                 <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3.5 px-6 rounded-2xl mb-8 shadow-lg shadow-amber-500/10 flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse">
                   <div className="flex items-center gap-3">
@@ -225,7 +225,7 @@ const MainLayout = () => {
                 </div>
               )}
               <Outlet />
-            </>
+            </div>
           )}
         </main>
       </div>
