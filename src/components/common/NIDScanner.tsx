@@ -44,15 +44,54 @@ const NIDScanner = ({ onScanSuccess }: NIDScannerProps) => {
       }
 
       // 2. Extract NID Number (10, 13, or 17 digits)
-      const nidMatch = text.match(/\b(?:\d{10}|\d{13}|\d{17})\b/);
-      if (nidMatch && nidMatch[0]) {
-        extractedData.nid = nidMatch[0];
+      // Convert Bengali digits to English digits to ensure regex \d works
+      const benDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+      const normalizedText = text.replace(/[০-৯]/g, (match) => String(benDigits.indexOf(match)));
+
+      // NID numbers on cards might have spaces, hyphens or be misread
+      const idKeywordRegex = /(?:NID|ID|NO|No\.|National ID|পরিচয়পত্র)[\s:-]*([\d\s-]{10,25})/i;
+      const keywordMatch = normalizedText.match(idKeywordRegex);
+      
+      let foundNid = "";
+      if (keywordMatch && keywordMatch[1]) {
+         const cleanId = keywordMatch[1].replace(/\D/g, "");
+         if ([10, 13, 17].includes(cleanId.length)) {
+            foundNid = cleanId;
+         }
+      }
+
+      // Fallback: Aggressively fix OCR character mix-ups and find longest digit sequence
+      if (!foundNid) {
+         // Replace O with 0, I/l with 1, S with 5, Z with 2, B with 8 ONLY IF they are adjacent to digits
+         // To make it simple, we just strip spaces, replace those letters with digits, and look for 9-17 digits
+         const ultraClean = normalizedText
+            .replace(/[\s\-,_]/g, "")
+            .replace(/O/g, "0")
+            .replace(/o/g, "0")
+            .replace(/I/g, "1")
+            .replace(/l/g, "1");
+            
+         const matches = ultraClean.match(/\d{9,17}/g);
+         if (matches && matches.length > 0) {
+            const potentialNids = matches.filter(m => !(m.length === 11 && m.startsWith("01"))); // skip phone
+            if (potentialNids.length > 0) {
+                foundNid = potentialNids.sort((a, b) => b.length - a.length)[0];
+            }
+         }
+      }
+
+      if (foundNid) {
+        extractedData.nid = foundNid;
       }
 
       if (extractedData.name || extractedData.nid) {
         setScanResult("success");
         onScanSuccess(extractedData);
-        toast.success("NID স্ক্যান সফল হয়েছে!");
+        if (extractedData.nid) {
+           toast.success(`NID স্ক্যান সফল হয়েছে! (NID: ${extractedData.nid})`);
+        } else {
+           toast.warning("নাম পাওয়া গেছে, কিন্তু NID নাম্বার অস্পষ্ট বিধায় পড়া যায়নি।");
+        }
       } else {
         setScanResult("error");
         toast.error("NID থেকে কোনো তথ্য পাওয়া যায়নি। দয়া করে পরিষ্কার ছবি দিন।");
