@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useUIStore } from "../../store/useUIStore";
 import { useProperty } from "@/Hook/useProperty"; // আপনার দেওয়া পাথ অনুযায়ী
+import { toast } from "sonner";
 
 interface PropertyFormData {
   name: string;
@@ -57,7 +58,7 @@ const AddPropertyModal = () => {
   const onSubmit = (data: PropertyFormData) => {
      // ১. ছবি ছাড়া সেভ করতে দেবে না
     if (selectedFiles.length === 0) {
-      return alert("দয়া করে অন্তত একটি ছবি সিলেক্ট করুন!");
+      return toast.error("দয়া করে অন্তত একটি ছবি সিলেক্ট করুন!");
     }
 
     const formData = new FormData(); // ফাইল পাঠানোর জন্য এটি জরুরি
