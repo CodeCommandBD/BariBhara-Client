@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   CreditCard, Search, Calendar, Home,
   AlertCircle, Clock, Banknote, Mail, BellRing, FileSpreadsheet,
-  Edit, Trash2, CheckCircle, Download, History,
+  Edit, Trash2, CheckCircle, Download, History, XCircle
 } from "lucide-react";
 import CollectPaymentModal from "@/components/modals/CollectPaymentModal";
 import BulkInvoiceModal from "@/components/modals/BulkInvoiceModal";
@@ -55,6 +55,7 @@ const RentManagement = () => {
   const {
     pendingInvoices, total, totalPages, isPendingLoading,
     invoiceStats, editInvoiceMutation, deleteInvoiceMutation,
+    approvePaymentMutation, rejectPaymentMutation
   } = useRent(page, ITEMS_PER_PAGE, activeTab, filterMonth, filterYear);
 
   const { data: properties = [] } = useQuery({
@@ -336,8 +337,8 @@ const RentManagement = () => {
           </div>
 
           {/* Desktop view table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="hidden md:block overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
               <thead>
                 <tr className="bg-slate-50/50 dark:bg-slate-700/50">
                   <th className="p-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">ভাড়াটিয়া ও ইউনিট</th>
@@ -401,6 +402,11 @@ const RentManagement = () => {
                             {inv.paidAmount > 0 && (
                               <p className="text-[10px] text-slate-400 font-bold">৳ {inv.paidAmount?.toLocaleString()} পেইড</p>
                             )}
+                            {inv.pendingPayment?.amount > 0 && (
+                              <div className="mt-1 px-2 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-[10px] rounded font-bold border border-amber-200 dark:border-amber-800">
+                                ⏳ অপেক্ষমান: ৳{inv.pendingPayment.amount.toLocaleString()} ({inv.pendingPayment.method})
+                              </div>
+                            )}
                           </div>
                         )}
                       </td>
@@ -455,6 +461,31 @@ const RentManagement = () => {
                             >
                               <Banknote size={14} /> টাকা গ্রহণ
                             </button>
+                          )}
+                          
+                          {/* পেন্ডিং পেমেন্ট অ্যাকশন */}
+                          {inv.pendingPayment?.amount > 0 && (
+                            <div className="flex gap-1 ml-2">
+                              <button
+                                onClick={() => approvePaymentMutation.mutate(inv._id)}
+                                disabled={approvePaymentMutation.isPending}
+                                className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-xl transition-all disabled:opacity-50"
+                                title="পেমেন্ট গ্রহণ করুন"
+                              >
+                                <CheckCircle size={15} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const reason = window.prompt("পেমেন্ট বাতিলের কারণ লিখুন:");
+                                  if (reason) rejectPaymentMutation.mutate({ invoiceId: inv._id, reason });
+                                }}
+                                disabled={rejectPaymentMutation.isPending}
+                                className="p-2 bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl transition-all disabled:opacity-50"
+                                title="পেমেন্ট বাতিল করুন"
+                              >
+                                <XCircle size={15} />
+                              </button>
+                            </div>
                           )}
 
                           {/* পেইড ব্যাজ */}

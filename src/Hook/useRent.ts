@@ -8,6 +8,8 @@ import {
   getInvoiceTransactionsApi,
   editInvoiceApi,
   deleteInvoiceApi,
+  approvePaymentApi,
+  rejectPaymentApi
 } from "@/api/rent.api";
 
 export const useRent = (page = 1, limit = 10, status = "all", month = "", year = "") => {
@@ -87,6 +89,31 @@ export const useRent = (page = 1, limit = 10, status = "all", month = "", year =
     },
   });
 
+  // --- ৭. Pending Payment Approve ---
+  const approvePaymentMutation = useMutation({
+    mutationFn: (invoiceId: string) => approvePaymentApi(invoiceId, token!),
+    onSuccess: (res) => {
+      toast.success(res.message || "পেমেন্ট গ্রহণ করা হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["pending-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "পেমেন্ট গ্রহণ করতে সমস্যা হয়েছে!");
+    },
+  });
+
+  // --- ৮. Pending Payment Reject ---
+  const rejectPaymentMutation = useMutation({
+    mutationFn: ({ invoiceId, reason }: { invoiceId: string; reason: string }) => rejectPaymentApi(invoiceId, reason, token!),
+    onSuccess: (res) => {
+      toast.success(res.message || "পেমেন্ট বাতিল করা হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["pending-invoices"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "পেমেন্ট বাতিল করতে সমস্যা হয়েছে!");
+    },
+  });
+
   return {
     pendingInvoices,
     total,
@@ -98,5 +125,7 @@ export const useRent = (page = 1, limit = 10, status = "all", month = "", year =
     editInvoiceMutation,
     deleteInvoiceMutation,
     useGetInvoiceTransactions,
+    approvePaymentMutation,
+    rejectPaymentMutation,
   };
 };

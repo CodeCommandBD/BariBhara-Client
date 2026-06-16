@@ -1,5 +1,6 @@
 import { X, Phone, IdCard, Calendar, CreditCard, LogOut, User } from "lucide-react";
 import { useTenant } from "@/Hook/useTenant";
+import { useConfirmStore } from "@/store/useConfirmStore";
 
 interface TenantDetailModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface TenantDetailModalProps {
 }
 
 const TenantDetailModal = ({ isOpen, onClose, unitId }: TenantDetailModalProps) => {
+  const { openConfirm } = useConfirmStore();
   const { useGetTenantByUnit, vacateTenantMutation } = useTenant();
   const { data: tenant, isLoading } = useGetTenantByUnit(isOpen ? unitId : undefined);
 
@@ -15,9 +17,12 @@ const TenantDetailModal = ({ isOpen, onClose, unitId }: TenantDetailModalProps) 
 
   const handleVacate = () => {
     if (!tenant) return;
-    if (window.confirm(`আপনি কি নিশ্চিত যে "${tenant.name}" ইউনিট ছেড়ে গেছেন? এই অপারেশন ইউনিটটিকে খালি করে দেবে।`)) {
-      vacateTenantMutation.mutate(tenant._id, { onSuccess: onClose });
-    }
+    openConfirm({
+      title: "ভাড়াটিয়া সরানো",
+      message: `আপনি কি নিশ্চিত যে "${tenant.name}" ইউনিট ছেড়ে গেছেন? এই অপারেশন ইউনিটটিকে খালি করে দেবে।`,
+      confirmText: "হ্যাঁ, নিশ্চিত",
+      onConfirm: () => vacateTenantMutation.mutate(tenant._id, { onSuccess: onClose }),
+    });
   };
 
   const formatDate = (dateStr?: string) => {

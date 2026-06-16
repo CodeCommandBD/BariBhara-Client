@@ -59,7 +59,23 @@ export const editInvoiceApi = async (invoiceId: string, data: any, token: string
 // ৬. ইনভয়েস ডিলিট করা
 export const deleteInvoiceApi = async (invoiceId: string, token: string) => {
   const res = await axios.delete(`${BASE_URL}/delete/${invoiceId}`, {
-    headers: getAuthHeader(token),
+    headers: { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+// ৯. Pending Payment Approve
+export const approvePaymentApi = async (invoiceId: string, token: string) => {
+  const res = await axios.post(`${BASE_URL}/approve-payment/${invoiceId}`, {}, {
+    headers: { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+// ১০. Pending Payment Reject
+export const rejectPaymentApi = async (invoiceId: string, reason: string, token: string) => {
+  const res = await axios.post(`${BASE_URL}/reject-payment/${invoiceId}`, { reason }, {
+    headers: { Authorization: token.startsWith("Bearer ") ? token : `Bearer ${token}` },
   });
   return res.data;
 };

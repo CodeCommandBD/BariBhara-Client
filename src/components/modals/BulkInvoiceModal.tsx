@@ -87,10 +87,13 @@ const BulkInvoiceModal = ({ onClose, properties }: Props) => {
   const totalEstimate = selectedIds.reduce((sum, id) => {
     const t = tenants.find((x: any) => x._id === id);
     if (!t) return sum;
-    const extraTotal = (Number(extras.waterBill) || 0) +
-                       (Number(extras.gasBill) || 0) +
-                       (Number(extras.electricityBill) || 0) +
-                       (Number(extras.serviceCharge) || 0);
+    
+    const tWater = t.utilityConfig?.water?.type === "Fixed" ? (t.utilityConfig.water.fixedAmount || 0) : (Number(extras.waterBill) || 0);
+    const tGas = t.utilityConfig?.gas?.type === "Fixed" ? (t.utilityConfig.gas.fixedAmount || 0) : (Number(extras.gasBill) || 0);
+    const tElectricity = t.utilityConfig?.electricity?.type === "Fixed" ? (t.utilityConfig.electricity.fixedAmount || 0) : (Number(extras.electricityBill) || 0);
+    const tService = t.utilityConfig?.serviceCharge?.type === "Fixed" ? (t.utilityConfig.serviceCharge.fixedAmount || 0) : (Number(extras.serviceCharge) || 0);
+
+    const extraTotal = tWater + tGas + tElectricity + tService;
     return sum + t.rentAmount + extraTotal;
   }, 0);
 
@@ -183,10 +186,12 @@ const BulkInvoiceModal = ({ onClose, properties }: Props) => {
               <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                 {tenants.map((t: any) => {
                   const isSelected = selectedIds.includes(t._id);
-                  const extraTotal = (Number(extras.waterBill) || 0) +
-                                     (Number(extras.gasBill) || 0) +
-                                     (Number(extras.electricityBill) || 0) +
-                                     (Number(extras.serviceCharge) || 0);
+                  const tWater = t.utilityConfig?.water?.type === "Fixed" ? (t.utilityConfig.water.fixedAmount || 0) : (Number(extras.waterBill) || 0);
+                  const tGas = t.utilityConfig?.gas?.type === "Fixed" ? (t.utilityConfig.gas.fixedAmount || 0) : (Number(extras.gasBill) || 0);
+                  const tElectricity = t.utilityConfig?.electricity?.type === "Fixed" ? (t.utilityConfig.electricity.fixedAmount || 0) : (Number(extras.electricityBill) || 0);
+                  const tService = t.utilityConfig?.serviceCharge?.type === "Fixed" ? (t.utilityConfig.serviceCharge.fixedAmount || 0) : (Number(extras.serviceCharge) || 0);
+                  
+                  const extraTotal = tWater + tGas + tElectricity + tService;
                   const total = t.rentAmount + extraTotal;
                   return (
                     <button key={t._id} onClick={() => toggle(t._id)}
@@ -199,9 +204,18 @@ const BulkInvoiceModal = ({ onClose, properties }: Props) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm text-slate-800 truncate">{t.name}</p>
-                        <p className="text-xs text-slate-400">{t.unit?.unitName} — {t.property?.name}</p>
+                        <p className="text-xs text-slate-400">
+                          {t.unit?.unitName} — {t.property?.name}
+                          {(tWater + tGas + tElectricity + tService) > 0 && (
+                            <span className="text-violet-500 font-bold ml-1">
+                              (+৳{tWater + tGas + tElectricity + tService} ইউটিলিটি)
+                            </span>
+                          )}
+                        </p>
                       </div>
-                      <p className="text-sm font-black text-violet-600 flex-shrink-0">৳{total.toLocaleString()}</p>
+                      <div className="text-right flex-shrink-0">
+                         <p className="text-sm font-black text-violet-600">৳{total.toLocaleString()}</p>
+                      </div>
                     </button>
                   );
                 })}

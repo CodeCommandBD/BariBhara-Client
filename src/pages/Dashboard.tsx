@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Home,
   Users,
@@ -15,10 +16,14 @@ import ActivityTable from "../components/dashboard/ActivityTable";
 import LeaseAlerts from "../components/dashboard/LeaseAlerts";
 import { DashboardSkeleton } from "@/components/ui/SkeletonLoaders";
 import { useUIStore } from "@/store/useUIStore";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { openAddPropertyModal } = useUIStore();
   const { stats, isLoading, error } = useDashboard();
+
+  const [isDismissed, setIsDismissed] = useState(() => localStorage.getItem("onboarding_dismissed") === "true");
 
   if (isLoading) return <DashboardSkeleton />;
 
@@ -29,7 +34,8 @@ const Dashboard = () => {
       </div>
     );
 
-  const showOnboarding = stats?.totalProperties === 0 || !localStorage.getItem("onboarding_dismissed");
+  const hasCompletedAllSteps = stats?.totalProperties > 0 && stats?.totalUnits > 0 && stats?.rentedUnits > 0;
+  const showOnboarding = !isDismissed && !hasCompletedAllSteps;
   const completedStepsCount = 
     (stats?.totalProperties > 0 ? 1 : 0) + 
     (stats?.totalUnits > 0 ? 1 : 0) + 
@@ -38,8 +44,12 @@ const Dashboard = () => {
 
   const handleDismissOnboarding = () => {
     localStorage.setItem("onboarding_dismissed", "true");
-    // Quick refresh of onboarding display
-    window.location.reload();
+    setIsDismissed(true);
+  };
+
+  const handleRestoreOnboarding = () => {
+    localStorage.removeItem("onboarding_dismissed");
+    setIsDismissed(false);
   };
 
   return (
@@ -55,6 +65,14 @@ const Dashboard = () => {
           </p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
+          {isDismissed && !hasCompletedAllSteps && (
+            <button
+              onClick={handleRestoreOnboarding}
+              className="px-6 py-3 bg-indigo-50 text-indigo-600 font-semibold rounded-2xl shadow-sm hover:bg-indigo-100 transition-all text-sm cursor-pointer"
+            >
+              গাইড দেখুন
+            </button>
+          )}
           <button
             onClick={openAddPropertyModal}
             className="flex-1 md:flex-none px-6 py-3 bg-primary text-white font-semibold rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm cursor-pointer"
@@ -83,7 +101,7 @@ const Dashboard = () => {
                   <p className="text-lg font-black">{onboardingProgress}%</p>
                 </div>
                 <div className="w-12 h-12 rounded-full border-2 border-white/30 flex items-center justify-center font-black bg-white/10">
-                  {completedStepsCount}/৪
+                  {completedStepsCount}/4
                 </div>
               </div>
             </div>
@@ -116,14 +134,14 @@ const Dashboard = () => {
                   title: "৩. ইউনিট/ফ্ল্যাট সাজান", 
                   desc: stats?.totalUnits > 0 ? "সম্পন্ন হয়েছে" : "রুম বা ফ্লোর প্ল্যান তৈরি করুন", 
                   done: stats?.totalUnits > 0, 
-                  action: () => window.location.href = "/properties",
+                  action: () => navigate("/properties"),
                   btnText: "ইউনিট সাজান ⚙️" 
                 },
                 { 
                   title: "৪. ভাড়াটিয়া আমন্ত্রণ", 
                   desc: stats?.rentedUnits > 0 ? "সম্পন্ন হয়েছে" : "প্রথম ভাড়াটিয়াকে যুক্ত করুন", 
                   done: stats?.rentedUnits > 0, 
-                  action: () => window.location.href = "/tenants",
+                  action: () => navigate("/tenants"),
                   btnText: "ভাড়াটিয়া আনুন 👥" 
                 }
               ].map((step, idx) => (
@@ -174,7 +192,7 @@ const Dashboard = () => {
       )}
 
       {/* Stats Grid — এখন ৫টি কার্ড (Responsive) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
         <StatCard
           title="মোট প্রপার্টি"
           value={stats?.totalProperties ?? "০"}
