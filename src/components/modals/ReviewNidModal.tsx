@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   isOpen: boolean;
@@ -24,7 +25,7 @@ const ReviewNidModal = ({ isOpen, onClose, tenant, onVerify, isLoading }: Props)
 
   const handleReject = () => {
     if (!rejectReason.trim()) {
-      return alert("অনুগ্রহ করে বাতিলের কারণ উল্লেখ করুন।");
+      return toast.error("অনুগ্রহ করে বাতিলের কারণ উল্লেখ করুন।");
     }
     onVerify(tenant._id, "rejected", rejectReason);
   };
