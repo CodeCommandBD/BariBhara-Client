@@ -5,12 +5,17 @@ import { useTenantAuthStore } from "../../store/useTenantAuthStore";
 import { useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "@/components/ui/EmptyState";
+import TenantPaymentModal from "@/components/modals/TenantPaymentModal";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/tenant-portal`;
 
 const TenantInvoices = () => {
   const { token } = useTenantAuthStore();
+  const queryClient = useQueryClient();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
   const authHeader = {
     Authorization: token?.startsWith("Bearer ") ? token : `Bearer ${token}`,
@@ -23,6 +28,31 @@ const TenantInvoices = () => {
       return res.data;
     },
     enabled: !!token,
+  });
+
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["landlord-payment-methods"],
+    queryFn: async () => {
+      const res = await axios.get(`${API_URL}/landlord-payment-methods`, { headers: authHeader });
+      return res.data.paymentMethods;
+    },
+    enabled: !!token,
+  });
+
+  const submitPaymentMutation = useMutation({
+    mutationFn: async ({ invoiceId, payload }: { invoiceId: string; payload: any }) => {
+      const res = await axios.post(`${API_URL}/invoices/${invoiceId}/submit-payment`, payload, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "পেমেন্ট সাবমিট হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["tenant-invoices"] });
+      setIsPaymentModalOpen(false);
+      setSelectedInvoice(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "পেমেন্ট সাবমিট করতে সমস্যা হয়েছে!");
+    }
   });
 
   const handleDownload = async (invoiceId: string, invoiceNumber: string) => {
@@ -111,6 +141,14 @@ const TenantInvoices = () => {
                     </span>
                   </div>
 
+                  {invoice.pendingPayment?.amount > 0 && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 p-2 rounded-xl text-center">
+                      <p className="text-xs text-amber-700 dark:text-amber-400 font-bold flex items-center justify-center gap-1">
+                        <Clock size={12} /> ৳{invoice.pendingPayment.amount} পেমেন্ট যাচাইয়ের অপেক্ষায়
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-3 gap-2 py-3 border-y border-slate-100 dark:border-slate-800/40 text-center">
                     <div>
                       <p className="text-[10px] text-slate-400 font-bold uppercase">মোট বিল</p>
@@ -126,17 +164,28 @@ const TenantInvoices = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-end pt-1">
+                  <div className="flex gap-2 pt-1">
+                    {invoice.status !== "Paid" && !(invoice.pendingPayment?.amount > 0) && (
+                      <button
+                        onClick={() => {
+                          setSelectedInvoice(invoice);
+                          setIsPaymentModalOpen(true);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white font-bold text-xs rounded-2xl transition-all shadow-lg shadow-primary/20 active:scale-95"
+                      >
+                        <Receipt size={14} /> পে নাও
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDownload(invoice._id, invoice._id.toString().substring(0, 6))}
                       disabled={downloadingId === invoice._id}
-                      className="w-full flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs rounded-2xl transition-all disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-2xl transition-all disabled:opacity-50"
                     >
                       {downloadingId === invoice._id ? (
                         <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
                       ) : (
                         <>
-                          <Download size={14} /> রিসিট ডাউনলোড
+                          <Download size={14} /> ডাউনলোড
                         </>
                       )}
                     </button>
@@ -188,30 +237,50 @@ const TenantInvoices = () => {
                       <td className="p-4 font-bold text-emerald-600 dark:text-emerald-400">৳{invoice.paidAmount}</td>
                       <td className="p-4 font-bold text-red-500 dark:text-red-400">৳{invoice.dueAmount}</td>
                       <td className="p-4">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${
-                          invoice.status === "Paid" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" :
-                          invoice.status === "Partial" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" :
-                          "bg-red-100 text-red-600 dark:bg-red-900/30"
-                        }`}>
-                          {invoice.status === "Paid" && <CheckCircle2 size={14} />}
-                          {invoice.status === "Unpaid" && <Clock size={14} />}
-                          {invoice.status === "Partial" && <FileText size={14} />}
-                          {invoice.status}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${
+                            invoice.status === "Paid" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30" :
+                            invoice.status === "Partial" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" :
+                            "bg-red-100 text-red-600 dark:bg-red-900/30"
+                          }`}>
+                            {invoice.status === "Paid" && <CheckCircle2 size={14} />}
+                            {invoice.status === "Unpaid" && <Clock size={14} />}
+                            {invoice.status === "Partial" && <FileText size={14} />}
+                            {invoice.status}
+                          </span>
+                          {invoice.pendingPayment?.amount > 0 && (
+                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                              <Clock size={10} /> ৳{invoice.pendingPayment.amount} অপেক্ষমান
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4 text-right">
-                        <button
-                          onClick={() => handleDownload(invoice._id, invoice._id.toString().substring(0, 6))}
-                          disabled={downloadingId === invoice._id}
-                          className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 rounded-xl transition-all disabled:opacity-50 inline-flex items-center justify-center"
-                          title="রিসিট ডাউনলোড করুন"
-                        >
-                          {downloadingId === invoice._id ? (
-                            <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-                          ) : (
-                            <Download size={18} />
+                        <div className="flex items-center justify-end gap-2">
+                          {invoice.status !== "Paid" && !(invoice.pendingPayment?.amount > 0) && (
+                            <button
+                              onClick={() => {
+                                setSelectedInvoice(invoice);
+                                setIsPaymentModalOpen(true);
+                              }}
+                              className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-xl transition-all font-bold text-xs"
+                            >
+                              পে নাও
+                            </button>
                           )}
-                        </button>
+                          <button
+                            onClick={() => handleDownload(invoice._id, invoice._id.toString().substring(0, 6))}
+                            disabled={downloadingId === invoice._id}
+                            className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 rounded-xl transition-all disabled:opacity-50 inline-flex items-center justify-center"
+                            title="রিসিট ডাউনলোড করুন"
+                          >
+                            {downloadingId === invoice._id ? (
+                              <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                            ) : (
+                              <Download size={18} />
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -220,6 +289,19 @@ const TenantInvoices = () => {
             </table>
           </div>
         </div>
+
+      {/* Payment Modal */}
+      <TenantPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => {
+          setIsPaymentModalOpen(false);
+          setSelectedInvoice(null);
+        }}
+        invoice={selectedInvoice}
+        paymentMethods={paymentMethods}
+        onSubmit={(data) => submitPaymentMutation.mutate({ invoiceId: selectedInvoice?._id, payload: data })}
+        isSubmitting={submitPaymentMutation.isPending}
+      />
     </div>
   );
 };

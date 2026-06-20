@@ -75,7 +75,11 @@ const Reports = () => {
 
   // CSV Download
   const downloadCSV = (type: "transactions" | "expenses") => {
-    const params = new URLSearchParams({ startDate: appliedFilters.startDate, endDate: appliedFilters.endDate });
+    const params = new URLSearchParams({ 
+      startDate: appliedFilters.startDate, 
+      endDate: appliedFilters.endDate,
+      propertyId: appliedFilters.propertyId
+    });
     fetch(`${BASE_URL}/export/${type}?${params}`, { headers: authHeader })
       .then(r => r.blob())
       .then(blob => {
@@ -88,7 +92,11 @@ const Reports = () => {
 
   // Excel Download
   const downloadExcel = async () => {
-    const params = new URLSearchParams({ startDate: appliedFilters.startDate, endDate: appliedFilters.endDate });
+    const params = new URLSearchParams({ 
+      startDate: appliedFilters.startDate, 
+      endDate: appliedFilters.endDate,
+      propertyId: appliedFilters.propertyId
+    });
     const res = await axios.get(`${BASE_URL}/export/excel?${params}`, { headers: authHeader });
     const { transactions, expenses } = res.data;
 

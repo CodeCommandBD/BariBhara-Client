@@ -59,7 +59,7 @@ const PropertyDetails = () => {
       </div>
 
       {/* ৫. বিল্ডিং ইনফো কার্ড (লাইভ ডাটা সহ) */}
-      <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm flex flex-col lg:flex-row gap-8 items-center justify-between">
+      <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm flex flex-col xl:flex-row gap-8 items-center justify-between overflow-hidden">
         <div className="flex flex-col md:flex-row gap-8 items-center flex-1 w-full">
           <div className="w-full md:w-64 h-48 rounded-2xl overflow-hidden shadow-lg bg-slate-100 flex-shrink-0">
           {property?.images?.[0] ? (
@@ -95,7 +95,7 @@ const PropertyDetails = () => {
         </div>
 
         {/* 🗺️ লাইভ ম্যাপ উইজেট */}
-        <div className="w-full lg:w-80 h-48 rounded-2xl overflow-hidden border border-slate-100 shadow-sm relative bg-slate-50 flex-shrink-0">
+        <div className="w-full xl:w-80 h-48 rounded-2xl overflow-hidden border border-slate-100 shadow-sm relative bg-slate-50 flex-shrink-0">
           <iframe
             title="Property Location Map"
             src={getMapEmbedUrl(property?.location || "")}
@@ -131,7 +131,8 @@ const PropertyDetails = () => {
         />
       ) : (
         <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="p-5 text-xs font-black text-slate-400 uppercase">ইউনিট</th>
@@ -221,6 +222,7 @@ const PropertyDetails = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

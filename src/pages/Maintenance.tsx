@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import EmptyState from "@/components/ui/EmptyState";
+import { useConfirmStore } from "@/store/useConfirmStore";
 
 // --- Types ---
 type Priority = "Low" | "Medium" | "High";
@@ -40,6 +41,7 @@ const emptyExpenseForm = {
 };
 
 const Maintenance = () => {
+  const { openConfirm } = useConfirmStore();
   const [activeTab, setActiveTab] = useState<"requests" | "expenses">("requests");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
@@ -276,7 +278,12 @@ const Maintenance = () => {
                     </div>
 
                     <button
-                      onClick={() => { if (window.confirm("নিশ্চিত ডিলিট করবেন?")) deleteMutation.mutate(item._id); }}
+                      onClick={() => openConfirm({
+                        title: "ডিলিট নিশ্চিতকরণ",
+                        message: "নিশ্চিত ডিলিট করবেন?",
+                        confirmText: "ডিলিট করুন",
+                        onConfirm: () => deleteMutation.mutate(item._id)
+                      })}
                       className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
                     >
                       <Trash2 size={15} />
@@ -363,7 +370,12 @@ const Maintenance = () => {
                   <div className="flex items-center gap-3 shrink-0">
                     <p className="font-black text-emerald-600 dark:text-emerald-400 text-lg">৳{exp.amount?.toLocaleString()}</p>
                     <button
-                      onClick={() => { if (window.confirm("এই খরচের রেকর্ড মুছবেন?")) deleteExpenseMutation.mutate(exp._id); }}
+                      onClick={() => openConfirm({
+                        title: "রেকর্ড ডিলিট",
+                        message: "এই খরচের রেকর্ড মুছবেন?",
+                        confirmText: "মুছুন",
+                        onConfirm: () => deleteExpenseMutation.mutate(exp._id)
+                      })}
                       className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
                     >
                       <Trash2 size={15} />

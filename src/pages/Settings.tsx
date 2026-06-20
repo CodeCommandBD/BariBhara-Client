@@ -14,6 +14,7 @@ import { io } from "socket.io-client";
 import { startRegistration } from "@simplewebauthn/browser";
 import { usePWA } from "@/Hook/usePWA";
 import { usePushNotifications } from "@/Hook/usePushNotifications";
+import NIDScanner from "@/components/common/NIDScanner";
 
 const BASE_URL = `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/profile`;
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -54,6 +55,7 @@ const Settings = () => {
   const [passForm, setPassForm] = useState({
     currentPassword: "", newPassword: "", confirmPassword: ""
   });
+  const [paymentForm, setPaymentForm] = useState({ bkash: "", nagad: "", rocket: "", bank: "" });
   const [showPass, setShowPass] = useState({ current: false, new: false, confirm: false });
 
   // ২FA স্টেট
@@ -64,6 +66,10 @@ const Settings = () => {
   // 🛡️ ভেরিফিকেশন মডাল স্টেট
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [verifyForm, setVerifyForm] = useState({ nidNumber: "", holdingNumber: "", message: "" });
+
+  const handleNidScanSuccess = (data: { name?: string; nid?: string }) => {
+    setVerifyForm(prev => ({ ...prev, nidNumber: data.nid || prev.nidNumber }));
+  };
 
   // 2FA Toggle Mutation
   const toggle2FAMutation = useMutation({
@@ -162,6 +168,19 @@ const Settings = () => {
     onError: (err: any) => toast.error(err.response?.data?.message || "পাসওয়ার্ড পরিবর্তন ব্যর্থ!"),
   });
 
+  // পেমেন্ট সেটিংস আপডেট
+  const updatePaymentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await axios.patch(`${BASE_URL}/payment-methods`, data, { headers: authHeader });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success("পেমেন্ট সেটিংস আপডেট হয়েছে!");
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || "পেমেন্ট আপডেট ব্যর্থ!"),
+  });
+
   // ৫. ভেরিফিকেশন অনুরোধ পাঠানো মিউটেশন
   const requestVerifyMutation = useMutation({
     mutationFn: async (payload: { nidNumber: string; holdingNumber: string; message: string }) => {
@@ -234,6 +253,15 @@ const Settings = () => {
 ৩. অগ্রিম বাবদ জমাকৃত টাকা চুক্তি শেষে সমন্বয় করা হইবে।
 ৪. বাসা ছাড়ার ১ মাস পূর্বে নোটিশ প্রদান করিতে হইবে।`,
       });
+
+      if (profileData.paymentMethods) {
+        setPaymentForm({
+          bkash: profileData.paymentMethods.bkash || "",
+          nagad: profileData.paymentMethods.nagad || "",
+          rocket: profileData.paymentMethods.rocket || "",
+          bank: profileData.paymentMethods.bank || ""
+        });
+      }
     }
   }, [profileData]);
 
@@ -298,7 +326,7 @@ const Settings = () => {
     .split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* হেডার */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -308,8 +336,8 @@ const Settings = () => {
       </div>
 
       {/* প্রোফাইল ছবি সেকশন */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
-        <div className="flex items-center gap-6">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
           <div className="relative group">
             <div className="w-24 h-24 rounded-[24px] bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-primary/30 overflow-hidden">
               {/* লোকাল প্রিভিউ > সার্ভারের ছবি > Initials */}
@@ -346,7 +374,7 @@ const Settings = () => {
           <div>
             <h2 className="text-xl font-black text-slate-800 dark:text-slate-100">{profileData?.fullName || user?.fullName}</h2>
             <p className="text-slate-400 text-sm">{profileData?.email || user?.email}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
               <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-black rounded-full capitalize">
                 {profileData?.role || user?.role}
               </span>
@@ -372,21 +400,21 @@ const Settings = () => {
 
       {/* বিলিং ও সাবস্ক্রিপশন সেকশন */}
       {profileData?.role === "landlord" && (
-        <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-900/10 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-3xl md:rounded-[32px] p-5 md:p-8 text-white shadow-xl shadow-indigo-900/10 relative overflow-hidden">
           {/* Decorative shapes */}
           <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
           <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row justify-between items-center md:items-center gap-6 relative z-10 text-center md:text-left">
+            <div className="w-full md:flex-1 space-y-3">
+              <div className="flex items-center justify-center md:justify-start gap-2">
                 <CreditCard className="text-violet-200" size={22} />
                 <h3 className="text-lg font-black tracking-tight text-white uppercase">বিলিং ও সাবস্ক্রিপশন</h3>
               </div>
               
               <div>
                 <p className="text-xs text-violet-200 font-bold uppercase tracking-wider">বর্তমান প্ল্যান</p>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1">
                   <span className="text-2xl font-black">
                     {profileData?.subscriptionPlan === "pro" ? "প্রো প্ল্যান (Pro Plan) 💎" : "ফ্রি প্ল্যান (Free Plan) ৳০"}
                   </span>
@@ -416,7 +444,7 @@ const Settings = () => {
                 {profileData?.subscriptionExpiresAt && profileData?.subscriptionPlan === "pro" && (() => {
                   const daysLeft = Math.ceil((new Date(profileData.subscriptionExpiresAt).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
                   return (
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-center md:justify-start gap-2 mt-2">
                       <p className="text-violet-200 font-bold">
                         ⏳ মেয়াদ শেষ হওয়ার তারিখ: {new Date(profileData.subscriptionExpiresAt).toLocaleDateString("bn-BD", { year: "numeric", month: "long", day: "numeric" })}
                       </p>
@@ -458,9 +486,9 @@ const Settings = () => {
 
       {/* 🛡️ প্রোফাইল ভেরিফিকেশন প্যানেল */}
       {profileData?.role === "landlord" && (
-        <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col lg:flex-row justify-between items-center lg:items-start text-center lg:text-left gap-6">
+          <div className="w-full lg:flex-1 space-y-2">
+            <div className="flex items-center justify-center lg:justify-start gap-2">
               <ShieldCheck className="text-primary" size={24} />
               <h3 className="text-lg font-black text-slate-800 dark:text-slate-200">🛡️ প্রোফাইল ভেরিফিকেশন স্ট্যাটাস</h3>
             </div>
@@ -475,38 +503,20 @@ const Settings = () => {
                 <span className="px-5 py-3 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-450 font-black rounded-2xl text-sm flex items-center gap-2">
                   <ShieldCheck size={18} className="text-emerald-500 fill-emerald-100" /> আপনার প্রোফাইল ভেরিফাইড!
                 </span>
-                <button
-                  onClick={() => simulateVerifyMutation.mutate()}
-                  className="text-xs text-red-500 hover:underline mt-1 cursor-pointer font-black"
-                >
-                  (সিমুলেশন: আনভেরিফাই করুন)
-                </button>
               </div>
             ) : profileData?.isVerified === "pending" ? (
               <div className="flex flex-col items-center lg:items-end gap-1">
                 <span className="px-5 py-3 bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-450 font-black rounded-2xl text-sm flex items-center gap-2 animate-pulse">
                   <RefreshCw size={16} className="animate-spin" /> ভেরিফিকেশন প্রক্রিয়াধীন রয়েছে...
                 </span>
-                <button
-                  onClick={() => simulateVerifyMutation.mutate()}
-                  className="text-xs text-primary hover:underline mt-1 cursor-pointer font-black"
-                >
-                  (সিমুলেশন: সরাসরি অনুমোদন করুন)
-                </button>
               </div>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-3 w-full">
+              <div className="flex flex-col gap-3 w-full">
                 <button
                   onClick={() => setIsVerifyModalOpen(true)}
                   className="px-6 py-3.5 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   🛡️ ভেরিফিকেশন অনুরোধ পাঠান
-                </button>
-                <button
-                  onClick={() => simulateVerifyMutation.mutate()}
-                  className="px-6 py-3.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-black rounded-2xl shadow-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-all text-sm flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95"
-                >
-                  ⚡ সরাসরি ভেরিফাই করুন (টেস্টিং)
                 </button>
               </div>
             )}
@@ -515,7 +525,7 @@ const Settings = () => {
       )}
 
       {/* প্রোফাইল তথ্য সম্পাদনা */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <FileText size={20} className="text-primary" /> ব্যক্তিগত তথ্য
         </h3>
@@ -571,8 +581,69 @@ const Settings = () => {
         </form>
       </div>
 
+      {/* পেমেন্ট রিসিভ সেটিংস */}
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
+          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          পেমেন্ট রিসিভ সেটিংস
+        </h3>
+        <p className="text-xs text-slate-500 mb-6 font-bold">ভাড়াটিয়ারা অনলাইনে পেমেন্ট করার সময় এই নম্বরগুলো দেখতে পাবেন।</p>
+        
+        <form onSubmit={(e) => { e.preventDefault(); updatePaymentMutation.mutate(paymentForm); }} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-400 uppercase ml-1">বিকাশ নম্বর</label>
+              <input
+                type="text"
+                placeholder="01XXXXXXXXX"
+                value={paymentForm.bkash}
+                onChange={(e) => setPaymentForm({ ...paymentForm, bkash: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-400 uppercase ml-1">নগদ নম্বর</label>
+              <input
+                type="text"
+                placeholder="01XXXXXXXXX"
+                value={paymentForm.nagad}
+                onChange={(e) => setPaymentForm({ ...paymentForm, nagad: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-400 uppercase ml-1">রকেট নম্বর</label>
+              <input
+                type="text"
+                placeholder="01XXXXXXXXX"
+                value={paymentForm.rocket}
+                onChange={(e) => setPaymentForm({ ...paymentForm, rocket: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-400 uppercase ml-1">ব্যাংক অ্যাকাউন্ট (ঐচ্ছিক)</label>
+              <input
+                type="text"
+                placeholder="Bank Name, A/C: XXXX"
+                value={paymentForm.bank}
+                onChange={(e) => setPaymentForm({ ...paymentForm, bank: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 rounded-xl text-sm font-bold outline-none border border-transparent focus:border-primary/30 dark:text-slate-200"
+              />
+            </div>
+          </div>
+          <button type="submit" disabled={updatePaymentMutation.isPending}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50">
+            {updatePaymentMutation.isPending ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save size={17} />}
+            পেমেন্ট নম্বর সেভ করুন
+          </button>
+        </form>
+      </div>
+
       {/* পাসওয়ার্ড পরিবর্তন */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <Lock size={20} className="text-primary" /> পাসওয়ার্ড পরিবর্তন
         </h3>
@@ -616,7 +687,7 @@ const Settings = () => {
       </div>
 
       {/* Two-Factor Authentication */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <ShieldAlert size={20} className="text-primary" /> ২-ধাপ যাচাইকরণ (2FA)
         </h3>
@@ -665,12 +736,12 @@ const Settings = () => {
       </div>
 
       {/* WhatsApp Integration */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <MessageSquare size={20} className="text-primary" /> WhatsApp ইন্টিগ্রেশন
         </h3>
         
-        <div className="flex flex-col md:flex-row items-center gap-8 p-6 bg-slate-50 dark:bg-slate-700/50 rounded-3xl border border-slate-100 dark:border-slate-700">
+        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 p-5 md:p-6 bg-slate-50 dark:bg-slate-700/50 rounded-3xl border border-slate-100 dark:border-slate-700">
           {/* QR Code / Status Icon */}
           <div className="relative">
             <div className="w-48 h-48 bg-white dark:bg-slate-800 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-600 flex items-center justify-center overflow-hidden">
@@ -713,7 +784,7 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
               {waStatus === "connected" ? (
                 <button 
                   onClick={() => logoutWhatsAppMutation.mutate()}
@@ -738,7 +809,7 @@ const Settings = () => {
       </div>
 
       {/* চুক্তিপত্রের শর্তাবলী (Agreement Template) */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <PenTool size={20} className="text-primary" /> ডিজিটাল চুক্তিপত্র টেমপ্লেট
         </h3>
@@ -770,7 +841,7 @@ const Settings = () => {
       </div>
 
       {/* Dark Mode & Appearance */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <Sun size={20} className="text-primary" /> অ্যাপিয়ারেন্স
         </h3>
@@ -798,7 +869,7 @@ const Settings = () => {
       </div>
 
       {/* 🚀 App Settings & PWA */}
-      <div className="bg-white dark:bg-slate-800 rounded-[32px] p-8 border border-slate-100 dark:border-slate-700 shadow-sm mt-8">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl md:rounded-[32px] p-5 md:p-8 border border-slate-100 dark:border-slate-700 shadow-sm mt-8">
         <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
           <ShieldAlert className="text-primary" size={20} />
           অ্যাপ সেটিংস ও নোটিফিকেশন
@@ -928,6 +999,11 @@ const Settings = () => {
                 }}
                 className="space-y-4"
               >
+                <div className="space-y-4">
+                  {/* NID Scanner Component */}
+                  <NIDScanner onScanSuccess={handleNidScanSuccess} />
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-black text-slate-400 uppercase ml-1">জাতীয় পরিচয়পত্র নম্বর (NID Number)</label>
                   <input
